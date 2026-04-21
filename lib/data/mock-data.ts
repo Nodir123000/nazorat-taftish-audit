@@ -1,0 +1,241 @@
+// Mock data for the system - simulates database records
+import { AnnualPlan, QuarterlyPlan, MonthlyPlan } from "@/lib/services/planning-service";
+
+export const mockUsers = [
+  {
+    id: "1",
+    username: "admin",
+    full_name: "Полковник Иванов И.И.",
+    rank: "Полковник",
+    position: "Начальник КРУ",
+    unit: "КРУ МО РФ",
+    role: "admin" as const,
+    created_at: "2024-01-01T00:00:00Z",
+  },
+  {
+    id: "2",
+    username: "auditor1",
+    full_name: "Подполковник Петров П.П.",
+    rank: "Подполковник",
+    position: "Старший ревизор",
+    unit: "КРУ МО РФ",
+    role: "auditor" as const,
+    created_at: "2024-01-01T00:00:00Z",
+  },
+]
+
+export const mockUnits = [
+  { id: "1", code: "ЗВО", name: "Западный военный округ", type: "Военный округ", parent_id: null },
+  { id: "2", code: "ЦВО", name: "Центральный военный округ", type: "Военный округ", parent_id: null },
+  { id: "3", code: "ЮВО", name: "Южный военный округ", type: "Военный округ", parent_id: null },
+  { id: "4", code: "ВВО", name: "Восточный военный округ", type: "Военный округ", parent_id: null },
+  { id: "5", code: "1ГТА", name: "1-я гвардейская танковая армия", type: "Армия", parent_id: "1" },
+]
+
+export const mockAnnualPlans: AnnualPlan[] = [
+  {
+    id: "1",
+    year: 2025,
+    status: "approved" as const,
+    approved_by: "Министр обороны РФ",
+    approved_date: "2024-12-15",
+    total_audits: 156,
+    created_at: "2024-11-01T00:00:00Z",
+    updated_at: "2024-12-15T00:00:00Z",
+  },
+  {
+    id: "2",
+    year: 2024,
+    status: "completed" as const,
+    approved_by: "Министр обороны РФ",
+    approved_date: "2023-12-20",
+    total_audits: 148,
+    created_at: "2023-11-01T00:00:00Z",
+    updated_at: "2024-12-31T00:00:00Z",
+  },
+]
+
+export const mockQuarterlyPlans: QuarterlyPlan[] = [
+  {
+    id: "1",
+    annual_plan_id: "1",
+    quarter: 1,
+    year: 2025,
+    status: "in_progress" as const,
+    planned_audits: 42,
+    created_at: "2024-12-01T00:00:00Z",
+  },
+  {
+    id: "2",
+    annual_plan_id: "1",
+    quarter: 2,
+    year: 2025,
+    status: "draft" as const,
+    planned_audits: 38,
+    created_at: "2024-12-01T00:00:00Z",
+  },
+]
+
+export const mockMonthlyPlans: MonthlyPlan[] = [
+  {
+    id: "1",
+    quarterly_plan_id: "1",
+    month: 1,
+    year: 2025,
+    status: "approved" as const,
+    planned_audits: 15,
+    created_at: "2024-12-15T00:00:00Z",
+  },
+  {
+    id: "2",
+    quarterly_plan_id: "1",
+    month: 2,
+    year: 2025,
+    status: "draft" as const,
+    planned_audits: 14,
+    created_at: "2025-01-15T00:00:00Z",
+  },
+]
+
+export const mockAudits = [
+  {
+    id: "1",
+    monthly_plan_id: "1",
+    audit_number: "Р-001/2025",
+    audit_type: "Комплексная ревизия",
+    unit_id: "5",
+    unit_name: "1-я гвардейская танковая армия",
+    start_date: "2025-01-15",
+    end_date: "2025-01-29",
+    status: "in_progress" as const,
+    lead_auditor_id: "2",
+    lead_auditor_name: "Подполковник Петров П.П.",
+    team_size: 5,
+    created_at: "2025-01-10T00:00:00Z",
+  },
+  {
+    id: "2",
+    monthly_plan_id: "1",
+    audit_number: "Р-002/2025",
+    audit_type: "Тематическая проверка",
+    unit_id: "2",
+    unit_name: "Центральный военный округ",
+    start_date: "2025-01-20",
+    end_date: "2025-02-03",
+    status: "planned" as const,
+    lead_auditor_id: "2",
+    lead_auditor_name: "Подполковник Петров П.П.",
+    team_size: 3,
+    created_at: "2025-01-10T00:00:00Z",
+  },
+  {
+    id: "3",
+    monthly_plan_id: null,
+    audit_number: "Р-145/2024",
+    audit_type: "Комплексная ревизия",
+    unit_id: "3",
+    unit_name: "Южный военный округ",
+    start_date: "2024-12-01",
+    end_date: "2024-12-20",
+    status: "completed" as const,
+    lead_auditor_id: "2",
+    lead_auditor_name: "Подполковник Петров П.П.",
+    team_size: 6,
+    created_at: "2024-11-25T00:00:00Z",
+  },
+]
+
+export const mockViolations = [
+  {
+    id: "1",
+    audit_id: "3",
+    violation_number: "Н-001/2024",
+    category: "Финансовые нарушения",
+    description: "Нецелевое использование бюджетных средств на сумму 2,5 млн руб.",
+    amount: 2500000,
+    severity: "high" as const,
+    status: "under_review" as const,
+    responsible_person: "Начальник финансовой службы",
+    unit_id: "3",
+    detected_date: "2024-12-15",
+    created_at: "2024-12-16T00:00:00Z",
+  },
+  {
+    id: "2",
+    audit_id: "3",
+    violation_number: "Н-002/2024",
+    category: "Материально-техническое обеспечение",
+    description: "Недостача материальных ценностей",
+    amount: 850000,
+    severity: "medium" as const,
+    status: "confirmed" as const,
+    responsible_person: "Начальник склада",
+    unit_id: "3",
+    detected_date: "2024-12-18",
+    created_at: "2024-12-19T00:00:00Z",
+  },
+  {
+    id: "3",
+    audit_id: "1",
+    violation_number: "Н-003/2025",
+    category: "Документооборот",
+    description: "Нарушение порядка ведения учетной документации",
+    amount: null,
+    severity: "low" as const,
+    status: "draft" as const,
+    responsible_person: "Начальник штаба",
+    unit_id: "5",
+    detected_date: "2025-01-20",
+    created_at: "2025-01-20T00:00:00Z",
+  },
+]
+
+export const mockDecisions = [
+  {
+    id: "1",
+    violation_id: "2",
+    decision_number: "Р-015/2024",
+    decision_type: "Дисциплинарное взыскание",
+    description: "Объявить выговор начальнику склада",
+    responsible_executor: "Командир части",
+    deadline: "2025-02-01",
+    status: "in_progress" as const,
+    issued_date: "2024-12-25",
+    created_at: "2024-12-25T00:00:00Z",
+  },
+  {
+    id: "2",
+    violation_id: "2",
+    decision_number: "Р-016/2024",
+    decision_type: "Возмещение ущерба",
+    description: "Взыскать сумму ущерба с виновных лиц",
+    responsible_executor: "Финансовая служба",
+    deadline: "2025-03-01",
+    status: "pending" as const,
+    issued_date: "2024-12-25",
+    created_at: "2024-12-25T00:00:00Z",
+  },
+]
+
+export const mockReports = [
+  {
+    id: "1",
+    report_type: "Ф.52/ФС",
+    title: "Отчет о проведенных ревизиях за 2024 год",
+    period_start: "2024-01-01",
+    period_end: "2024-12-31",
+    status: "completed" as const,
+    created_by: "1",
+    created_at: "2025-01-05T00:00:00Z",
+  },
+  {
+    id: "2",
+    report_type: "Ф.151/ФС",
+    title: "Отчет о выявленных нарушениях за 4 квартал 2024",
+    period_start: "2024-10-01",
+    period_end: "2024-12-31",
+    status: "draft" as const,
+    created_by: "2",
+    created_at: "2025-01-10T00:00:00Z",
+  },
+]

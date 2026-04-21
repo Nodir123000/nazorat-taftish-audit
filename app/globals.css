@@ -1,0 +1,330 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Military-style color scheme with dark greens, grays, and amber accents */
+  --background: oklch(0.99 0.002 120);
+  --foreground: oklch(0.25 0.01 120);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.25 0.01 120);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.25 0.01 120);
+  --primary: oklch(0.55 0.15 230);
+  --primary-foreground: oklch(0.99 0.002 120);
+  --secondary: oklch(0.6 0.12 150);
+  --secondary-foreground: oklch(0.99 0.002 120);
+  --muted: oklch(0.96 0.005 120);
+  --muted-foreground: oklch(0.5 0.01 120);
+  --accent: oklch(0.6 0.15 290);
+  --accent-foreground: oklch(0.99 0.002 120);
+  --destructive: oklch(0.55 0.15 25);
+  --destructive-foreground: oklch(0.99 0.002 120);
+  --warning: oklch(0.75 0.15 80);
+  --warning-foreground: oklch(0.25 0.01 120);
+  --border: oklch(0.9 0.005 120);
+  --input: oklch(0.96 0.005 120);
+  --ring: oklch(0.55 0.15 230);
+  --chart-1: oklch(0.55 0.15 230);
+  --chart-2: oklch(0.6 0.12 150);
+  --chart-3: oklch(0.6 0.15 290);
+  --chart-4: oklch(0.75 0.15 80);
+  --chart-5: oklch(0.55 0.15 25);
+  --radius: 0.25rem;
+  /* Sidebar: Premium Blue Theme (Matching reference design) */
+  --sidebar: hsl(207, 50%, 25%);
+  --sidebar-foreground: rgba(255, 255, 255, 0.9);
+  --sidebar-primary: hsl(190, 80%, 50%);
+  --sidebar-primary-foreground: white;
+  --sidebar-accent: rgba(255, 255, 255, 0.1);
+  --sidebar-accent-foreground: white;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: hsl(190, 80%, 50%);
+}
+
+.dark {
+  --background: oklch(0.15 0.01 120);
+  --foreground: oklch(0.92 0.005 120);
+  --card: oklch(0.18 0.01 120);
+  --card-foreground: oklch(0.92 0.005 120);
+  --popover: oklch(0.16 0.01 120);
+  --popover-foreground: oklch(0.92 0.005 120);
+  --primary: oklch(0.6 0.15 200);
+  --primary-foreground: oklch(0.15 0.01 120);
+  --secondary: oklch(0.6 0.1 150);
+  --secondary-foreground: oklch(0.15 0.01 120);
+  --muted: oklch(0.22 0.01 120);
+  --muted-foreground: oklch(0.65 0.005 120);
+  --accent: oklch(0.6 0.15 280);
+  --accent-foreground: oklch(0.15 0.01 120);
+  --destructive: oklch(0.5 0.18 25);
+  --destructive-foreground: oklch(0.92 0.005 120);
+  --warning: oklch(0.65 0.18 80);
+  --warning-foreground: oklch(0.15 0.01 120);
+  --border: oklch(0.28 0.01 120);
+  --input: oklch(0.22 0.01 120);
+  --ring: oklch(0.6 0.15 200);
+  --chart-1: oklch(0.6 0.15 200);
+  --chart-2: oklch(0.6 0.1 150);
+  --chart-3: oklch(0.6 0.15 280);
+  --chart-4: oklch(0.65 0.18 80);
+  --chart-5: oklch(0.5 0.18 25);
+  /* Dark mode sidebar - Base44 Dark Theme */
+  --sidebar: oklch(0.12 0.02 240);
+  --sidebar-foreground: oklch(0.9 0.01 240);
+  --sidebar-primary: oklch(0.55 0.25 250);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.25 0.03 240);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.2 0.02 240);
+  --sidebar-ring: oklch(0.55 0.25 250);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  /* Inter font configuration matching reference design */
+  --font-sans: var(--font-inter);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    /* 14px base font size as per reference design */
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    /* 16-18px for headings as per reference design */
+    font-weight: 600;
+  }
+
+  h1 {
+    font-size: 18px;
+  }
+
+  h2 {
+    font-size: 16px;
+  }
+}
+
+@layer components {
+
+  /* Enhanced sidebar menu items with better colors and transitions */
+  .sidebar-menu-item {
+    @apply rounded-sm transition-colors duration-150 hover:bg-zinc-800 px-2 py-1.5;
+  }
+
+  .sidebar-menu-item[data-active="true"] {
+    @apply bg-zinc-800 font-semibold;
+  }
+
+  .sidebar-submenu-item {
+    @apply rounded-sm transition-colors duration-150 hover:bg-zinc-800/50 px-3 py-1.5;
+  }
+
+  .sidebar-section-item {
+    @apply rounded-sm transition-colors duration-150 hover:bg-zinc-800/30 px-3 py-1.5;
+  }
+
+  .sidebar-section-item[data-active="true"] {
+    @apply bg-zinc-800 text-amber-500 font-semibold border-l-2 border-amber-600 pl-2.5;
+  }
+
+  /* Statistics card styling with pastel colors and 8px border-radius */
+  .stat-card {
+    @apply rounded-lg p-6 transition-all duration-300 border-2 shadow-sm;
+  }
+
+  .stat-card-blue {
+    @apply bg-primary/5 border-primary/20 hover:border-primary/40 hover:shadow-md;
+  }
+
+  .stat-card-green {
+    @apply bg-secondary/5 border-secondary/20 hover:border-secondary/40 hover:shadow-md;
+  }
+
+  .stat-card-purple {
+    @apply bg-accent/5 border-accent/20 hover:border-accent/40 hover:shadow-md;
+  }
+
+  .stat-card-yellow {
+    @apply bg-warning/5 border-warning/20 hover:border-warning/40 hover:shadow-md;
+  }
+
+  /* Module cards */
+  .module-card {
+    @apply transition-all duration-300;
+  }
+
+  .module-card-title {
+    @apply font-semibold tracking-tight text-base;
+  }
+
+  .module-card-description {
+    @apply leading-relaxed text-sm;
+  }
+
+  /* Quick action buttons */
+  .quick-action-btn {
+    @apply font-medium tracking-wide shadow-sm hover:shadow-md transition-all duration-200;
+  }
+
+  /* Tab styling similar to reference design */
+  .tab-button {
+    @apply px-6 py-3 font-medium text-sm transition-all duration-200 border-b-2 border-transparent;
+  }
+
+  .tab-button-active {
+    @apply border-primary text-primary font-semibold;
+  }
+
+  .tab-button:hover:not(.tab-button-active) {
+    @apply border-muted-foreground/30 text-foreground;
+  }
+
+  /* Material Design table styling */
+  .data-table {
+    @apply w-full border-collapse;
+  }
+
+  .data-table thead {
+    @apply bg-muted/50;
+  }
+
+  .data-table th {
+    @apply px-4 py-3 text-left text-sm font-semibold text-foreground border-b-2 border-border;
+  }
+
+  .data-table td {
+    @apply px-4 py-3 text-sm border-b border-border;
+  }
+
+  .data-table tbody tr {
+    @apply transition-colors hover:bg-muted/30;
+  }
+
+  .data-table tbody tr:nth-child(even) {
+    @apply bg-muted/10;
+  }
+
+  /* Status badges with colored backgrounds */
+  .status-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .status-badge-active {
+    @apply bg-secondary/20 text-secondary-foreground border border-secondary/30;
+  }
+
+  .status-badge-pending {
+    @apply bg-warning/20 text-warning-foreground border border-warning/30;
+  }
+
+  .status-badge-completed {
+    @apply bg-muted text-muted-foreground border border-border;
+  }
+
+  /* Force tour tooltip to stay fixed at bottom-left */
+  .__floater {
+    position: fixed !important;
+    bottom: 20px !important;
+    left: 20px !important;
+    top: auto !important;
+    right: auto !important;
+    transform: none !important;
+    /* Added width constraint to fit within sidebar */
+    width: 220px !important;
+    max-width: 220px !important;
+  }
+
+  .__floater__body {
+    position: static !important;
+    transform: none !important;
+    /* Ensure body also respects width */
+    width: 100% !important;
+  }
+
+  .react-joyride__tooltip {
+    position: static !important;
+    transform: none !important;
+    /* Tooltip width matches container */
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Updated button layout selectors to use correct Joyride classes */
+  /* Rearrange tour buttons: Back and Skip on top row, Next button below on separate row */
+  .react-joyride__tooltip__footer {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin-top: 12px !important;
+  }
+
+  /* First row: Back and Skip buttons side by side */
+  .react-joyride__tooltip__footer>div:first-child {
+    display: flex !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  /* Back and Skip buttons */
+  .react-joyride__tooltip__button--back,
+  .react-joyride__tooltip__button--skip {
+    flex: 1 !important;
+  }
+
+  /* Next/Primary button takes full width on second row */
+  .react-joyride__tooltip__button--primary {
+    width: 100% !important;
+    margin-top: 4px !important;
+  }
+}

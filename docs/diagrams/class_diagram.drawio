@@ -1,0 +1,67 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="UML Class Diagram">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- User -->
+        <mxCell id="user" value="Пользователь&#xa;--&#xa;+ PK ID: Целое [0..1]&#xa;+ Фото: Объект [1..1]&#xa;+ Имя: Строка [1..1]&#xa;+ email: Строка [1..1]&#xa;+ Телефон: Строка [1..1]&#xa;+ Роль: Строка [0..1]&#xa;+ Статус: Логика [0..1]&#xa;--&#xa;+ Авторизоваться()&#xa;+ СменитьФото()&#xa;+ ОставитьОтзыв()" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="360" y="640" width="180" height="200" as="geometry" />
+        </mxCell>
+
+        <!-- Object Card -->
+        <mxCell id="property" value="Карточка объекта&#xa;--&#xa;+ PK ID: Целое [1..1]&#xa;+ Адрес: Строка [1..1]&#xa;+ Описание: Текст [1..1]&#xa;+ Фотографии: Список [0..20]&#xa;+ Цена: Вещественное [1..1]&#xa;--&#xa;+ ДобавитьЖилье()&#xa;+ ИскатьЖилье()&#xa;+ ОбновитьДетали()" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="680" y="340" width="180" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- Payment Card -->
+        <mxCell id="card" value="Платежная карта&#xa;--&#xa;+ PK ID: Целое [1..1]&#xa;+ Срок действия: Дата [1..1]&#xa;+ Номер: Строка [1..1]&#xa;+ FK Владелец: Объект [1..1]&#xa;+ Статус: Логика [1..1]&#xa;--&#xa;+ Удалить()&#xa;+ ВыбратьКарту()&#xa;+ ОбновитьДетали()" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="60" y="40" width="180" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- Booking -->
+        <mxCell id="booking" value="Бронирование&#xa;--&#xa;+ PK ID: Целое [1..1]&#xa;+ Сумма: Вещественное [1..1]&#xa;+ FK Жилье: Объект [1..1]&#xa;+ Дата заселения: Дата [1..1]&#xa;+ Дата выселения: Дата [1..1]&#xa;+ FK Арендатор: Объект [1..1]&#xa;+ FK Арендодатель: Объект [1..1]&#xa;+ Статус: Строка [1..1]&#xa;--&#xa;+ Отменить()&#xa;+ Подтвердить()&#xa;+ СоздатьБронирование()&#xa;+ ЗаблокироватьДепозит()" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="680" y="640" width="200" height="220" as="geometry" />
+        </mxCell>
+
+        <!-- File -->
+        <mxCell id="file" value="Файл&#xa;--&#xa;+ PK ID: Целое [1..1]&#xa;+ Имя: Строка [1..1]&#xa;+ FK Владелец: Объект [1..1]&#xa;+ Путь: Строка [1..1]&#xa;+ Тип: Строка [1..1]&#xa;--&#xa;+ Удалить()&#xa;+ Скачать()&#xa;+ Загрузить()" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="360" y="40" width="180" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- Payment -->
+        <mxCell id="payment" value="Оплата&#xa;--&#xa;+ PK ID: Целое [1..1]&#xa;+ Сумма: Вещественное [1..1]&#xa;+ FK Бронирование: Объект [1..1]&#xa;+ Дата: Дата [1..1]&#xa;+ Метод: Строка [1..1]&#xa;+ Статус: Строка [1..1]&#xa;--&#xa;+ Отменить()&#xa;+ Подтвердить()&#xa;+ СоздатьПлатеж()" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="680" y="40" width="180" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- Complaint -->
+        <mxCell id="complaint" value="Жалоба&#xa;--&#xa;+ PK ID: Целое [1..1]&#xa;+ Дата: Дата [1..1]&#xa;+ Статус: Строка [1..1]&#xa;+ FK Инициатор: Объект [1..1]&#xa;+ FK Цель (объект): Объект [1..1]&#xa;+ Текст: Текст [1..1]&#xa;--&#xa;+ Отклонить()&#xa;+ ПодатьЖалобу()&#xa;+ Рассмотреть()" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="60" y="340" width="200" height="200" as="geometry" />
+        </mxCell>
+
+        <!-- Message -->
+        <mxCell id="message" value="Сообщение&#xa;--&#xa;+ PK ID: Целое [1..1]&#xa;+ FK Чат: Объект [1..1]&#xa;+ Получатель: Объект [1..1]&#xa;+ Отправитель: Объект [1..1]&#xa;+ Время: Дата [1..1]&#xa;+ Текст: Текст&#xa;--&#xa;+ Удалить()&#xa;+ Отправить()&#xa;+ ПросмотретьИсторию()" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="360" y="340" width="180" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- Review -->
+        <mxCell id="review" value="Обзор&#xa;--&#xa;+ PK ID: Целое [1..1]&#xa;+ FK Автор: Объект [1..1]&#xa;+ Дата: Дата [1..1]&#xa;+ Рейтинг: Вещественное [1..1]&#xa;+ FK Цель (объект): Объект [1..1]&#xa;+ Текст: Текст [1..1]&#xa;--&#xa;+ ДобавитьОтзыв()&#xa;+ Модерировать()" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="60" y="640" width="200" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- Relationships -->
+        <mxCell id="rel_owner" value="owner" style="endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="card" target="user">
+          <mxGeometry relative="1" as="geometry"><Array points="150,600,450,600" /></mxGeometry>
+        </mxCell>
+        <mxCell id="rel_file" value="photos" style="endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="file" target="property">
+          <mxGeometry relative="1" as="geometry"><Array points="580,130,580,430" /></mxGeometry>
+        </mxCell>
+        <mxCell id="rel_booking" value="booking" style="endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="payment" target="booking">
+          <mxGeometry relative="1" as="geometry"><Array points="920,130,920,750" /></mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

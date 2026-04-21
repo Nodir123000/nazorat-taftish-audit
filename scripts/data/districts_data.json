@@ -1,0 +1,1178 @@
+{
+  "regions_counts": {
+    "Андижанская область": 5,
+    "Бухарская область": 13,
+    "Ферганская область": 19,
+    "Джизакская область": 13,
+    "Республика Каракалпакстан": 17,
+    "Кашкадарьинская область": 14,
+    "Наманганская область": 14,
+    "Навоийская область": 11,
+    "Самаркандская область": 16,
+    "Сурхандарьинская область": 14,
+    "Сырдарьинская область": 11,
+    "г. Ташкент": 11,
+    "Ташкентская область": 22,
+    "Хорезмская область": 13
+  },
+  "districts": [
+    {
+      "id": 1,
+      "name": "Ulugnor район",
+      "region": "Андижанская область",
+      "type": "District"
+    },
+    {
+      "id": 2,
+      "name": "Boston район",
+      "region": "Андижанская область",
+      "type": "District"
+    },
+    {
+      "id": 3,
+      "name": "Baliqchi район",
+      "region": "Андижанская область",
+      "type": "District"
+    },
+    {
+      "id": 4,
+      "name": "Izboskan район",
+      "region": "Андижанская область",
+      "type": "District"
+    },
+    {
+      "id": 5,
+      "name": "Paxtaobod район",
+      "region": "Андижанская область",
+      "type": "District"
+    },
+    {
+      "id": 6,
+      "name": "Jondor район",
+      "region": "Бухарская область",
+      "type": "District"
+    },
+    {
+      "id": 7,
+      "name": "Qorakol район",
+      "region": "Бухарская область",
+      "type": "District"
+    },
+    {
+      "id": 8,
+      "name": "Peshku район",
+      "region": "Бухарская область",
+      "type": "District"
+    },
+    {
+      "id": 9,
+      "name": "Olot район",
+      "region": "Бухарская область",
+      "type": "District"
+    },
+    {
+      "id": 10,
+      "name": "Qoravulbozor район",
+      "region": "Бухарская область",
+      "type": "District"
+    },
+    {
+      "id": 11,
+      "name": "Romitan район",
+      "region": "Бухарская область",
+      "type": "District"
+    },
+    {
+      "id": 12,
+      "name": "Buxoro район",
+      "region": "Бухарская область",
+      "type": "District"
+    },
+    {
+      "id": 13,
+      "name": "Kogon район",
+      "region": "Бухарская область",
+      "type": "District"
+    },
+    {
+      "id": 14,
+      "name": "Vobkent район",
+      "region": "Бухарская область",
+      "type": "District"
+    },
+    {
+      "id": 15,
+      "name": "Shofirkon район",
+      "region": "Бухарская область",
+      "type": "District"
+    },
+    {
+      "id": 16,
+      "name": "Gijduvon район",
+      "region": "Бухарская область",
+      "type": "District"
+    },
+    {
+      "id": 17,
+      "name": "г. Kogon",
+      "region": "Бухарская область",
+      "type": "City"
+    },
+    {
+      "id": 18,
+      "name": "г. Buxoro",
+      "region": "Бухарская область",
+      "type": "City"
+    },
+    {
+      "id": 19,
+      "name": "Beshariq район",
+      "region": "Ферганская область",
+      "type": "District"
+    },
+    {
+      "id": 20,
+      "name": "Furqat район",
+      "region": "Ферганская область",
+      "type": "District"
+    },
+    {
+      "id": 21,
+      "name": "Dangara район",
+      "region": "Ферганская область",
+      "type": "District"
+    },
+    {
+      "id": 22,
+      "name": "г. Qoqon",
+      "region": "Ферганская область",
+      "type": "City"
+    },
+    {
+      "id": 23,
+      "name": "Ozbekiston район",
+      "region": "Ферганская область",
+      "type": "District"
+    },
+    {
+      "id": 24,
+      "name": "Uchkoprik район",
+      "region": "Ферганская область",
+      "type": "District"
+    },
+    {
+      "id": 25,
+      "name": "Buvayda район",
+      "region": "Ферганская область",
+      "type": "District"
+    },
+    {
+      "id": 26,
+      "name": "Bagdod район",
+      "region": "Ферганская область",
+      "type": "District"
+    },
+    {
+      "id": 27,
+      "name": "Oltiariq район",
+      "region": "Ферганская область",
+      "type": "District"
+    },
+    {
+      "id": 28,
+      "name": "Rishton район",
+      "region": "Ферганская область",
+      "type": "District"
+    },
+    {
+      "id": 29,
+      "name": "Quva район",
+      "region": "Ферганская область",
+      "type": "District"
+    },
+    {
+      "id": 30,
+      "name": "г. Quvasoy",
+      "region": "Ферганская область",
+      "type": "City"
+    },
+    {
+      "id": 31,
+      "name": "Toshloq район",
+      "region": "Ферганская область",
+      "type": "District"
+    },
+    {
+      "id": 32,
+      "name": "Qoshtepa район",
+      "region": "Ферганская область",
+      "type": "District"
+    },
+    {
+      "id": 33,
+      "name": "г. Margilon",
+      "region": "Ферганская область",
+      "type": "City"
+    },
+    {
+      "id": 34,
+      "name": "Yozyovon район",
+      "region": "Ферганская область",
+      "type": "District"
+    },
+    {
+      "id": 35,
+      "name": "Sox район",
+      "region": "Ферганская область",
+      "type": "District"
+    },
+    {
+      "id": 36,
+      "name": "Fargona район",
+      "region": "Ферганская область",
+      "type": "District"
+    },
+    {
+      "id": 37,
+      "name": "г. Fargona",
+      "region": "Ферганская область",
+      "type": "City"
+    },
+    {
+      "id": 38,
+      "name": "Forish район",
+      "region": "Джизакская область",
+      "type": "District"
+    },
+    {
+      "id": 39,
+      "name": "Gallaorol район",
+      "region": "Джизакская область",
+      "type": "District"
+    },
+    {
+      "id": 40,
+      "name": "Baxmal район",
+      "region": "Джизакская область",
+      "type": "District"
+    },
+    {
+      "id": 41,
+      "name": "Zomin район",
+      "region": "Джизакская область",
+      "type": "District"
+    },
+    {
+      "id": 42,
+      "name": "Yangiobod район",
+      "region": "Джизакская область",
+      "type": "District"
+    },
+    {
+      "id": 43,
+      "name": "SharofRashidov район",
+      "region": "Джизакская область",
+      "type": "District"
+    },
+    {
+      "id": 44,
+      "name": "г. Jizzax",
+      "region": "Джизакская область",
+      "type": "City"
+    },
+    {
+      "id": 45,
+      "name": "Arnasoy район",
+      "region": "Джизакская область",
+      "type": "District"
+    },
+    {
+      "id": 46,
+      "name": "Zafarobod район",
+      "region": "Джизакская область",
+      "type": "District"
+    },
+    {
+      "id": 47,
+      "name": "Zarbdor район",
+      "region": "Джизакская область",
+      "type": "District"
+    },
+    {
+      "id": 48,
+      "name": "Paxtakor район",
+      "region": "Джизакская область",
+      "type": "District"
+    },
+    {
+      "id": 49,
+      "name": "Dostlik район",
+      "region": "Джизакская область",
+      "type": "District"
+    },
+    {
+      "id": 50,
+      "name": "Mirzachol район",
+      "region": "Джизакская область",
+      "type": "District"
+    },
+    {
+      "id": 51,
+      "name": "Moynoq район",
+      "region": "Республика Каракалпакстан",
+      "type": "District"
+    },
+    {
+      "id": 52,
+      "name": "Qongirot район",
+      "region": "Республика Каракалпакстан",
+      "type": "District"
+    },
+    {
+      "id": 53,
+      "name": "Taxtakopir район",
+      "region": "Республика Каракалпакстан",
+      "type": "District"
+    },
+    {
+      "id": 54,
+      "name": "Ellikqala район",
+      "region": "Республика Каракалпакстан",
+      "type": "District"
+    },
+    {
+      "id": 55,
+      "name": "Tortkol район",
+      "region": "Республика Каракалпакстан",
+      "type": "District"
+    },
+    {
+      "id": 56,
+      "name": "Beruniy район",
+      "region": "Республика Каракалпакстан",
+      "type": "District"
+    },
+    {
+      "id": 57,
+      "name": "Amudaryo район",
+      "region": "Республика Каракалпакстан",
+      "type": "District"
+    },
+    {
+      "id": 58,
+      "name": "Xojayli район",
+      "region": "Республика Каракалпакстан",
+      "type": "District"
+    },
+    {
+      "id": 59,
+      "name": "Taxiatosh район",
+      "region": "Республика Каракалпакстан",
+      "type": "District"
+    },
+    {
+      "id": 60,
+      "name": "Shumanay район",
+      "region": "Республика Каракалпакстан",
+      "type": "District"
+    },
+    {
+      "id": 61,
+      "name": "Qanlikol район",
+      "region": "Республика Каракалпакстан",
+      "type": "District"
+    },
+    {
+      "id": 62,
+      "name": "Nukus район",
+      "region": "Республика Каракалпакстан",
+      "type": "District"
+    },
+    {
+      "id": 63,
+      "name": "Buzatov район",
+      "region": "Республика Каракалпакстан",
+      "type": "District"
+    },
+    {
+      "id": 64,
+      "name": "Chimboy район",
+      "region": "Республика Каракалпакстан",
+      "type": "District"
+    },
+    {
+      "id": 65,
+      "name": "Kegeyli район",
+      "region": "Республика Каракалпакстан",
+      "type": "District"
+    },
+    {
+      "id": 66,
+      "name": "г. Nukus",
+      "region": "Республика Каракалпакстан",
+      "type": "City"
+    },
+    {
+      "id": 67,
+      "name": "Qoraozak район",
+      "region": "Республика Каракалпакстан",
+      "type": "District"
+    },
+    {
+      "id": 68,
+      "name": "Mirishkor район",
+      "region": "Кашкадарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 69,
+      "name": "Muborak район",
+      "region": "Кашкадарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 70,
+      "name": "Koson район",
+      "region": "Кашкадарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 71,
+      "name": "Chiroqchi район",
+      "region": "Кашкадарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 72,
+      "name": "Kitob район",
+      "region": "Кашкадарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 73,
+      "name": "Shahrisabz район",
+      "region": "Кашкадарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 74,
+      "name": "Nishon район",
+      "region": "Кашкадарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 75,
+      "name": "Guzor район",
+      "region": "Кашкадарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 76,
+      "name": "Dehqonobod район",
+      "region": "Кашкадарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 77,
+      "name": "Qamashi район",
+      "region": "Кашкадарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 78,
+      "name": "Yakkabog район",
+      "region": "Кашкадарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 79,
+      "name": "Kasbi район",
+      "region": "Кашкадарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 80,
+      "name": "Qarshi район",
+      "region": "Кашкадарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 81,
+      "name": "г. Qarshi",
+      "region": "Кашкадарьинская область",
+      "type": "City"
+    },
+    {
+      "id": 82,
+      "name": "Pop район",
+      "region": "Наманганская область",
+      "type": "District"
+    },
+    {
+      "id": 83,
+      "name": "Chust район",
+      "region": "Наманганская область",
+      "type": "District"
+    },
+    {
+      "id": 84,
+      "name": "Toraqorgon район",
+      "region": "Наманганская область",
+      "type": "District"
+    },
+    {
+      "id": 85,
+      "name": "Mingbuloq район",
+      "region": "Наманганская область",
+      "type": "District"
+    },
+    {
+      "id": 86,
+      "name": "Kosonsoy район",
+      "region": "Наманганская область",
+      "type": "District"
+    },
+    {
+      "id": 87,
+      "name": "Yangiqorgon район",
+      "region": "Наманганская область",
+      "type": "District"
+    },
+    {
+      "id": 88,
+      "name": "Chortoq район",
+      "region": "Наманганская область",
+      "type": "District"
+    },
+    {
+      "id": 89,
+      "name": "Uychi район",
+      "region": "Наманганская область",
+      "type": "District"
+    },
+    {
+      "id": 90,
+      "name": "Uchqorgon район",
+      "region": "Наманганская область",
+      "type": "District"
+    },
+    {
+      "id": 91,
+      "name": "Norin район",
+      "region": "Наманганская область",
+      "type": "District"
+    },
+    {
+      "id": 92,
+      "name": "Namangan район",
+      "region": "Наманганская область",
+      "type": "District"
+    },
+    {
+      "id": 93,
+      "name": "г. Namangan",
+      "region": "Наманганская область",
+      "type": "City"
+    },
+    {
+      "id": 94,
+      "name": "Davlatobod район",
+      "region": "Наманганская область",
+      "type": "District"
+    },
+    {
+      "id": 95,
+      "name": "YangiNamangan район",
+      "region": "Наманганская область",
+      "type": "District"
+    },
+    {
+      "id": 96,
+      "name": "Uchquduq район",
+      "region": "Навоийская область",
+      "type": "District"
+    },
+    {
+      "id": 97,
+      "name": "Tomdi район",
+      "region": "Навоийская область",
+      "type": "District"
+    },
+    {
+      "id": 98,
+      "name": "Nurota район",
+      "region": "Навоийская область",
+      "type": "District"
+    },
+    {
+      "id": 99,
+      "name": "г. Gozgon",
+      "region": "Навоийская область",
+      "type": "City"
+    },
+    {
+      "id": 100,
+      "name": "Xatirchi район",
+      "region": "Навоийская область",
+      "type": "District"
+    },
+    {
+      "id": 101,
+      "name": "Qiziltepa район",
+      "region": "Навоийская область",
+      "type": "District"
+    },
+    {
+      "id": 102,
+      "name": "Konimex район",
+      "region": "Навоийская область",
+      "type": "District"
+    },
+    {
+      "id": 103,
+      "name": "Karmana район",
+      "region": "Навоийская область",
+      "type": "District"
+    },
+    {
+      "id": 104,
+      "name": "г. Navoiy",
+      "region": "Навоийская область",
+      "type": "City"
+    },
+    {
+      "id": 105,
+      "name": "Navbahor район",
+      "region": "Навоийская область",
+      "type": "District"
+    },
+    {
+      "id": 106,
+      "name": "г. Zarafshon",
+      "region": "Навоийская область",
+      "type": "City"
+    },
+    {
+      "id": 107,
+      "name": "Nurobod район",
+      "region": "Самаркандская область",
+      "type": "District"
+    },
+    {
+      "id": 108,
+      "name": "Urgut район",
+      "region": "Самаркандская область",
+      "type": "District"
+    },
+    {
+      "id": 109,
+      "name": "Toyloq район",
+      "region": "Самаркандская область",
+      "type": "District"
+    },
+    {
+      "id": 110,
+      "name": "Bulungur район",
+      "region": "Самаркандская область",
+      "type": "District"
+    },
+    {
+      "id": 111,
+      "name": "Jomboy район",
+      "region": "Самаркандская область",
+      "type": "District"
+    },
+    {
+      "id": 112,
+      "name": "Payariq район",
+      "region": "Самаркандская область",
+      "type": "District"
+    },
+    {
+      "id": 113,
+      "name": "Qoshrabot район",
+      "region": "Самаркандская область",
+      "type": "District"
+    },
+    {
+      "id": 114,
+      "name": "Paxtachi район",
+      "region": "Самаркандская область",
+      "type": "District"
+    },
+    {
+      "id": 115,
+      "name": "Narpay район",
+      "region": "Самаркандская область",
+      "type": "District"
+    },
+    {
+      "id": 116,
+      "name": "Kattaqorgon район",
+      "region": "Самаркандская область",
+      "type": "District"
+    },
+    {
+      "id": 117,
+      "name": "г. Kattaqorgon",
+      "region": "Самаркандская область",
+      "type": "City"
+    },
+    {
+      "id": 118,
+      "name": "Samarqand район",
+      "region": "Самаркандская область",
+      "type": "District"
+    },
+    {
+      "id": 119,
+      "name": "г. Samarqand",
+      "region": "Самаркандская область",
+      "type": "City"
+    },
+    {
+      "id": 120,
+      "name": "Pastdargom район",
+      "region": "Самаркандская область",
+      "type": "District"
+    },
+    {
+      "id": 121,
+      "name": "Oqdaryo район",
+      "region": "Самаркандская область",
+      "type": "District"
+    },
+    {
+      "id": 122,
+      "name": "Ishtixon район",
+      "region": "Самаркандская область",
+      "type": "District"
+    },
+    {
+      "id": 123,
+      "name": "Sariosiyo район",
+      "region": "Сурхандарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 124,
+      "name": "Boysun район",
+      "region": "Сурхандарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 125,
+      "name": "Sherobod район",
+      "region": "Сурхандарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 126,
+      "name": "Qiziriq район",
+      "region": "Сурхандарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 127,
+      "name": "Bandihon район",
+      "region": "Сурхандарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 128,
+      "name": "Uzun район",
+      "region": "Сурхандарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 129,
+      "name": "Shorchi район",
+      "region": "Сурхандарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 130,
+      "name": "Oltinsoy район",
+      "region": "Сурхандарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 131,
+      "name": "Denov район",
+      "region": "Сурхандарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 132,
+      "name": "Muzrabot район",
+      "region": "Сурхандарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 133,
+      "name": "Termiz район",
+      "region": "Сурхандарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 134,
+      "name": "г. Termiz",
+      "region": "Сурхандарьинская область",
+      "type": "City"
+    },
+    {
+      "id": 135,
+      "name": "Angor район",
+      "region": "Сурхандарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 136,
+      "name": "Qumqorgon район",
+      "region": "Сурхандарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 137,
+      "name": "Sardoba район",
+      "region": "Сырдарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 138,
+      "name": "Xovos район",
+      "region": "Сырдарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 139,
+      "name": "Oqoltin район",
+      "region": "Сырдарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 140,
+      "name": "Mirzaobod район",
+      "region": "Сырдарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 141,
+      "name": "Boyovut район",
+      "region": "Сырдарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 142,
+      "name": "Guliston район",
+      "region": "Сырдарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 143,
+      "name": "г. Guliston",
+      "region": "Сырдарьинская область",
+      "type": "City"
+    },
+    {
+      "id": 144,
+      "name": "Sayxunobod район",
+      "region": "Сырдарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 145,
+      "name": "Sirdaryo район",
+      "region": "Сырдарьинская область",
+      "type": "District"
+    },
+    {
+      "id": 146,
+      "name": "г. Yangiyer",
+      "region": "Сырдарьинская область",
+      "type": "City"
+    },
+    {
+      "id": 147,
+      "name": "г. Shirin",
+      "region": "Сырдарьинская область",
+      "type": "City"
+    },
+    {
+      "id": 148,
+      "name": "Бектемирский район",
+      "region": "г. Ташкент",
+      "type": "District"
+    },
+    {
+      "id": 149,
+      "name": "Чиланзарский район",
+      "region": "г. Ташкент",
+      "type": "District"
+    },
+    {
+      "id": 150,
+      "name": "Мирабадский район",
+      "region": "г. Ташкент",
+      "type": "District"
+    },
+    {
+      "id": 151,
+      "name": "Мирзо-Улугбекский район",
+      "region": "г. Ташкент",
+      "type": "District"
+    },
+    {
+      "id": 152,
+      "name": "Алмазарский район",
+      "region": "г. Ташкент",
+      "type": "District"
+    },
+    {
+      "id": 153,
+      "name": "Шайхантахурский район",
+      "region": "г. Ташкент",
+      "type": "District"
+    },
+    {
+      "id": 154,
+      "name": "Сергелийский район",
+      "region": "г. Ташкент",
+      "type": "District"
+    },
+    {
+      "id": 155,
+      "name": "Учтепинский район",
+      "region": "г. Ташкент",
+      "type": "District"
+    },
+    {
+      "id": 156,
+      "name": "Яккасарайский район",
+      "region": "г. Ташкент",
+      "type": "District"
+    },
+    {
+      "id": 157,
+      "name": "Яшнабадский район",
+      "region": "г. Ташкент",
+      "type": "District"
+    },
+    {
+      "id": 158,
+      "name": "Юнусабадский район",
+      "region": "г. Ташкент",
+      "type": "District"
+    },
+    {
+      "id": 159,
+      "name": "Bostonliq район",
+      "region": "Ташкентская область",
+      "type": "District"
+    },
+    {
+      "id": 160,
+      "name": "г. Chirchiq",
+      "region": "Ташкентская область",
+      "type": "City"
+    },
+    {
+      "id": 161,
+      "name": "Qibray район",
+      "region": "Ташкентская область",
+      "type": "District"
+    },
+    {
+      "id": 162,
+      "name": "Zangiota район",
+      "region": "Ташкентская область",
+      "type": "District"
+    },
+    {
+      "id": 163,
+      "name": "Toshkent район",
+      "region": "Ташкентская область",
+      "type": "District"
+    },
+    {
+      "id": 164,
+      "name": "Ohangaron район",
+      "region": "Ташкентская область",
+      "type": "District"
+    },
+    {
+      "id": 165,
+      "name": "г. Ohangaron",
+      "region": "Ташкентская область",
+      "type": "City"
+    },
+    {
+      "id": 166,
+      "name": "Parkent район",
+      "region": "Ташкентская область",
+      "type": "District"
+    },
+    {
+      "id": 167,
+      "name": "Yuqorichirchiq район",
+      "region": "Ташкентская область",
+      "type": "District"
+    },
+    {
+      "id": 168,
+      "name": "Ortachirchiq район",
+      "region": "Ташкентская область",
+      "type": "District"
+    },
+    {
+      "id": 169,
+      "name": "г. Nurafshon",
+      "region": "Ташкентская область",
+      "type": "City"
+    },
+    {
+      "id": 170,
+      "name": "Piskent район",
+      "region": "Ташкентская область",
+      "type": "District"
+    },
+    {
+      "id": 171,
+      "name": "Bekobod район",
+      "region": "Ташкентская область",
+      "type": "District"
+    },
+    {
+      "id": 172,
+      "name": "г. Bekobod",
+      "region": "Ташкентская область",
+      "type": "City"
+    },
+    {
+      "id": 173,
+      "name": "Boka район",
+      "region": "Ташкентская область",
+      "type": "District"
+    },
+    {
+      "id": 174,
+      "name": "Oqqorgon район",
+      "region": "Ташкентская область",
+      "type": "District"
+    },
+    {
+      "id": 175,
+      "name": "Quyichirchiq район",
+      "region": "Ташкентская область",
+      "type": "District"
+    },
+    {
+      "id": 176,
+      "name": "Chinoz район",
+      "region": "Ташкентская область",
+      "type": "District"
+    },
+    {
+      "id": 177,
+      "name": "Yangiyul район",
+      "region": "Ташкентская область",
+      "type": "District"
+    },
+    {
+      "id": 178,
+      "name": "г. Yangiyul",
+      "region": "Ташкентская область",
+      "type": "City"
+    },
+    {
+      "id": 179,
+      "name": "г. Angren",
+      "region": "Ташкентская область",
+      "type": "City"
+    },
+    {
+      "id": 180,
+      "name": "г. Olmaliq",
+      "region": "Ташкентская область",
+      "type": "City"
+    },
+    {
+      "id": 181,
+      "name": "Xazorasp район",
+      "region": "Хорезмская область",
+      "type": "District"
+    },
+    {
+      "id": 182,
+      "name": "Tuproqqala район",
+      "region": "Хорезмская область",
+      "type": "District"
+    },
+    {
+      "id": 183,
+      "name": "Bogot район",
+      "region": "Хорезмская область",
+      "type": "District"
+    },
+    {
+      "id": 184,
+      "name": "Yangiariq район",
+      "region": "Хорезмская область",
+      "type": "District"
+    },
+    {
+      "id": 185,
+      "name": "Xiva район",
+      "region": "Хорезмская область",
+      "type": "District"
+    },
+    {
+      "id": 186,
+      "name": "г. Xiva",
+      "region": "Хорезмская область",
+      "type": "City"
+    },
+    {
+      "id": 187,
+      "name": "Qoshkopir район",
+      "region": "Хорезмская область",
+      "type": "District"
+    },
+    {
+      "id": 188,
+      "name": "Shovot район",
+      "region": "Хорезмская область",
+      "type": "District"
+    },
+    {
+      "id": 189,
+      "name": "Gurlan район",
+      "region": "Хорезмская область",
+      "type": "District"
+    },
+    {
+      "id": 190,
+      "name": "Yangibozor район",
+      "region": "Хорезмская область",
+      "type": "District"
+    },
+    {
+      "id": 191,
+      "name": "Xonqa район",
+      "region": "Хорезмская область",
+      "type": "District"
+    },
+    {
+      "id": 192,
+      "name": "Urganch район",
+      "region": "Хорезмская область",
+      "type": "District"
+    },
+    {
+      "id": 193,
+      "name": "г. Urganch",
+      "region": "Хорезмская область",
+      "type": "City"
+    }
+  ]
+}

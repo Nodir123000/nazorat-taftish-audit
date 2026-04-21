@@ -1,0 +1,29 @@
+### defi-protocol-templates
+[dotnet-backend-patternsC#.NETBackend Development+5# .NET Backend Development Patterns  Master C#/.NET patterns for building production-grade APIs, MCP servers, and enterprise backends with modern best practices (2024/2025).  ## When to Use This Skill  - Developing new .NET Web APIs or MCP servers - Reviewing C# code for quality and performance - De...](https://antigravity.codes/agent-skills/backend/dotnet-backend-patterns)
+
+### dotnet-backend-patterns
+[elysiajselysiatypescriptbun+5# ElysiaJS Development Skill  Always consult [elysiajs.com/llms.txt](https://elysiajs.com/llms.txt) for code examples and latest API.  ## Overview  ElysiaJS is a TypeScript framework for building Bun-first (but not limited to Bun) type-safe, high-performance backend servers. This skill provides comp...](https://antigravity.codes/agent-skills/backend/elysia)
+
+### elysiajs
+[fastapiFastAPIPythonPydantic+5# FastAPI Skill  Production-tested patterns for FastAPI with Pydantic v2, SQLAlchemy 2.0 async, and JWT authentication.  **Latest Versions** (verified January 2026): - FastAPI: 0.128.0 - Pydantic: 2.11.7 - SQLAlchemy: 2.0.30 - Uvicorn: 0.35.0 - python-jose: 3.3.0  **Requirements**: - Python 3.9+ (Py...](https://antigravity.codes/agent-skills/backend/fastapi)
+
+### fastapi
+[fastapi-templatesFastAPIPythonAPI+5# FastAPI Project Templates  Production-ready FastAPI project structures with async patterns, dependency injection, middleware, and best practices for building high-performance APIs.  ## When to Use This Skill  - Starting new FastAPI projects from scratch - Implementing async REST APIs with Python -...](https://antigravity.codes/agent-skills/backend/fastapi-templates)
+
+### fastapi-templates
+[go-concurrency-patternsGoConcurrencyGoroutines+5# Go Concurrency Patterns  Production patterns for Go concurrency including goroutines, channels, synchronization primitives, and context management.  ## When to Use This Skill  - Building concurrent Go applications - Implementing worker pools and pipelines - Managing goroutine lifecycles - Using ch...](https://antigravity.codes/agent-skills/backend/go-concurrency-patterns)
+
+### go-concurrency-patterns
+[hono-routingHonoweb frameworkrouting+5# Hono Routing & Middleware  **Status**: Production Ready ✅ **Last Updated**: 2026-01-20 **Dependencies**: None (framework-agnostic) **Latest Versions**: [email protected], [email protected], [email protected], @hono/[email protected], @hono/[email protected]  ---  ## Quick Start (15 Minutes)  ### 1. Install ...](https://antigravity.codes/agent-skills/backend/hono-routing)
+
+### hono-routing
+[nestjsNestJSTypeScriptDrizzle ORM+5# NestJS Framework with Drizzle ORM  ## When to Use - Building REST APIs or GraphQL servers with NestJS - Setting up authentication and authorization - Implementing middleware, guards, or interceptors - Working with databases (TypeORM, Drizzle ORM) - Creating microservices architecture - Writing uni...](https://antigravity.codes/agent-skills/backend/nestjs)
+
+### nestjs
+[nft-standardsNFTERC-721ERC-1155+5# NFT Standards  Master ERC-721 and ERC-1155 NFT standards, metadata best practices, and advanced NFT features.  ## When to Use This Skill  - Creating NFT collections (art, gaming, collectibles) - Implementing marketplace functionality - Building on-chain or off-chain metadata - Creating soulbound t...](https://antigravity.codes/agent-skills/backend/nft-standards)
+
+### nft-standards
+[nodejs-backend-patternsNode.jsExpress.jsFastify+5# Node.js Backend Patterns  Comprehensive guidance for building scalable, maintainable, and production-ready Node.js backend applications with modern frameworks, architectural patterns, and best practices.  ## When to Use This Skill  - Building REST APIs or GraphQL servers - Creating microservices w...](https://antigravity.codes/agent-skills/backend/nodejs-backend-patterns)
+
+### nodejs-backend-patterns
+[rust-async-patternsRustasyncTokio+5# Rust Async Patterns  Production patterns for async Rust programming with Tokio runtime, including tasks, channels, streams, and error handling.  ## When to Use This Skill  - Building async Rust applications - Implementing concurrent network services - Using Tokio for async I/O - Handling async err...](https://antigravity.codes/agent-skills/backend/rust-async-patterns)

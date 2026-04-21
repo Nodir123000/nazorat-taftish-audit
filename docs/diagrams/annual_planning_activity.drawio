@@ -1,0 +1,43 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Simple Activity Diagram">
+    <mxGraphModel dx="1293" dy="693" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="start" value="" style="ellipse;fillColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="385" y="40" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="create" value="Создание плана" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;" vertex="1" parent="1">
+          <mxGeometry x="320" y="110" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="add" value="Добавление вч в плани" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;" vertex="1" parent="1">
+          <mxGeometry x="320" y="210" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="check" value="Валидация" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;" vertex="1" parent="1">
+          <mxGeometry x="340" y="310" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="submit" value="На согласование" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;" vertex="1" parent="1">
+          <mxGeometry x="320" y="440" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="boss" value="Согласование" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;" vertex="1" parent="1">
+          <mxGeometry x="340" y="550" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="approve" value="Утверждено" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;" vertex="1" parent="1">
+          <mxGeometry x="320" y="680" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="end" value="" style="ellipse;shape=endState;fillColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="385" y="790" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="f1" value="" style="endArrow=classic;html=1;" edge="1" parent="1" source="start" target="create" />
+        <mxCell id="f2" value="" style="endArrow=classic;html=1;" edge="1" parent="1" source="create" target="add" />
+        <mxCell id="f3" value="" style="endArrow=classic;html=1;" edge="1" parent="1" source="add" target="check" />
+        <mxCell id="f4" value="Да" style="endArrow=classic;html=1;" edge="1" parent="1" source="check" target="submit" />
+        <mxCell id="f5" value="Нет" style="endArrow=classic;html=1;" edge="1" parent="1" source="check" target="create" />
+        <mxCell id="f6" value="" style="endArrow=classic;html=1;" edge="1" parent="1" source="submit" target="boss" />
+        <mxCell id="f7" value="Ок" style="endArrow=classic;html=1;" edge="1" parent="1" source="boss" target="approve" />
+        <mxCell id="f8" value="Возврат" style="endArrow=classic;html=1;" edge="1" parent="1" source="boss" target="create" />
+        <mxCell id="f9" value="" style="endArrow=classic;html=1;" edge="1" parent="1" source="approve" target="end" />
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

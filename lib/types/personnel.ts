@@ -1,0 +1,47 @@
+export interface PersonnelMember {
+  id: number
+  pin: string
+  source: string
+  licenseCount: number | string
+  militaryRank: string
+  militaryUnit: string
+  militaryDistrict?: string
+  dislocation?: string
+  rank: string
+  passportNumber: string
+  dateOfBirth: string
+  fullName: string
+  firstName: string
+  lastName: string
+  patronymic: string
+  position: string
+  department: string
+  citizenship: string
+  placeOfBirth: string
+  registrationAddress: string
+  actualAddress: string
+  maritalStatus: string
+  gender: string
+  nationality: string
+  passportSeries: string
+  passportIssueDate: string
+  passportExpiryDate: string
+  passportIssuedBy: string
+  militaryID: string
+  militaryIDIssueDate: string
+  militaryIDExpiryDate: string
+  serviceNumber: string
+  serviceStartDate: string
+  specialization: string
+  clearanceLevel: string
+  contactPhone: string
+  email: string
+  emergencyContact: string
+  emergencyPhone: string
+  photo?: string
+  inspectorCategory?: string
+  totalDamageAmount?: number
+  kpiRating?: string
+  violationsFound?: number
+  auditCount?: number
+}

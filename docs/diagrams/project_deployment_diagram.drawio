@@ -1,0 +1,37 @@
+<mxfile host="65bd71144e">
+    <diagram name="Deployment Architecture" id="0">
+        <mxGraphModel dx="763" dy="1020" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="node_client" value="&lt;device&gt;&#10;Клиентский компьютер&lt;/device&gt;" style="verticalAlign=top;align=center;spacingTop=8;fillColor=#dae8fc;strokeColor=#6c8ebf;whiteSpace=wrap;html=1;shape=cube;size=10;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="80" width="200" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="artifact_browser" value="&lt;artifact&gt;&#10;Браузер (Chrome/Edge)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;" parent="node_client" vertex="1">
+                    <mxGeometry x="30" y="70" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="node_app" value="&lt;execution environment&gt;&#10;Node.js Runtime (v22.22)" style="verticalAlign=top;align=center;spacingTop=8;fillColor=#d5e8d4;strokeColor=#82b366;whiteSpace=wrap;html=1;shape=cube;size=10;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="80" width="280" height="300" as="geometry"/>
+                </mxCell>
+                <mxCell id="artifact_nextjs" value="&lt;artifact&gt;&#10;Next.js App / API&#10;(Port 3000)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;" parent="node_app" vertex="1">
+                    <mxGeometry x="60" y="60" width="160" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="artifact_prisma" value="&lt;artifact&gt;&#10;Prisma Client / ORM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;" parent="node_app" vertex="1">
+                    <mxGeometry x="60" y="160" width="160" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="node_db" value="&lt;device&gt;&#10;Database Server" style="verticalAlign=top;align=center;spacingTop=8;fillColor=#f8cecc;strokeColor=#b85450;whiteSpace=wrap;html=1;shape=cube;size=10;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="440" width="280" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="artifact_postgres" value="&lt;artifact&gt;&#10;PostgreSQL 18&#10;(Port 5432)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;" parent="node_db" vertex="1">
+                    <mxGeometry x="60" y="50" width="160" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="comm1" value="HTTP / JSON" style="endArrow=none;html=1;entryX=0;entryY=0.25;entryDx=0;entryDy=0;exitX=1;exitY=0.25;" parent="1" source="node_client" target="node_app" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="comm2" value="TCP / SQL" style="endArrow=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="node_app" target="node_db" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

@@ -1,0 +1,252 @@
+[
+    {
+        "regionRu": "Ташкентская область",
+        "regionUzLatn": "Toshkent viloyati",
+        "regionUzCyrl": "Тошкент вилояти",
+        "nameRu": "Чирчик",
+        "nameUzLatn": "Chirchik",
+        "nameUzCyrl": "Чирчик",
+        "type": "District",
+        "status": "active"
+    },
+    {
+        "regionRu": "Ташкентская область",
+        "regionUzLatn": "Toshkent viloyati",
+        "regionUzCyrl": "Тошкент вилояти",
+        "nameRu": "Ташкент",
+        "nameUzLatn": "Toshkent",
+        "nameUzCyrl": "Тошкент",
+        "type": "City",
+        "status": "active"
+    },
+    {
+        "regionRu": "Самаркандская область",
+        "regionUzLatn": "Samarqand viloyati",
+        "regionUzCyrl": "Самарқанд вилояти",
+        "nameRu": "Самарканд",
+        "nameUzLatn": "Samarqand",
+        "nameUzCyrl": "Самарқанд",
+        "type": "City",
+        "status": "active"
+    },
+    {
+        "regionRu": "Самаркандская область",
+        "regionUzLatn": "Samarqand viloyati",
+        "regionUzCyrl": "Самарқанд вилояти",
+        "nameRu": "Касбин",
+        "nameUzLatn": "Kasbin",
+        "nameUzCyrl": "Касбин",
+        "type": "District",
+        "status": "active"
+    },
+    {
+        "regionRu": "Бухарская область",
+        "regionUzLatn": "Buxoro viloyati",
+        "regionUzCyrl": "Бухоро вилояти",
+        "nameRu": "Бухара",
+        "nameUzLatn": "Buxoro",
+        "nameUzCyrl": "Бухоро",
+        "type": "City",
+        "status": "active"
+    },
+    {
+        "regionRu": "Бухарская область",
+        "regionUzLatn": "Buxoro viloyati",
+        "regionUzCyrl": "Бухоро вилояти",
+        "nameRu": "Каракалпакистан",
+        "nameUzLatn": "Qaraqalpaqstan",
+        "nameUzCyrl": "Қарақалпақстан",
+        "type": "Region",
+        "status": "active"
+    },
+    {
+        "regionRu": "Ферганская область",
+        "regionUzLatn": "Farg‘ona viloyati",
+        "regionUzCyrl": "Фарғона вилояти",
+        "nameRu": "Фергана",
+        "nameUzLatn": "Farg‘ona",
+        "nameUzCyrl": "Фарғона",
+        "type": "City",
+        "status": "active"
+    },
+    {
+        "regionRu": "Ферганская область",
+        "regionUzLatn": "Farg‘ona viloyati",
+        "regionUzCyrl": "Фарғона вилояти",
+        "nameRu": "Ферганский район",
+        "nameUzLatn": "Farg‘ona tuman",
+        "nameUzCyrl": "Фарғона туман",
+        "type": "District",
+        "status": "active"
+    },
+    {
+        "regionRu": "Хорезмская область",
+        "regionUzLatn": "Xorazm viloyati",
+        "regionUzCyrl": "Хоразм вилояти",
+        "nameRu": "Хорезм",
+        "nameUzLatn": "Xorazm",
+        "nameUzCyrl": "Хоразм",
+        "type": "City",
+        "status": "active"
+    },
+    {
+        "regionRu": "Хорезмская область",
+        "regionUzLatn": "Xorazm viloyati",
+        "regionUzCyrl": "Хоразм вилояти",
+        "nameRu": "Тахиаташ",
+        "nameUzLatn": "Taxiatash",
+        "nameUzCyrl": "Тахиаташ",
+        "type": "District",
+        "status": "active"
+    },
+    {
+        "regionRu": "Навоийская область",
+        "regionUzLatn": "Navoiy viloyati",
+        "regionUzCyrl": "Навоий вилояти",
+        "nameRu": "Навои",
+        "nameUzLatn": "Navoiy",
+        "nameUzCyrl": "Навоий",
+        "type": "City",
+        "status": "active"
+    },
+    {
+        "regionRu": "Навоийская область",
+        "regionUzLatn": "Navoiy viloyati",
+        "regionUzCyrl": "Навоий вилояти",
+        "nameRu": "Навоийский район",
+        "nameUzLatn": "Navoiy tuman",
+        "nameUzCyrl": "Навоий туман",
+        "type": "District",
+        "status": "active"
+    },
+    {
+        "regionRu": "Кашкадаринская область",
+        "regionUzLatn": "Qashqadaryo viloyati",
+        "regionUzCyrl": "Қашқадарё вилояти",
+        "nameRu": "Кашкадарья",
+        "nameUzLatn": "Qashqadaryo",
+        "nameUzCyrl": "Қашқадарё",
+        "type": "City",
+        "status": "active"
+    },
+    {
+        "regionRu": "Кашкадаринская область",
+        "regionUzLatn": "Qashqadaryo viloyati",
+        "regionUzCyrl": "Қашқадарё вилояти",
+        "nameRu": "Касбинский район",
+        "nameUzLatn": "Kasbin tuman",
+        "nameUzCyrl": "Касбин туман",
+        "type": "District",
+        "status": "active"
+    },
+    {
+        "regionRu": "Сырдарьинская область",
+        "regionUzLatn": "Sirdaryo viloyati",
+        "regionUzCyrl": "Сирдарё вилояти",
+        "nameRu": "Сырдарья",
+        "nameUzLatn": "Sirdaryo",
+        "nameUzCyrl": "Сирдарё",
+        "type": "City",
+        "status": "active"
+    },
+    {
+        "regionRu": "Сырдарьинская область",
+        "regionUzLatn": "Sirdaryo viloyati",
+        "regionUzCyrl": "Сирдарё вилояти",
+        "nameRu": "Ургенч",
+        "nameUzLatn": "Urganch",
+        "nameUzCyrl": "Урганч",
+        "type": "City",
+        "status": "active"
+    },
+    {
+        "regionRu": "Сырдарьинская область",
+        "regionUzLatn": "Sirdaryo viloyati",
+        "regionUzCyrl": "Сирдарё вилояти",
+        "nameRu": "Ургенчский район",
+        "nameUzLatn": "Urganch tuman",
+        "nameUzCyrl": "Урганч туман",
+        "type": "District",
+        "status": "active"
+    },
+    {
+        "regionRu": "Ташкентская городская область",
+        "regionUzLatn": "Toshkent shahar viloyati",
+        "regionUzCyrl": "Тошкент шаҳар вилояти",
+        "nameRu": "Ташкент",
+        "nameUzLatn": "Toshkent",
+        "nameUzCyrl": "Тошкент",
+        "type": "City",
+        "status": "active"
+    },
+    {
+        "regionRu": "Ташкентская городская область",
+        "regionUzLatn": "Toshkent shahar viloyati",
+        "regionUzCyrl": "Тошкент шаҳар вилояти",
+        "nameRu": "Ташкентский район",
+        "nameUzLatn": "Toshkent tuman",
+        "nameUzCyrl": "Тошкент туман",
+        "type": "District",
+        "status": "active"
+    },
+    {
+        "regionRu": "Андижанская область",
+        "regionUzLatn": "Andijon viloyati",
+        "regionUzCyrl": "Андижон вилояти",
+        "nameRu": "Андижан",
+        "nameUzLatn": "Andijon",
+        "nameUzCyrl": "Андижон",
+        "type": "City",
+        "status": "active"
+    },
+    {
+        "regionRu": "Андижанская область",
+        "regionUzLatn": "Andijon viloyati",
+        "regionUzCyrl": "Андижон вилояти",
+        "nameRu": "Андижанский район",
+        "nameUzLatn": "Andijon tuman",
+        "nameUzCyrl": "Андижон туман",
+        "type": "District",
+        "status": "active"
+    },
+    {
+        "regionRu": "Наманганская область",
+        "regionUzLatn": "Namangan viloyati",
+        "regionUzCyrl": "Наманган вилояти",
+        "nameRu": "Наманган",
+        "nameUzLatn": "Namangan",
+        "nameUzCyrl": "Наманган",
+        "type": "City",
+        "status": "active"
+    },
+    {
+        "regionRu": "Наманганская область",
+        "regionUzLatn": "Namangan viloyati",
+        "regionUzCyrl": "Наманган вилояти",
+        "nameRu": "Наманганский район",
+        "nameUzLatn": "Namangan tuman",
+        "nameUzCyrl": "Наманган туман",
+        "type": "District",
+        "status": "active"
+    },
+    {
+        "regionRu": "Ферганская область",
+        "regionUzLatn": "Farg‘ona viloyati",
+        "regionUzCyrl": "Фарғона вилояти",
+        "nameRu": "Ферган",
+        "nameUzLatn": "Farg‘ona",
+        "nameUzCyrl": "Фарғона",
+        "type": "City",
+        "status": "active"
+    },
+    {
+        "regionRu": "Ферганская область",
+        "regionUzLatn": "Farg‘ona viloyati",
+        "regionUzCyrl": "Фарғона вилояти",
+        "nameRu": "Ферганский район",
+        "nameUzLatn": "Farg‘ona tuman",
+        "nameUzCyrl": "Фарғона туман",
+        "type": "District",
+        "status": "active"
+    }
+]

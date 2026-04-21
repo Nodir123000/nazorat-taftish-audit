@@ -1,0 +1,57 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "target": "ES6",
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    ".next_new/types/**/*.ts",
+    ".next_new/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "temp_design_repo",
+    "check_*.ts",
+    "test_*.ts",
+    "setup_*.js",
+    "create_*.js",
+    "update_*.js",
+    "restore_*.ts",
+    "list_*.ts",
+    "verify_*.js",
+    "lib/db/seed-*.ts",
+    "lib/db/clear-*.ts",
+    "prisma/*.ts",
+    "scripts/*.ts",
+    "tmp/*.ts"
+  ]
+}

@@ -1,0 +1,237 @@
+﻿
+> my-v0-project@0.1.0 audit
+> npx tsx .agent/skills/code-quality-watchdog/scripts/quality-audit.ts
+
+
+[36mЁЯФН ╨Ъ╨а╨г Code Quality Watchdog v1.0[0m
+====================================
+ЁЯУВ ╨Ъ╨╛╤А╨╡╨╜╤М ╨┐╤А╨╛╨╡╨║╤В╨░: D:\Nazorat-taftish-main
+ЁЯУД ╨д╨░╨╣╨╗╨╛╨▓ ╨┤╨╗╤П ╨░╨╜╨░╨╗╨╕╨╖╨░: 531
+
+тЬЕ ╨б╨║╨░╨╜╨╕╤А╨╛╨▓╨░╨╜╨╕╨╡ ╨╖╨░╨▓╨╡╤А╤И╨╡╨╜╨╛ ╨╖╨░ 0.2s
+
+[1mЁЯУК ╨Ю╨в╨з╨Х╨в ╨Я╨Ю ╨Ъ╨Р╨з╨Х╨б╨в╨Т╨г ╨Ъ╨Ю╨Ф╨Р[0m
+====================================
+[31mCRITICAL: 0[0m | [33mWARNING: 54[0m | [36mINFO: 0[0m
+
+[33m[WARNING][0m prisma\schema.prisma:1
+    HAS_CREATED_AT: ╨Ь╨╛╨┤╨╡╨╗╤М 'commission_members' ╨╜╨╡ ╨╕╨╝╨╡╨╡╤В ╨┐╨╛╨╗╤П created_at. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П ╨┤╨╛╨▒╨░╨▓╨╕╤В╤М.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: created_at DateTime @default(now())[0m
+
+[33m[WARNING][0m prisma\schema.prisma:1
+    HAS_CREATED_AT: ╨Ь╨╛╨┤╨╡╨╗╤М 'doc_view_logs' ╨╜╨╡ ╨╕╨╝╨╡╨╡╤В ╨┐╨╛╨╗╤П created_at. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П ╨┤╨╛╨▒╨░╨▓╨╕╤В╤М.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: created_at DateTime @default(now())[0m
+
+[33m[WARNING][0m prisma\schema.prisma:1
+    HAS_CREATED_AT: ╨Ь╨╛╨┤╨╡╨╗╤М 'documents' ╨╜╨╡ ╨╕╨╝╨╡╨╡╤В ╨┐╨╛╨╗╤П created_at. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П ╨┤╨╛╨▒╨░╨▓╨╕╤В╤М.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: created_at DateTime @default(now())[0m
+
+[33m[WARNING][0m prisma\schema.prisma:1
+    HAS_CREATED_AT: ╨Ь╨╛╨┤╨╡╨╗╤М 'plan_change_log' ╨╜╨╡ ╨╕╨╝╨╡╨╡╤В ╨┐╨╛╨╗╤П created_at. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П ╨┤╨╛╨▒╨░╨▓╨╕╤В╤М.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: created_at DateTime @default(now())[0m
+
+[33m[WARNING][0m app\planning\orders\create\page.tsx:155
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m app\planning\orders\create\page.tsx:168
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m app\planning\orders\create\page.tsx:198
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m app\planning\orders\create\page.tsx:555
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m app\planning\orders\create-briefing\page.tsx:142
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m app\planning\orders\create-briefing\page.tsx:151
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m app\planning\orders\create-briefing\page.tsx:354
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m app\planning\orders\create-prescription\page.tsx:146
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m app\planning\orders\create-prescription\page.tsx:155
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m app\planning\orders\create-prescription\page.tsx:329
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m app\reference\regulatory\generate\page.tsx:57
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m app\reference\regulatory\page.tsx:39
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m app\reference\regulatory\page.tsx:275
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m app\translation-management\page.tsx:119
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m app\translation-management\page.tsx:151
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m app\units\list\page.tsx:37
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m app\units\list\page.tsx:181
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m app\units\list\page.tsx:227
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\admin\archive-backup.tsx:73
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\admin\archive-backup.tsx:87
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\admin\audit-log-viewer.tsx:47
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\admin\SchemaVisualizer.tsx:216
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\admin\SchemaVisualizer.tsx:287
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\admin\users-management.tsx:49
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\admin\users-management.tsx:77
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\admin\users-management.tsx:100
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\admin\users-management.tsx:119
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\admin\users-management.tsx:132
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\diagnostics-content.tsx:27
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\planning\orders\universal-registry.tsx:109
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\planning\orders\universal-registry.tsx:127
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\planning\orders\universal-registry.tsx:279
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\planning\orders\universal-registry.tsx:308
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\reference\classifier-select.tsx:54
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\reference\classifiers.tsx:408
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\reference\classifiers.tsx:409
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\reference\document-templates.tsx:37
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\reference\document-templates.tsx:52
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\reference\document-templates.tsx:70
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\reference\document-templates.tsx:87
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\reference\military-positions-table.tsx:68
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\reference\military-positions-table.tsx:161
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\reference\military-units.tsx:118
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\reference\personnel.tsx:315
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\reference\personnel.tsx:409
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\reference\translation-management-view.tsx:122
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\reference\translation-management-view.tsx:154
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\reference\vus-table.tsx:71
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\reference\vus-table.tsx:173
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+[33m[WARNING][0m components\supply-department-select.tsx:34
+    NO_DIRECT_FETCH: fetch() ╨▓ ╨║╨╗╨╕╨╡╨╜╤В╤Б╨║╨╛╨╝ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В╨╡. ╨а╨╡╨║╨╛╨╝╨╡╨╜╨┤╤Г╨╡╤В╤Б╤П useSWR() ╨╕╨╗╨╕ ╤Б╨╡╤А╨▓╨╡╤А╨╜╤Л╨╣ ╨║╨╛╨╝╨┐╨╛╨╜╨╡╨╜╤В.
+    [90mЁЯТб ╨Ш╤Б╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡: import useSWR from 'swr';[0m
+
+====================================
+[33mтЪая╕П  ╨Ъ╨░╤З╨╡╤Б╤В╨▓╨╛ ╨║╨╛╨┤╨░: ╨е╨Ю╨а╨Ю╨и╨Х╨Х (╨╡╤Б╤В╤М ╨┐╤А╨╡╨┤╤Г╨┐╤А╨╡╨╢╨┤╨╡╨╜╨╕╤П, ╨║╤А╨╕╤В╨╕╤З╨╡╤Б╨║╨╕╤Е ╨╜╨╡╤В)[0m
+
+ЁЯУЛ JSON-╨╛╤В╤З╨╡╤В ╤Б╨╛╤Е╤А╨░╨╜╨╡╨╜: .agent/last-audit-report.json
+

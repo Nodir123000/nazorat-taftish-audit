@@ -1,0 +1,13 @@
+[
+    {
+        "key": "sidebar.reference.translations",
+        "ru": "Управление переводами",
+        "uz_cyrl": "Таржималарни бошқариш",
+        "uz_latn": "Tarjimalarni boshqarish",
+        "tags": [
+            "sidebar",
+            "reference"
+        ],
+        "description": "Пункт меню для управления переводами системы"
+    }
+]
