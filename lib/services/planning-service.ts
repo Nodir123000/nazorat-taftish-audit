@@ -53,29 +53,75 @@ function getQuarter(date: Date | string | null): string {
 export const planningService = {
   // Annual Plans
   async getAnnualPlans(filters?: PlanFilters) {
-    const where: any = {}
+    try {
+      const where: any = {}
 
-    if (filters?.year) where.year = filters.year
-    if (filters?.status) where.status = filters.status
-    if (filters?.search) {
-      where.OR = [
-        { status: { contains: filters.search, mode: 'insensitive' } },
-        { description: { contains: filters.search, mode: 'insensitive' } },
-      ]
+      if (filters?.year) where.year = filters.year
+      if (filters?.status) where.status = filters.status
+      if (filters?.search) {
+        where.OR = [
+          { status: { contains: filters.search, mode: 'insensitive' } },
+          { description: { contains: filters.search, mode: 'insensitive' } },
+        ]
+      }
+
+      // Соблюдаем правило "Sequential Fetch": не более 2 уровней вложенности
+      const plans = await prisma.rev_plan_year.findMany({
+        where,
+        include: {
+          ref_units: {
+            include: {
+              ref_areas: true,
+              ref_military_districts: true,
+            }
+          },
+          users_rev_plan_year_responsible_idTousers: true,
+          users_rev_plan_year_approved_by_idTousers: true,
+          ref_control_authorities: true,
+          ref_control_directions: true,
+          ref_inspection_types: true,
+          orders: true, // Плоский список заказов
+          briefings: true,
+          prescriptions: true
+        } as any,
+        orderBy: { year: 'desc' }
+      })
+
+      return plans.map((p: any) => ({
+        ...p,
+        id: p.plan_id,
+        planId: p.plan_id,
+        planNumber: p.plan_number,
+        startDate: p.start_date,
+        endDate: p.end_date,
+        unitId: p.unit_id,
+        responsibleId: p.responsible_id,
+        controlAuthority: p.ref_control_authorities?.code || "",
+        inspectionDirection: p.ref_control_directions?.name?.ru || p.ref_control_directions?.name || p.ref_control_directions?.code || "",
+        inspectionType: p.ref_inspection_types?.name?.ru || p.ref_inspection_types?.name || p.ref_inspection_types?.code || "2301",
+        periodConducted: p.period_covered_start ? getQuarter(p.period_covered_start) : "",
+        periodCoveredStart: p.period_covered_start,
+        periodCoveredEnd: p.period_covered_end,
+        controlObject: p.ref_units?.name?.ru || p.ref_units?.name || "",
+        unit: p.ref_units,
+        responsible: p.users_rev_plan_year_responsible_idTousers,
+        approvedBy: p.users_rev_plan_year_approved_by_idTousers,
+      }));
+    } catch (error) {
+      console.error("Error in getAnnualPlans:", error);
+      return [];
     }
+  },
 
+  async getPlansForOrders() {
     const plans = await prisma.rev_plan_year.findMany({
-      where,
       include: {
         ref_units: {
           include: {
-            ref_areas: { include: { ref_regions: true } },
-            ref_military_districts: { include: { ref_areas: { include: { ref_regions: true } } } }
+            ref_military_districts: true
           }
         },
         users_rev_plan_year_responsible_idTousers: true,
-        users_rev_plan_year_approved_by_idTousers: true,
-        ref_control_authorities: true,
         ref_control_directions: true,
         ref_inspection_types: true,
         orders: { include: { commission_members: { include: { users: true } } } },
@@ -92,42 +138,8 @@ export const planningService = {
       planNumber: p.plan_number,
       startDate: p.start_date,
       endDate: p.end_date,
-      unitId: p.unit_id,
-      responsibleId: p.responsible_id,
-      controlAuthority: p.ref_control_authorities?.code || "",
       inspectionDirection: p.ref_control_directions?.name?.ru || p.ref_control_directions?.name || p.ref_control_directions?.code || "",
-      inspectionType: p.ref_inspection_types?.name?.ru || p.ref_inspection_types?.name || p.ref_inspection_types?.code || "2301",
-      periodConducted: p.period_covered_start ? getQuarter(p.period_covered_start) : "",
-      periodCoveredStart: p.period_covered_start,
-      periodCoveredEnd: p.period_covered_end,
-      controlObject: p.ref_units?.name?.ru || p.ref_units?.name || "",
-      unit: p.ref_units,
-      responsible: p.users_rev_plan_year_responsible_idTousers,
-      approvedBy: p.users_rev_plan_year_approved_by_idTousers,
-    }));
-  },
-
-  async getPlansForOrders() {
-    const plans = await prisma.rev_plan_year.findMany({
-      include: {
-        ref_units: { select: { name: true } },
-        users_rev_plan_year_responsible_idTousers: { select: { fullname: true, rank: true } },
-        ref_control_directions: { select: { name: true, code: true } },
-        ref_inspection_types: { select: { name: true, code: true } },
-        orders: { include: { commission_members: { include: { users: true } } } },
-        briefings: { select: { id: true, status: true, instruction_date: true, content: true } },
-        prescriptions: { select: { id: true, status: true, prescription_num: true, date: true, requirements: true } },
-      } as any,
-      orderBy: { year: 'desc' }
-    })
-
-    return plans.map((p: any) => ({
-      ...p,
-      id: p.plan_id,
-      planId: p.plan_id,
-      planNumber: p.plan_number,
-      startDate: p.start_date,
-      endDate: p.end_date,
+      inspectionType: p.ref_inspection_types?.name?.ru || p.ref_inspection_types?.name || p.ref_inspection_types?.code || "",
       controlObject: p.ref_units?.name?.ru || p.ref_units?.name || "",
       periodConducted: p.period_covered_start ? getQuarter(p.period_covered_start) : "",
       periodCoveredStart: p.period_covered_start,

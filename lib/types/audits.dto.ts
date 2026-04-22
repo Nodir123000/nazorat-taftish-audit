@@ -203,6 +203,7 @@ export const AuditViolationSchema = z.object({
     amount: z.number(),
     recovered: z.number(),
     count: z.number(),
+    recoveredCount: z.number().optional(),
     responsible: z.string(),
 });
 

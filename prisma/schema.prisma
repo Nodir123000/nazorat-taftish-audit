@@ -10,7 +10,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model audit_log {
@@ -191,6 +190,7 @@ model financial_violations {
   amount               Decimal?               @default(0) @db.Decimal(18, 2)
   recovered            Decimal?               @default(0) @db.Decimal(18, 2)
   count                Int?                   @default(0)
+  recovered_count      Int?                   @default(0)
   responsible          String?                @db.VarChar(255)
   created_at           DateTime?              @default(now())
   updated_at           DateTime?              @default(now())

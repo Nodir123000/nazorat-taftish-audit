@@ -52,7 +52,7 @@ async function main() {
             };
 
             for (const mId of missingPrescriptionIds) {
-                const pres = await prisma.prescriptions.findUnique({
+                const pres = (await prisma.prescriptions.findUnique({
                     where: { id: mId },
                     include: { 
                         rev_plan_year: { 
@@ -63,7 +63,7 @@ async function main() {
                             } 
                         } 
                     }
-                } as any);
+                })) as any;
 
                 if (pres && pres.rev_plan_year) {
                     const plan = pres.rev_plan_year as any;

@@ -15,6 +15,8 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog"
 import { FinancialAuditDTO, AuditViolationDTO, CreateFinancialAuditDTO } from "@/lib/types/audits.dto"
+import useSWR from "swr"
+import { auditsService } from "@/lib/services/audits-service"
 
 interface FinancialAuditDialogsProps {
     // Audit Dialog
@@ -59,6 +61,9 @@ export function FinancialAuditDialogs({
 }: FinancialAuditDialogsProps) {
     const { t } = useTranslation()
 
+    // Fetch violation references
+    const { data: references } = useSWR('violation-references', () => auditsService.getViolationReferences())
+
     // Audit Form State
     const [auditForm, setAuditForm] = useState({
         unit: "",
@@ -75,14 +80,20 @@ export function FinancialAuditDialogs({
 
     // Violation Form State
     const [violationForm, setViolationForm] = useState({
-        kind: "Финансовое",
-        type: "",
-        source: "",
+        kind: "", // Раздел
+        type: "", // Вид
+        source: "", // Детализация
         amount: "",
         recovered: "",
-        count: "",
+        count: "1",
+        recoveredCount: "0",
         responsible: "",
     })
+
+    // Computed options for hierarchical selection
+    const sectionOptions = references || []
+    const kindOptions = violationForm.kind ? sectionOptions.find((s: any) => s.section === violationForm.kind)?.kinds || [] : []
+    const detailOptions = violationForm.type ? kindOptions.find((k: any) => k.kind === violationForm.type)?.details || [] : []
 
     useEffect(() => {
         if (initialAudit) {
@@ -117,22 +128,24 @@ export function FinancialAuditDialogs({
     useEffect(() => {
         if (initialViolation) {
             setViolationForm({
-                kind: initialViolation.kind,
-                type: initialViolation.type,
-                source: initialViolation.source,
+                kind: initialViolation.kind || "",
+                type: initialViolation.type || "",
+                source: initialViolation.source || "",
                 amount: initialViolation.amount.toString(),
                 recovered: initialViolation.recovered.toString(),
                 count: initialViolation.count.toString(),
-                responsible: initialViolation.responsible,
+                recoveredCount: (initialViolation.recoveredCount || 0).toString(),
+                responsible: initialViolation.responsible || "",
             })
         } else {
             setViolationForm({
-                kind: "Финансовое",
+                kind: "",
                 type: "",
                 source: "",
                 amount: "",
                 recovered: "",
                 count: "1",
+                recoveredCount: "0",
                 responsible: "",
             })
         }
@@ -207,7 +220,7 @@ export function FinancialAuditDialogs({
 
             {/* Violation Dialog */}
             <Dialog open={violationOpen} onOpenChange={onViolationOpenChange}>
-                <DialogContent>
+                <DialogContent className="max-w-xl">
                     <DialogHeader>
                         <DialogTitle>{initialViolation ? "Редактировать нарушение" : "Добавить нарушение"}</DialogTitle>
                         <DialogDescription>
@@ -216,49 +229,88 @@ export function FinancialAuditDialogs({
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
-                            <Label>Вид нарушения</Label>
-                            <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={violationForm.kind} onChange={(e) => setViolationForm({ ...violationForm, kind: e.target.value })}>
-                                <option value="Финансовое">Финансовое</option>
-                                <option value="Имущественное">Имущественное</option>
+                            <Label>Раздел справки (для агрегации)</Label>
+                            <select 
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" 
+                                value={violationForm.kind} 
+                                onChange={(e) => setViolationForm({ ...violationForm, kind: e.target.value, type: "", source: "" })}
+                            >
+                                <option value="">Выберите раздел...</option>
+                                {sectionOptions.map((s: any) => (
+                                    <option key={s.section} value={s.section}>{s.section}</option>
+                                ))}
                             </select>
                         </div>
                         <div className="grid gap-2">
-                            <Label>Тип нарушения</Label>
-                            <Input placeholder="Например: Недостача" value={violationForm.type} onChange={(e) => setViolationForm({ ...violationForm, type: e.target.value })} />
+                            <Label>Вид нарушения (категория)</Label>
+                            <select 
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" 
+                                value={violationForm.type} 
+                                disabled={!violationForm.kind}
+                                onChange={(e) => setViolationForm({ ...violationForm, type: e.target.value, source: "" })}
+                            >
+                                <option value="">Выберите вид...</option>
+                                {kindOptions.map((k: any) => (
+                                    <option key={k.kind} value={k.kind}>{k.kind}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Детализация нарушения (конкретная статья)</Label>
+                            <select 
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" 
+                                value={violationForm.source} 
+                                disabled={!violationForm.type}
+                                onChange={(e) => setViolationForm({ ...violationForm, source: e.target.value })}
+                            >
+                                <option value="">Выберите детализацию...</option>
+                                {detailOptions.map((d: any) => (
+                                    <option key={d.id} value={d.name}>{d.name}</option>
+                                ))}
+                            </select>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
-                                <Label>Источник</Label>
-                                <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={violationForm.source} onChange={(e) => setViolationForm({ ...violationForm, source: e.target.value })}>
-                                    <option value="">Выберите...</option>
-                                    <option value="бюджет">бюджет</option>
-                                    <option value="внебюджет">внебюджет</option>
-                                    <option value="СМПР">СМПР</option>
-                                </select>
+                                <Label>Лиц допустило (чел.)</Label>
+                                <Input type="number" value={violationForm.count} onChange={(e) => setViolationForm({ ...violationForm, count: e.target.value })} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Сумма</Label>
+                                <Label className={Number(violationForm.recoveredCount) > Number(violationForm.count) ? "text-red-500" : ""}>Лиц возместило (чел.)</Label>
+                                <Input type="number" value={violationForm.recoveredCount} onChange={(e) => setViolationForm({ ...violationForm, recoveredCount: e.target.value })} className={Number(violationForm.recoveredCount) > Number(violationForm.count) ? "border-red-500" : ""} />
+                                {Number(violationForm.recoveredCount) > Number(violationForm.count) && (
+                                    <span className="text-[10px] text-red-500">Не может быть больше допустивших</span>
+                                )}
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <Label>Сумма нарушения (сум)</Label>
                                 <Input type="number" value={violationForm.amount} onChange={(e) => setViolationForm({ ...violationForm, amount: e.target.value })} />
                             </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
-                                <Label>Возмещено</Label>
-                                <Input type="number" value={violationForm.recovered} onChange={(e) => setViolationForm({ ...violationForm, recovered: e.target.value })} />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label>Количество</Label>
-                                <Input type="number" value={violationForm.count} onChange={(e) => setViolationForm({ ...violationForm, count: e.target.value })} />
+                                <Label className={Number(violationForm.recovered) > Number(violationForm.amount) ? "text-red-500" : ""}>Восстановлено (сум)</Label>
+                                <Input type="number" value={violationForm.recovered} onChange={(e) => setViolationForm({ ...violationForm, recovered: e.target.value })} className={Number(violationForm.recovered) > Number(violationForm.amount) ? "border-red-500" : ""} />
+                                {Number(violationForm.recovered) > Number(violationForm.amount) && (
+                                    <span className="text-[10px] text-red-500">Не может превышать сумму нарушения</span>
+                                )}
                             </div>
                         </div>
                         <div className="grid gap-2">
-                            <Label>Виновные/Ответственные лица</Label>
-                            <Input placeholder="Ф.И.О., должность" value={violationForm.responsible} onChange={(e) => setViolationForm({ ...violationForm, responsible: e.target.value })} />
+                            <Label>Ответственное лицо</Label>
+                            <Input placeholder="Ф.И.О. ответственного" value={violationForm.responsible} onChange={(e) => setViolationForm({ ...violationForm, responsible: e.target.value })} />
                         </div>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => onViolationOpenChange(false)} disabled={saving}>Отмена</Button>
-                        <Button onClick={() => onSaveViolation(violationForm)} disabled={saving}>
+                        <Button 
+                            onClick={() => onSaveViolation(violationForm)} 
+                            disabled={
+                                saving || 
+                                !violationForm.source || 
+                                Number(violationForm.recoveredCount) > Number(violationForm.count) || 
+                                Number(violationForm.recovered) > Number(violationForm.amount)
+                            }
+                        >
                             {saving ? <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" /> : null}
                             Сохранить
                         </Button>

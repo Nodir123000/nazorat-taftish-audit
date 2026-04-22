@@ -76,53 +76,69 @@ export function AnnualPlanPage({ initialPlans = [] }: AnnualPlanPageProps) {
     // Sort plans based on viewMode
     const sortedPlans = [...filteredPlans].sort((a, b) => {
         if (viewMode === 'years') {
-            return Number(b.year) - Number(a.year)
+            return Number(b.year || 0) - Number(a.year || 0)
         }
         if (viewMode === 'regions') {
-            const getRegionName = (plan: any) => {
-                if (plan.unit?.ref_areas?.ref_regions) {
-                    const reg = plan.unit.ref_areas.ref_regions
-                    if (typeof reg.name === 'string') return reg.name
-                    if (locale === "uzLatn") return reg.name?.uz || reg.name?.ru || ''
-                    if (locale === "uzCyrl") return reg.name?.uzk || reg.name?.ru || ''
-                    return reg.name?.ru || reg.name?.uz || ''
-                }
-                const unit = militaryUnits.find(u =>
-                    u.name === plan.controlObject ||
-                    u.name_uz_latn === plan.controlObject ||
-                    u.name_uz_cyrl === plan.controlObject
-                )
-                if (unit && unit.location && unit.location.includes(",")) {
-                    return unit.location.split(",")[1].trim()
+            const getRegionName = (plan: any): string => {
+                try {
+                    if (plan.unit?.ref_areas?.ref_regions) {
+                        const reg = plan.unit.ref_areas.ref_regions
+                        if (typeof reg.name === 'string') return reg.name
+                        if (typeof reg.name === 'object' && reg.name !== null) {
+                            if (locale === "uzLatn") return String(reg.name.uz || reg.name.ru || '')
+                            if (locale === "uzCyrl") return String(reg.name.uzk || reg.name.ru || '')
+                            return String(reg.name.ru || reg.name.uz || '')
+                        }
+                    }
+                    const unit = militaryUnits.find(u =>
+                        u.name === plan.controlObject ||
+                        u.name_uz_latn === plan.controlObject ||
+                        u.name_uz_cyrl === plan.controlObject
+                    )
+                    if (unit && unit.location && unit.location.includes(",")) {
+                        return unit.location.split(",")[1].trim()
+                    }
+                } catch (e) {
+                    console.warn("Error getting region name for sorting:", e)
                 }
                 return ''
             }
             return getRegionName(a).localeCompare(getRegionName(b))
         }
         if (viewMode === 'districts') {
-            const getDistrictName = (plan: any) => {
-                // 1. Из связанных данных (БД)
-                if (plan.unit?.ref_military_districts) {
-                    const dist = plan.unit.ref_military_districts
-                    if (typeof dist.name === 'string') return dist.name
-                    if (locale === "uzLatn") return dist.name?.uz || dist.name?.ru || ''
-                    if (locale === "uzCyrl") return dist.name?.uzk || dist.name?.ru || ''
-                    return dist.name?.ru || dist.name?.uz || ''
+            const getDistrictName = (plan: any): string => {
+                try {
+                    // 1. Из связанных данных (БД)
+                    if (plan.unit?.ref_military_districts) {
+                        const dist = plan.unit.ref_military_districts
+                        if (typeof dist.name === 'string') return dist.name
+                        if (typeof dist.name === 'object' && dist.name !== null) {
+                            if (locale === "uzLatn") return String(dist.name.uz || dist.name.ru || '')
+                            if (locale === "uzCyrl") return String(dist.name.uzk || dist.name.ru || '')
+                            return String(dist.name.ru || dist.name.uz || '')
+                        }
+                    }
+                    // 2. Статичный fallback
+                    const unit = militaryUnits.find(u =>
+                        u.name === plan.controlObject ||
+                        u.name_uz_latn === plan.controlObject ||
+                        u.name_uz_cyrl === plan.controlObject
+                    )
+                    if (unit) return String(getLocalizedDistrictName(unit.district, locale as any) || '')
+                } catch (e) {
+                    console.warn("Error getting district name for sorting:", e)
                 }
-                // 2. Статичный fallback
-                const unit = militaryUnits.find(u =>
-                    u.name === plan.controlObject ||
-                    u.name_uz_latn === plan.controlObject ||
-                    u.name_uz_cyrl === plan.controlObject
-                )
-                if (unit) return getLocalizedDistrictName(unit.district, locale as any) || ''
-                return plan.controlObjectSubtitle || ''
+                return String(plan.controlObjectSubtitle || '')
             }
             return getDistrictName(a).localeCompare(getDistrictName(b))
         }
         if (viewMode === 'authorities') {
-            const getAuthName = (plan: any) => {
-                return getLocalizedAuthorityName(plan.controlAuthority, locale as any, supplyDepartments) || ''
+            const getAuthName = (plan: any): string => {
+                try {
+                    return String(getLocalizedAuthorityName(plan.controlAuthority, locale as any, supplyDepartments) || '')
+                } catch (e) {
+                    return ''
+                }
             }
             return getAuthName(a).localeCompare(getAuthName(b))
         }

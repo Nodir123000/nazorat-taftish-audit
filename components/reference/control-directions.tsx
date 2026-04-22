@@ -43,6 +43,10 @@ const controlDirectionSchema = z.object({
   name_uz_cyrl: z.string().optional(),
   description: z.string().optional(),
   status: z.enum(["active", "inactive"]).optional().default("active"),
+  // Abbreviation fields
+  abbreviation: z.string().optional(),
+  abbreviation_uz_latn: z.string().optional(),
+  abbreviation_uz_cyrl: z.string().optional(),
 })
 
 export function ControlDirections() {
@@ -61,7 +65,10 @@ export function ControlDirections() {
     name_uz_latn: "",
     name_uz_cyrl: "",
     description: "",
-    status: "active" as "active" | "inactive"
+    status: "active" as "active" | "inactive",
+    abbreviation: "",
+    abbreviation_uz_latn: "",
+    abbreviation_uz_cyrl: ""
   })
 
   useEffect(() => {
@@ -79,7 +86,10 @@ export function ControlDirections() {
         name_uz_latn: d.nameUzLatn || "",
         name_uz_cyrl: d.nameUzCyrl || "",
         description: d.description || "",
-        status: d.status || "active"
+        status: d.status || "active",
+        abbreviation: d.abbreviation || "",
+        abbreviation_uz_latn: d.abbreviation_uz_latn || "",
+        abbreviation_uz_cyrl: d.abbreviation_uz_cyrl || ""
       })))
     } catch (error) {
       console.error("Load error:", error)
@@ -105,7 +115,10 @@ export function ControlDirections() {
       name_uz_latn: "",
       name_uz_cyrl: "",
       description: "",
-      status: "active"
+      status: "active",
+      abbreviation: "",
+      abbreviation_uz_latn: "",
+      abbreviation_uz_cyrl: ""
     })
     setIsDialogOpen(true)
   }
@@ -135,7 +148,10 @@ export function ControlDirections() {
         name_uz_latn: form.name_uz_latn,
         name_uz_cyrl: form.name_uz_cyrl,
         description: form.description,
-        status: form.status
+        status: form.status,
+        abbreviation: form.abbreviation,
+        abbreviation_uz_latn: form.abbreviation_uz_latn,
+        abbreviation_uz_cyrl: form.abbreviation_uz_cyrl
       })
 
       await loadData()
@@ -219,6 +235,7 @@ export function ControlDirections() {
                   <TableHead className="w-[80px] px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">ID</TableHead>
                   <TableHead className="w-[120px] px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{t("Код", "Kod")}</TableHead>
                   <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{t("Наименование", "Nomlanishi")}</TableHead>
+                  <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{t("Сокр.", "Qisq.")}</TableHead>
                   <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{t("Статус", "Status")}</TableHead>
                   <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 text-right">{t("Действия", "Harakatlar")}</TableHead>
                 </TableRow>
@@ -255,6 +272,11 @@ export function ControlDirections() {
                             </span>
                           </div>
                         </div>
+                      </TableCell>
+                      <TableCell className="px-6">
+                        <Badge variant="outline" className="bg-indigo-50/50 text-indigo-600 border-indigo-200 font-mono text-xs px-2.5 py-0.5 rounded-lg shadow-sm">
+                          {locale === "ru" ? dir.abbreviation : locale === "uzLatn" ? dir.abbreviation_uz_latn : dir.abbreviation_uz_cyrl || "—"}
+                        </Badge>
                       </TableCell>
                       <TableCell className="px-6">
                         <Badge
@@ -369,6 +391,27 @@ export function ControlDirections() {
                 <div className="space-y-2">
                   <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">{t("Наименование (UZ Cyrl)", "Nomi (kirill)")}</Label>
                   <Input value={form.name_uz_cyrl} onChange={e => setForm({ ...form, name_uz_cyrl: e.target.value })} placeholder="Номи (кирилл)" className="h-12 rounded-2xl bg-muted/40 border-none px-4 focus:bg-white transition-all font-medium" />
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-2">
+                <div className="flex items-center gap-2 px-1">
+                  <div className="h-1 w-6 bg-indigo-500 rounded-full" />
+                  <span className="text-[11px] font-black uppercase tracking-[0.15em] text-indigo-600">{t("Сокращения", "Qisqartmalar")}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">RU</Label>
+                    <Input value={form.abbreviation} onChange={e => setForm({ ...form, abbreviation: e.target.value })} placeholder="ФХД" className="h-12 rounded-2xl bg-muted/40 border-none px-4 focus:bg-white transition-all font-bold text-indigo-600" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">UZ Latn</Label>
+                    <Input value={form.abbreviation_uz_latn} onChange={e => setForm({ ...form, abbreviation_uz_latn: e.target.value })} placeholder="FXD" className="h-12 rounded-2xl bg-muted/40 border-none px-4 focus:bg-white transition-all font-bold text-indigo-600" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">UZ Cyrl</Label>
+                    <Input value={form.abbreviation_uz_cyrl} onChange={e => setForm({ ...form, abbreviation_uz_cyrl: e.target.value })} placeholder="ФХД" className="h-12 rounded-2xl bg-muted/40 border-none px-4 focus:bg-white transition-all font-bold text-indigo-600" />
+                  </div>
                 </div>
               </div>
             </div>

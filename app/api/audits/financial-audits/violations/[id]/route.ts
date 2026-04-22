@@ -18,7 +18,18 @@ export async function GET(
       return NextResponse.json({ error: "Violation not found" }, { status: 404 })
     }
 
-    return NextResponse.json(violation)
+    return NextResponse.json({
+      id: violation.id,
+      auditId: violation.audit_id,
+      kind: violation.kind,
+      type: violation.type,
+      source: violation.source,
+      amount: violation.amount ? Number(violation.amount) : 0,
+      recovered: violation.recovered ? Number(violation.recovered) : 0,
+      count: violation.count || 1,
+      recoveredCount: violation.recovered_count || 0,
+      responsible: violation.responsible || ""
+    })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
@@ -45,6 +56,7 @@ export async function PUT(
         amount: body.amount !== undefined ? Number(body.amount) || 0 : undefined,
         recovered: body.recovered !== undefined ? Number(body.recovered) || 0 : undefined,
         count: body.count !== undefined ? Number(body.count) || 1 : undefined,
+        recovered_count: body.recoveredCount !== undefined ? Number(body.recoveredCount) || 0 : undefined,
         responsible: body.responsible
       }
     })

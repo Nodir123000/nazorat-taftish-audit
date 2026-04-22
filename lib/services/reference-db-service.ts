@@ -11,7 +11,10 @@ function normalizeNameObj(name: any) {
     return {
         ru: name.ru ?? name?.name_ru ?? "",
         uz: name.uz ?? name?.uzLatn ?? name?.name_uz_latn ?? "",
-        uzk: name.uzk ?? name?.uzCyrl ?? name?.name_uz_cyrl ?? ""
+        uzk: name.uzk ?? name?.uzCyrl ?? name?.name_uz_cyrl ?? "",
+        abbr_ru: name.abbr_ru ?? name?.abbreviation ?? name?.short_name ?? "",
+        abbr_uz: name.abbr_uz ?? name?.abbreviation_uz_latn ?? name?.short_name_uz_latn ?? "",
+        abbr_uzk: name.abbr_uzk ?? name?.abbreviation_uz_cyrl ?? name?.short_name_uz_cyrl ?? ""
     }
 }
 
@@ -95,9 +98,12 @@ export async function getClassifiersByType(type: string, options: { skip?: numbe
                 nameUzCyrl: nameObj.uzk,
                 name_uz_latn: nameObj.uz,
                 name_uz_cyrl: nameObj.uzk,
-                short_name: shortNameObj.ru,
-                short_name_uz_latn: shortNameObj.uz,
-                short_name_uz_cyrl: shortNameObj.uzk,
+                short_name: shortNameObj.ru || nameObj.abbr_ru,
+                short_name_uz_latn: shortNameObj.uz || nameObj.abbr_uz,
+                short_name_uz_cyrl: shortNameObj.uzk || nameObj.abbr_uzk,
+                abbreviation: shortNameObj.ru || nameObj.abbr_ru,
+                abbreviation_uz_latn: shortNameObj.uz || nameObj.abbr_uz,
+                abbreviation_uz_cyrl: shortNameObj.uzk || nameObj.abbr_uzk,
                 type: item.type || type,
                 nameObj: nameObj,
                 shortNameObj: shortNameObj,
@@ -140,7 +146,10 @@ export async function saveClassifier(type: string, data: any) {
         const nameJson = {
             ru: data.nameRu ?? data.name ?? data.name_ru ?? "",
             uz: data.nameUzLatn ?? data.name_uz_latn ?? "",
-            uzk: data.nameUzCyrl ?? data.name_uz_cyrl ?? ""
+            uzk: data.nameUzCyrl ?? data.name_uz_cyrl ?? "",
+            abbr_ru: data.abbreviation ?? data.short_name ?? data.shortName ?? "",
+            abbr_uz: data.abbreviation_uz_latn ?? data.short_name_uz_latn ?? data.shortNameUzLatn ?? "",
+            abbr_uzk: data.abbreviation_uz_cyrl ?? data.short_name_uz_cyrl ?? data.shortNameUzCyrl ?? ""
         };
 
         if (!nameJson.ru && !nameJson.uz && !nameJson.uzk) {
@@ -155,12 +164,22 @@ export async function saveClassifier(type: string, data: any) {
 
         if (delegate) {
             const idField = idFieldMap[type] ?? 'id';
-            if (type === 'RefSupplyDepartment') {
-                dbData.shortName = {
-                    ru: data.shortName ?? data.short_name ?? "",
-                    uz: data.shortNameUzLatn ?? data.short_name_uz_latn ?? "",
-                    uzk: data.shortNameUzCyrl ?? data.short_name_uz_cyrl ?? ""
-                };
+            
+            // Handle localized abbreviations (short_name)
+            const shortNameJson = {
+                ru: data.abbreviation ?? data.short_name ?? data.shortName ?? "",
+                uz: data.abbreviation_uz_latn ?? data.short_name_uz_latn ?? data.shortNameUzLatn ?? "",
+                uzk: data.abbreviation_uz_cyrl ?? data.short_name_uz_cyrl ?? data.shortNameUzCyrl ?? ""
+            };
+
+            // If any language has an abbreviation, add it to dbData
+            if (shortNameJson.ru || shortNameJson.uz || shortNameJson.uzk) {
+                // Determine the column name based on type or use short_name as default
+                if (type === 'RefSupplyDepartment') {
+                    dbData.shortName = shortNameJson;
+                } else {
+                    dbData.short_name = shortNameJson;
+                }
             }
 
             const idValue = data.id ? parseInt(String(data.id), 10) : null;

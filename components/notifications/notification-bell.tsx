@@ -33,7 +33,7 @@ export function NotificationBell() {
     const notifications = data?.notifications || [];
     const unreadCount = data?.unreadCount || 0;
 
-    const dateLocale = locale === "uz" ? uz : ru;
+    const dateLocale = locale.startsWith("uz") ? uz : ru;
 
     const getIcon = (type: string) => {
         switch (type) {
@@ -107,7 +107,7 @@ export function NotificationBell() {
                                     <div className="flex items-center justify-between w-full gap-2">
                                         <div className="flex items-center gap-2">
                                             {getIcon(notification.type)}
-                                            <span className="text-sm truncate max-w-[180px] font-semibold">
+                                            <span className="text-sm truncate max-w-45 font-semibold">
                                                 {notification.title}
                                             </span>
                                         </div>

@@ -23,7 +23,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandGroup, CommandItem, CommandInput, CommandList, CommandEmpty } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/i18n/hooks"
-import { getLocalizedAuthorityName } from "@/lib/utils/localization"
+import { getLocalizedAuthorityName, toSafeString, Locale } from "@/lib/utils/localization"
 import { militaryUnits, controlAuthorities, controlDirections } from "@/lib/data/military-data"
 
 interface CreatePlanDialogProps {
@@ -32,7 +32,7 @@ interface CreatePlanDialogProps {
     onSave: (data: any) => Promise<any>
     initialData?: any
     isEditing?: boolean
-    locale: string
+    locale: Locale
     militaryPersonnel: any[]
     physicalPersons: any[]
     supplyDepartments: any[]
@@ -158,7 +158,7 @@ export function CreatePlanDialog({
                         <div className="grid gap-2">
                             <Label>{t("annual.table.incomingNumber")}</Label>
                             <Input
-                                value={formData.incomingNumber}
+                                value={formData.incomingNumber || ""}
                                 onChange={(e) => setFormData({ ...formData, incomingNumber: e.target.value })}
                                 placeholder="№ 123"
                             />
@@ -188,7 +188,7 @@ export function CreatePlanDialog({
                         <div className="grid gap-2">
                             <Label>{t("common.location") || (locale === "ru" ? "Локация" : "Joylashuvi")}</Label>
                             <Input
-                                value={formData.unitLocation}
+                                value={formData.unitLocation || ""}
                                 onChange={(e) => setFormData({ ...formData, unitLocation: e.target.value })}
                                 placeholder={t("common.location") || (locale === "ru" ? "Место дислокации" : "Manzil")}
                                 className="bg-muted/30"
@@ -230,14 +230,14 @@ export function CreatePlanDialog({
                                             {Object.entries(controlAuthorities).map(([code, auth]: [string, any]) => (
                                                 <CommandItem
                                                     key={code}
-                                                    value={`${code} ${locale === "uzLatn" ? auth.name_uz_latn : locale === "uzCyrl" ? auth.name_uz_cyrl : auth.name}`}
+                                                    value={`${code} ${toSafeString(locale === "uzLatn" ? auth.name_uz_latn : locale === "uzCyrl" ? auth.name_uz_cyrl : auth.name, locale as any)}`}
                                                     onSelect={() => {
                                                         setFormData({ ...formData, controlAuthority: code })
                                                         setOpenAuthoritySelect(false)
                                                     }}
                                                 >
                                                     <Icons.Check className={cn("mr-2 h-4 w-4", formData.controlAuthority === code ? "opacity-100" : "opacity-0")} />
-                                                    {locale === "uzLatn" ? auth.name_uz_latn : locale === "uzCyrl" ? auth.name_uz_cyrl : auth.name}
+                                                    {toSafeString(locale === "uzLatn" ? auth.name_uz_latn : locale === "uzCyrl" ? auth.name_uz_cyrl : auth.name, locale as any)}
                                                 </CommandItem>
                                             ))}
                                         </CommandGroup>
@@ -260,7 +260,7 @@ export function CreatePlanDialog({
                                 <SelectContent>
                                     {controlDirections.map((dir) => (
                                         <SelectItem key={dir.id} value={dir.code}>
-                                            {locale === "uzLatn" ? dir.name_uz_latn : locale === "uzCyrl" ? dir.name_uz_cyrl : dir.name}
+                                            {toSafeString(locale === "uzLatn" ? dir.name_uz_latn : locale === "uzCyrl" ? dir.name_uz_cyrl : dir.name, locale as any)}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

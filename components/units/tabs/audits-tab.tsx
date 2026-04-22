@@ -19,6 +19,7 @@ import {
     useUpdateLawEnforcementCase,
     useRepayments,
     useCreateRepayment,
+    useAllReferences
 } from "@/lib/hooks/use-audits"
 import { FinancialAuditDTO, AuditViolationDTO, RepaymentDTO, CreateRepaymentDTO } from "@/lib/types/audits.dto"
 import { useToast } from "@/lib/hooks/use-toast"
@@ -222,6 +223,7 @@ export function AuditsTab({ unitNumber, unitName }: AuditsTabProps) {
     // Data Fetching
     const { data: audits = [], isLoading: auditsLoading } = useFinancialAudits<FinancialAuditDTO[]>({ unitName: unitName || unitNumber })
     const { data: violations = [], isLoading: violationsLoading } = useAuditViolations<AuditViolationDTO[]>()
+    const { data: allRefs } = useAllReferences()
 
     // Mutations
     const createAudit = useCreateFinancialAudit()
@@ -393,7 +395,7 @@ export function AuditsTab({ unitNumber, unitName }: AuditsTabProps) {
             <FinancialAuditRegistry
                 audits={filteredAudits}
                 violations={filteredViolations}
-                isLoading={auditsLoading || violationsLoading}
+                isLoading={auditsLoading || violationsLoading || !allRefs}
                 onAddAudit={handleAddAudit}
                 onEditAudit={handleEditAudit}
                 onViewDetail={(audit) => window.open(`/audits/financial-activity/${audit.id}`, '_blank')}
@@ -420,6 +422,10 @@ export function AuditsTab({ unitNumber, unitName }: AuditsTabProps) {
                 renderViolationExpansion={(violation) => (
                     <RepaymentPanel violation={violation} canEdit={canManageRepayments} />
                 )}
+                districts={allRefs?.districts}
+                directions={allRefs?.directions}
+                authorities={allRefs?.authorities}
+                violationTypes={allRefs?.violations}
             />
 
             <FinancialAuditDialogs

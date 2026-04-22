@@ -29,32 +29,16 @@ interface FinancialAuditRegistryProps {
     onTransferLawEnforcement?: (violation: AuditViolationDTO) => void
     hideFilters?: boolean
     hideHeader?: boolean
+    hideControlBody?: boolean
     expandedViolationId?: number | null
     onToggleViolationExpand?: (id: number) => void
     renderViolationExpansion?: (violation: AuditViolationDTO) => React.ReactNode
+    // Dynamic references
+    districts?: any[]
+    directions?: any[]
+    authorities?: any[]
+    violationTypes?: any[]
 }
-
-const CONTROL_BODIES: Record<string, string> = {
-    "КРУ МО РУ": "Контрольно-ревизионное управление Министерства обороны Республики Узбекистан",
-    "Прокуратура РУ": "Прокуратура Республики Узбекистан",
-    "СНБ РУ": "Служба национальной безопасности Республики Узбекистан",
-    "МО РУ": "Министерство обороны Республики Узбекистан",
-    "ВО МО РУ": "Должностные лица военроны Республики Узбекистан",
-    "Соединение МО РУ": "Должностные лица соединения Министерства обороны Республики Узбекистан",
-    "Объединение МО РУ": "Должностные лица объединения Министерства обороны Республики Узбекистан",
-    "В/Ч МО РУ": "Должностные лица воинской части Министерства обороны Республики Узбекистан",
-}
-
-const CONTROL_BODY_ORDER = [
-    "КРУ МО РУ",
-    "Прокуратура РУ",
-    "СНБ РУ",
-    "МО РУ",
-    "ВО МО РУ",
-    "Соединение МО РУ",
-    "Объединение МО РУ",
-    "В/Ч МО РУ",
-]
 
 export function FinancialAuditRegistry({
     audits,
@@ -70,11 +54,16 @@ export function FinancialAuditRegistry({
     onTransferLawEnforcement,
     hideFilters = false,
     hideHeader = false,
+    hideControlBody = false,
     expandedViolationId,
     onToggleViolationExpand,
     renderViolationExpansion,
+    districts = [],
+    directions = [],
+    authorities = [],
+    violationTypes = [],
 }: FinancialAuditRegistryProps) {
-    const { t } = useTranslation()
+    const { t, locale } = useTranslation()
     const [filters, setFilters] = useState({ search: "", status: "", dateFrom: "" })
     const [viewMode, setViewMode] = useState<"list" | "districts" | "directions" | "controlBody">("list")
     const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set())
@@ -94,8 +83,29 @@ export function FinancialAuditRegistry({
         })
     }
 
-    const getDistrictAbbr = (district: string) => {
-        const abbr: Record<string, string> = {
+    const getDistrictAbbr = (districtName: string) => {
+        if (!districtName || typeof districtName !== 'string') return districtName;
+        
+        const normalize = (s: any) => {
+            if (typeof s !== 'string') return '';
+            return s.toLowerCase().replace(/[-\s]/g, '').trim();
+        };
+        const search = normalize(districtName);
+
+        const found = districts.find(d => 
+            normalize(d.name) === search || 
+            normalize(d.nameRu) === search || 
+            normalize(d.name_uz_latn) === search || 
+            normalize(d.name_uz_cyrl) === search ||
+            normalize(d.code) === search
+        )
+        if (found) {
+            if (locale === "uzLatn") return found.abbreviation_uz_latn || found.short_name_uz_latn || found.code || districtName
+            if (locale === "uzCyrl") return found.abbreviation_uz_cyrl || found.short_name_uz_cyrl || found.code || districtName
+            return found.abbreviation || found.short_name || found.code || districtName
+        }
+
+        const fallback: Record<string, string> = {
             "Ташкентский военный округ": "ТВО",
             "Центральный военный округ": "ЦВО",
             "Восточный военный округ": "ВВО",
@@ -105,13 +115,42 @@ export function FinancialAuditRegistry({
             "Юго‑Западный военный округ": "ЮЗВО",
             "Юго‑Западный специальный военный округ": "ЮЗСВО",
             "Центральный подчинения": "ЦП",
-            "Центарльный подчинения": "ЦП",
         }
-        return abbr[district] || district
+        return fallback[districtName] || districtName
     }
 
-    const getDirectionAbbr = (direction: string) => {
-        const abbr: Record<string, string> = {
+    const getDirectionAbbr = (directionName: string) => {
+        if (!directionName || typeof directionName !== 'string') return directionName;
+
+        const normalize = (s: any) => {
+            if (typeof s !== 'string') return '';
+            return s.toLowerCase().replace(/[-\s]/g, '').trim();
+        };
+        const search = normalize(directionName);
+
+        const found = directions.find(d => {
+            const dName = normalize(d.name);
+            const dNameRu = normalize(d.nameRu);
+            const dCode = normalize(d.code);
+            
+            // Exact match
+            if (dName === search || dNameRu === search || dCode === search) return true;
+            
+            // Key stem matching for common directions
+            if (search.includes('финанс') && search.includes('хозяйств') && (dCode === 'fin' || dCode === 'fin_s')) return true;
+            if (search.includes('материал') && search.includes('технич') && (dCode === 'sup' || dCode === 'sup_s')) return true;
+            if (search.includes('кадр') && (dCode === 'pers' || dCode === 'pers_s')) return true;
+            if (search.includes('боевой') && search.includes('подготов') && (dCode === 'train' || dCode === 'train_s')) return true;
+            
+            return false;
+        });
+        if (found) {
+            if (locale === "uzLatn") return found.abbreviation_uz_latn || found.short_name_uz_latn || found.code || directionName
+            if (locale === "uzCyrl") return found.abbreviation_uz_cyrl || found.short_name_uz_cyrl || found.code || directionName
+            return found.abbreviation || found.short_name || found.code || directionName
+        }
+
+        const fallback: Record<string, string> = {
             "Главное финансово-экономическое управление МО РУ": "ГФЭУ МО РУ",
             "Главное финансово-экономическое управление": "ГФЭУ",
             "Управление материально-технического снабжения": "УМТС",
@@ -129,8 +168,39 @@ export function FinancialAuditRegistry({
             "Тыловая служба": "ТС",
             "Служба горючего": "СГ",
         }
-        return abbr[direction] || direction
+        return fallback[directionName] || directionName
     }
+
+    const getControlAuthority = (name: string) => {
+        return authorities.find(a => 
+            a.name === name || 
+            a.nameRu === name || 
+            a.name_uz_latn === name || 
+            a.name_uz_cyrl === name ||
+            a.code === name
+        )
+    }
+
+    const getControlBodyName = (name: string) => {
+        const found = getControlAuthority(name)
+        if (found) {
+            if (locale === "uzLatn") return found.name_uz_latn || found.name || name
+            if (locale === "uzCyrl") return found.name_uz_cyrl || found.name || name
+            return found.nameRu || found.name || name
+        }
+        return name
+    }
+
+    const CONTROL_BODY_ORDER = [
+        "КРУ МО РУ",
+        "Прокуратура РУ",
+        "СНБ РУ",
+        "МО РУ",
+        "ВО МО РУ",
+        "Соединение МО РУ",
+        "Объединение МО РУ",
+        "В/Ч МО РУ",
+    ]
 
     const filteredAudits = useMemo(() => {
         return audits.filter(audit => {
@@ -190,7 +260,7 @@ export function FinancialAuditRegistry({
                 "ID": a.id,
                 "№ Акта": `AKT-${a.id.toString().padStart(3, '0')}`,
                 "Дата": a.date,
-                "Орган контроля": CONTROL_BODIES[a.controlBody] || a.controlBody,
+                "Орган контроля": getControlBodyName(a.controlBody),
                 "Объект контроля": a.unit,
                 "Округ": a.unitSubtitle,
                 "Направление": a.inspectionDirection,
@@ -211,19 +281,19 @@ export function FinancialAuditRegistry({
     const renderTable = (items: FinancialAuditDTO[]) => (
         <Table>
             <TableHeader>
-                <TableRow className="bg-slate-50">
-                    <TableHead className="text-[10px] font-bold text-slate-700 text-center w-[80px]">ИД плана</TableHead>
-                    <TableHead className="text-[10px] font-bold text-slate-700 text-center whitespace-nowrap">№ акта и дата</TableHead>
-                    <TableHead className="text-[10px] font-bold text-slate-700 text-center">Орган контроля</TableHead>
-                    <TableHead className="text-[10px] font-bold text-slate-700 text-center">{t("audits.financial.table.controlObject")}</TableHead>
-                    <TableHead className="text-[10px] font-bold text-slate-700 text-center">{t("audits.financial.table.inspectionDirection")}</TableHead>
-                    <TableHead className="text-[10px] font-bold text-slate-700 text-center">{t("audits.financial.table.inspectionType")}</TableHead>
-                    <TableHead className="text-[10px] font-bold text-slate-700 text-center">Сумма нарушений</TableHead>
-                    <TableHead className="text-[10px] font-bold text-slate-700 text-center">Возмещено</TableHead>
-                    <TableHead className="text-[10px] font-bold text-slate-700 text-center whitespace-nowrap">Количество</TableHead>
-                    <TableHead className="text-[10px] font-bold text-slate-700 text-center">Виновные лица</TableHead>
-                    <TableHead className="text-[10px] font-bold text-slate-700 text-center">{t("audits.financial.table.status")}</TableHead>
-                    <TableHead className="text-[10px] font-bold text-slate-700 text-center">{t("audits.financial.table.actions")}</TableHead>
+                <TableRow>
+                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center w-20">ИД ПЛАНА</TableHead>
+                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center whitespace-nowrap">№ АКТА / ДАТА</TableHead>
+                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center">ОБЪЕКТ КОНТРОЛЯ</TableHead>
+                    {!hideControlBody && <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center">ОРГАН КОНТРОЛЯ</TableHead>}
+                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center">НАПРАВЛЕНИЕ</TableHead>
+                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center">ТИП</TableHead>
+                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center">СУММА НАРУШЕНИЯ</TableHead>
+                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center">ВОЗМЕЩЕНО</TableHead>
+                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center whitespace-nowrap">ЛИЦ</TableHead>
+                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center">ОТВЕТСТВЕННЫЙ</TableHead>
+                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center">СТАТУС</TableHead>
+                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center">ДЕЙСТВИЯ</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -247,34 +317,47 @@ export function FinancialAuditRegistry({
                         return (
                             <React.Fragment key={audit.id}>
                                 <TableRow>
-                                    <TableCell className="py-2.5 text-center">
-                                        <div className="font-mono text-[10px] bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded inline-block">
-                                            {audit.id}
+                                    <TableCell className="font-mono text-center">{audit.id}</TableCell>
+                                    <TableCell className="align-top">
+                                        <div className="flex flex-col">
+                                            <span className="text-[11px] font-black text-foreground uppercase tracking-tight">AKT-{audit.id.toString().padStart(3, '0')}</span>
+                                            <span className="text-[9px] font-mono text-muted-foreground uppercase">ОТ {audit.date}</span>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="py-2.5">
+                                    <TableCell className="align-top">
                                         <div className="flex flex-col">
-                                            <span className="font-semibold text-xs text-slate-800">AKT-{audit.id.toString().padStart(3, '0')}</span>
-                                            <span className="text-[9px] text-slate-400">{audit.date}</span>
+                                            <div className="font-semibold text-foreground uppercase text-[11px]">{audit.unit}</div>
+                                            <div 
+                                                className="text-[9px] text-muted-foreground uppercase cursor-help w-fit" 
+                                                title={audit.unitSubtitle}
+                                            >
+                                                {getDistrictAbbr(audit.unitSubtitle)}
+                                            </div>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="py-2.5">
-                                        <div className="flex flex-col">
-                                            <code className="text-[10px] bg-muted px-1.5 py-0.5 rounded font-bold self-start truncate max-w-[120px]" title={CONTROL_BODIES[audit.controlBody] || audit.controlBody}>
+                                    {!hideControlBody && (
+                                        <TableCell>
+                                            <div className="font-medium text-foreground max-w-37.5 truncate cursor-help border-b border-dotted border-slate-400 group relative" title={getControlBodyName(audit.controlBody)}>
                                                 {audit.controlBody || audit.unitSubtitle}
-                                            </code>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="py-2.5">
+                                            </div>
+                                        </TableCell>
+                                    )}
+                                    <TableCell>
                                         <div className="flex flex-col">
-                                            <div className="font-semibold text-xs text-slate-800">{audit.unit}</div>
-                                            <div className="text-[9px] text-slate-400">{getDistrictAbbr(audit.unitSubtitle)}</div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="py-2.5">
-                                        <div className="flex flex-col">
-                                            <div className="font-semibold text-[10px] text-slate-700">{audit.inspectionDirection}</div>
-                                            <div className="text-[9px] text-slate-400">{getDirectionAbbr(audit.inspectionDirectionSubtitle)}</div>
+                                            <div 
+                                                className="font-semibold text-foreground text-[11px] uppercase cursor-help border-b border-dotted border-slate-300 w-fit" 
+                                                title={audit.inspectionDirection}
+                                            >
+                                                {getDirectionAbbr(audit.inspectionDirection)}
+                                            </div>
+                                            {audit.inspectionDirectionSubtitle && getDirectionAbbr(audit.inspectionDirection) === audit.inspectionDirection && (
+                                                <div 
+                                                    className="text-[9px] text-muted-foreground uppercase cursor-help w-fit" 
+                                                    title={audit.inspectionDirectionSubtitle}
+                                                >
+                                                    {getDirectionAbbr(audit.inspectionDirectionSubtitle)}
+                                                </div>
+                                            )}
                                         </div>
                                     </TableCell>
                                     <TableCell>
@@ -282,23 +365,17 @@ export function FinancialAuditRegistry({
                                             {audit.inspectionType}
                                         </Badge>
                                     </TableCell>
+                                    <TableCell className="text-center font-bold">{totalAmount.toLocaleString()} сум</TableCell>
+                                    <TableCell className="text-center font-bold text-green-600">{recoveredAmount.toLocaleString()} сум</TableCell>
                                     <TableCell className="text-center">
-                                        <div className="font-bold text-[11px] text-slate-800">{totalAmount.toLocaleString()}</div>
-                                        <div className="text-[9px] text-slate-400 mt-0.5">сум</div>
+                                        <span className="font-bold text-slate-900">{violationsCount}</span>
+                                        <span className="text-muted-foreground mx-1">/</span>
+                                        <span className="font-bold text-green-600">{auditViolations.reduce((s, v) => s + (v.recoveredCount || 0), 0)}</span>
                                     </TableCell>
-                                    <TableCell className="text-center">
-                                        <div className="font-bold text-[11px] text-green-600">{recoveredAmount.toLocaleString()}</div>
-                                        <div className="text-[9px] text-green-600/60 mt-0.5">сум</div>
-                                    </TableCell>
-                                    <TableCell className="text-center">
-                                        <span className="font-bold">{violationsCount}</span>
-                                        <span className="text-muted-foreground">/</span>
-                                        <span className="font-bold text-green-600">{resolvedCount}</span>
-                                    </TableCell>
-                                    <TableCell className="py-2.5">
-                                        <div className="flex flex-col">
-                                            <div className="font-semibold text-xs text-slate-800">{audit.cashier}</div>
-                                            <div className="text-[9px] text-slate-400">{audit.cashierRole}</div>
+                                    <TableCell>
+                                        <div>
+                                            <div className="font-semibold text-foreground">{audit.cashier}</div>
+                                            <div className="text-sm text-muted-foreground">{audit.cashierRole}</div>
                                         </div>
                                     </TableCell>
                                     <TableCell>
@@ -306,7 +383,14 @@ export function FinancialAuditRegistry({
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex gap-2 items-center">
-                                            <Button variant="ghost" size="sm" onClick={() => toggleRowExpansion(audit.id)} title={isExpanded ? "Скрыть" : "Показать нарушения"}>
+                                            <Button 
+                                                variant="ghost" 
+                                                size="sm" 
+                                                onClick={() => toggleRowExpansion(audit.id)} 
+                                                title={auditViolations.length === 0 ? "Нарушений нет" : (isExpanded ? "Скрыть" : "Показать нарушения")}
+                                                disabled={auditViolations.length === 0}
+                                                className={auditViolations.length === 0 ? "opacity-30 cursor-not-allowed" : ""}
+                                            >
                                                 {isExpanded ? <Icons.ChevronUp className="h-4 w-4" /> : <Icons.ChevronDown className="h-4 w-4" />}
                                                 {auditViolations.length > 0 && <span className="ml-1 text-xs">({auditViolations.length})</span>}
                                             </Button>
@@ -335,14 +419,14 @@ export function FinancialAuditRegistry({
                                                 <Table>
                                                     <TableHeader>
                                                         <TableRow className="bg-red-100/50">
-                                                            <TableHead className="text-red-900 text-center w-[50px]">№ п/п</TableHead>
+                                                            <TableHead className="text-red-900 text-center w-12.5">№ п/п</TableHead>
+                                                            <TableHead className="text-red-900 text-center">Раздел справки</TableHead>
                                                             <TableHead className="text-red-900 text-center">Вид нарушения</TableHead>
-                                                            <TableHead className="text-red-900 text-center">Тип нарушения</TableHead>
-                                                            <TableHead className="text-red-900 text-center">Источник</TableHead>
+                                                            <TableHead className="text-red-900 text-center">Детализация</TableHead>
                                                             <TableHead className="text-red-900 text-center">Сумма нарушений</TableHead>
                                                             <TableHead className="text-red-900 text-center">Возмещено в ходе</TableHead>
                                                             <TableHead className="text-red-900 text-center">Количество</TableHead>
-                                                            <TableHead className="text-red-900 text-center">Виновные лица</TableHead>
+                                                            <TableHead className="text-red-900 text-center">Ответственные</TableHead>
                                                             <TableHead className="text-red-900 text-center">Действия</TableHead>
                                                         </TableRow>
                                                     </TableHeader>
@@ -357,26 +441,13 @@ export function FinancialAuditRegistry({
                                                                     <TableCell className="text-right font-semibold text-red-600">{v.amount.toLocaleString()} cум</TableCell>
                                                                     <TableCell className="text-right font-semibold text-green-600">{v.recovered.toLocaleString()} cум</TableCell>
                                                                     <TableCell className="text-center">
-                                                                        <span className="font-bold">{v.count}</span>
-                                                                        <span className="text-muted-foreground">/</span>
-                                                                        <span className="font-bold text-green-600">{v.recovered > 0 ? 1 : 0}</span>
+                                                                        <span className="font-bold text-slate-900">{v.count}</span>
+                                                                        <span className="text-muted-foreground mx-1">/</span>
+                                                                        <span className="font-bold text-green-600">{v.recoveredCount || 0}</span>
                                                                     </TableCell>
                                                                     <TableCell className="whitespace-pre-line text-sm">{v.responsible}</TableCell>
                                                                     <TableCell>
                                                                         <div className="flex gap-1 justify-center">
-                                                                            {onToggleViolationExpand && (
-                                                                                <Button
-                                                                                    variant="ghost"
-                                                                                    size="sm"
-                                                                                    title="История погашений"
-                                                                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                                                                    onClick={() => onToggleViolationExpand(v.id)}
-                                                                                >
-                                                                                    {expandedViolationId === v.id
-                                                                                        ? <Icons.ChevronUp className="h-4 w-4" />
-                                                                                        : <Icons.ChevronDown className="h-4 w-4" />}
-                                                                                </Button>
-                                                                            )}
                                                                             {onInitiateInvestigation && (
                                                                             <Button variant="ghost" size="sm" title={t("audits.financial.action.initiateInvestigation")} className="text-amber-600 hover:text-amber-700 hover:bg-amber-50" onClick={() => onInitiateInvestigation(v)}>
                                                                                 <Icons.ShieldAlert className="h-4 w-4" />
@@ -486,7 +557,7 @@ export function FinancialAuditRegistry({
                                                 <div className="flex items-center justify-between w-full pr-4">
                                                     <div className="flex items-center gap-3">
                                                         <div className="bg-blue-100 p-2 rounded-lg"><Icons.List className="h-5 w-5 text-blue-600" /></div>
-                                                        <span className="font-semibold text-base text-slate-800">{viewMode === "controlBody" ? (CONTROL_BODIES[key] || key) : key}</span>
+                                                        <span className="font-semibold text-base text-slate-800">{viewMode === "controlBody" ? getControlBodyName(key) : key}</span>
                                                     </div>
                                                     <div className="flex items-center gap-6 text-sm font-mono">
                                                         <div className="w-24 text-right"><span className="text-muted-foreground text-xs">Проверок</span><div className="font-bold text-slate-900">{items.length}</div></div>

@@ -44,7 +44,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { MilitaryPersonnel } from "./personnel-data"
 import { useI18n } from "@/lib/i18n/context"
-import { cn } from "@/lib/utils"
+import { cn, maskPINFL } from "@/lib/utils"
 import { toast } from "sonner"
 import { z } from "zod"
 import { savePersonnel, deletePersonnel } from "@/lib/services/reference-db-service"
@@ -603,7 +603,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                             {form.personId
                               ? (() => {
                                 const p = physicalPersonOptions.find((p: PhysicalPerson) => p.id?.toString() || "" === form.personId);
-                                return p ? `${p.lastName} ${p.firstName} (${p.pinfl})` : t("Физическое лицо не выбрано", "Jismoniy shaxs tanlanmadi", "Жисмоний шахс танланмади")
+                                return p ? `${p.lastName} ${p.firstName} (${maskPINFL(p.pinfl)})` : t("Физическое лицо не выбрано", "Jismoniy shaxs tanlanmadi", "Жисмоний шахс танланмади")
                               })()
                               : t("Поиск по ФИО или ПИНФЛ", "FIO yoki PINFL bo'yicha qidirish", "ФИО ёки ПИНФЛ бўйича қидириш")}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -636,7 +636,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                                     />
                                     <div className="flex flex-col gap-0.5">
                                       <span className="font-bold">{p.lastName} {p.firstName} <span className="text-muted-foreground font-normal ml-1">{p.middleName}</span></span>
-                                      <span className="text-xs text-muted-foreground font-mono">ПИНФЛ: {p.pinfl}</span>
+                                      <span className="text-xs text-muted-foreground font-mono">ПИНФЛ: {maskPINFL(p.pinfl)}</span>
                                     </div>
                                   </CommandItem>
                                 ))}
@@ -1558,7 +1558,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
                     <span className="text-sm font-medium text-muted-foreground">{t("ПИНФЛ", "PINFL", "ПИНФЛ")}</span>
-                    <span className="text-sm font-bold font-mono">{currentMember?.physicalPerson?.pinfl}</span>
+                    <span className="text-sm font-bold font-mono">{maskPINFL(currentMember?.physicalPerson?.pinfl)}</span>
                   </div>
                 </div>
               </div>

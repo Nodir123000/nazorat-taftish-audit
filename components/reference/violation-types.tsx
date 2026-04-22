@@ -68,6 +68,10 @@ const violationSchema = z.object({
   name_uz_cyrl: z.string().optional(),
   description_uz_latn: z.string().optional(),
   description_uz_cyrl: z.string().optional(),
+  // Abbreviation fields
+  abbreviation: z.string().optional(),
+  abbreviation_uz_latn: z.string().optional(),
+  abbreviation_uz_cyrl: z.string().optional(),
 })
 
 interface ViolationType {
@@ -84,6 +88,9 @@ interface ViolationType {
   description_uz_latn?: string
   description_uz_cyrl?: string
   status: string
+  abbreviation?: string
+  abbreviation_uz_latn?: string
+  abbreviation_uz_cyrl?: string
 }
 
 const initialViolationTypes: ViolationType[] = VIOLATION_TYPES.map(v => ({ ...v, status: 'active' }))
@@ -120,7 +127,10 @@ export function ViolationTypes() {
         category: v.category || "",
         severity: v.severity || "",
         description: v.description || "",
-        status: v.status || "active"
+        status: v.status || "active",
+        abbreviation: v.abbreviation || "",
+        abbreviation_uz_latn: v.abbreviation_uz_latn || "",
+        abbreviation_uz_cyrl: v.abbreviation_uz_cyrl || ""
       })))
     } catch (error) {
       toast.error("Ошибка при загрузке данных")
@@ -138,7 +148,10 @@ export function ViolationTypes() {
     category: "Финансовые нарушения",
     severity: "medium",
     description: "",
-    status: "active"
+    status: "active",
+    abbreviation: "",
+    abbreviation_uz_latn: "",
+    abbreviation_uz_cyrl: ""
   })
 
   const t = (ru: string, uzL: string, uzC: string) => {
@@ -181,7 +194,10 @@ export function ViolationTypes() {
       category: "Финансовые нарушения",
       severity: "medium",
       description: "",
-      status: "active"
+      status: "active",
+      abbreviation: "",
+      abbreviation_uz_latn: "",
+      abbreviation_uz_cyrl: ""
     })
     setIsDialogOpen(true)
   }
@@ -290,6 +306,7 @@ export function ViolationTypes() {
                   <TableHead className="w-[80px] px-8 font-black text-[10px] uppercase tracking-widest text-slate-400 text-center">ID</TableHead>
                   <TableHead className="w-[120px] px-6 font-black text-[10px] uppercase tracking-widest text-slate-400">{t("Код", "Kod", "Код")}</TableHead>
                   <TableHead className="px-6 font-black text-[10px] uppercase tracking-widest text-slate-400">{t("Наименование", "Nomlanishi", "Номи")}</TableHead>
+                  <TableHead className="px-6 font-black text-[10px] uppercase tracking-widest text-slate-400">{t("Сокр.", "Qisq.", "Қисқ.")}</TableHead>
                   <TableHead className="px-6 font-black text-[10px] uppercase tracking-widest text-slate-400">{t("Категория", "Toifa", "Тоифа")}</TableHead>
                   <TableHead className="px-6 font-black text-[10px] uppercase tracking-widest text-slate-400 text-center">{t("Тяжесть", "Og'irligi", "Оғирлиги")}</TableHead>
                   <TableHead className="w-[80px] px-8 font-black text-[10px] uppercase tracking-widest text-slate-400 text-right">{t("Действия", "Harakatlar", "Ҳаракатлар")}</TableHead>
@@ -315,6 +332,11 @@ export function ViolationTypes() {
                           {getSubtextNames(v)}
                         </span>
                       </div>
+                    </TableCell>
+                    <TableCell className="px-6">
+                      <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200 font-bold text-[11px] px-2 py-0.5 rounded-lg">
+                        {locale === "ru" ? v.abbreviation : locale === "uzLatn" ? v.abbreviation_uz_latn : v.abbreviation_uz_cyrl || "—"}
+                      </Badge>
                     </TableCell>
                     <TableCell className="px-6">
                       <div className="flex flex-col items-start gap-1">
@@ -462,6 +484,27 @@ export function ViolationTypes() {
                 <div className="space-y-2">
                   <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">UZ Cyrillic</Label>
                   <Input value={form.name_uz_cyrl} onChange={e => setForm({ ...form, name_uz_cyrl: e.target.value })} className="h-12 rounded-2xl bg-muted/40 border-none px-4 focus:bg-white transition-all font-bold" />
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-2">
+                <div className="flex items-center gap-2 px-1">
+                  <div className="h-1 w-6 bg-blue-500 rounded-full" />
+                  <span className="text-[11px] font-black uppercase tracking-[0.15em] text-blue-500">{t("Сокращения", "Qisqartmalar", "Қисқартмалар")}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">RU</Label>
+                    <Input value={form.abbreviation} onChange={e => setForm({ ...form, abbreviation: e.target.value })} placeholder="ФХД" className="h-12 rounded-2xl bg-muted/40 border-none px-4 focus:bg-white transition-all font-bold text-rose-600" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">UZ Latn</Label>
+                    <Input value={form.abbreviation_uz_latn} onChange={e => setForm({ ...form, abbreviation_uz_latn: e.target.value })} placeholder="FXD" className="h-12 rounded-2xl bg-muted/40 border-none px-4 focus:bg-white transition-all font-bold text-rose-600" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">UZ Cyrl</Label>
+                    <Input value={form.abbreviation_uz_cyrl} onChange={e => setForm({ ...form, abbreviation_uz_cyrl: e.target.value })} placeholder="ФХД" className="h-12 rounded-2xl bg-muted/40 border-none px-4 focus:bg-white transition-all font-bold text-rose-600" />
+                  </div>
                 </div>
               </div>
             </div>

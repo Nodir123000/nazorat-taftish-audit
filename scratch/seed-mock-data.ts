@@ -9,7 +9,7 @@ async function main() {
             data: {
                 id: pId,
                 full_name: "Фазилов Рустам Джураевич",
-                position: "Начальник КРУ МО РУ",
+                physical_person_id: 1, // Added missing required field based on schema
             }
         });
         console.log("Created Person 1");

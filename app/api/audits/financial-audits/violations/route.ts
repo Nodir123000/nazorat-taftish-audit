@@ -23,7 +23,20 @@ export async function GET(request: Request) {
       orderBy: { created_at: 'desc' }
     })
 
-    return NextResponse.json(violations)
+    const dtos = violations.map(v => ({
+      id: v.id,
+      auditId: v.audit_id,
+      kind: v.kind,
+      type: v.type,
+      source: v.source,
+      amount: v.amount ? Number(v.amount) : 0,
+      recovered: v.recovered ? Number(v.recovered) : 0,
+      count: v.count || 1,
+      recoveredCount: v.recovered_count || 0,
+      responsible: v.responsible || ""
+    }))
+
+    return NextResponse.json(dtos)
   } catch (error: any) {
     console.error("[violations-api] Error:", error)
     return NextResponse.json({ error: error.message }, { status: 500 })
@@ -50,6 +63,7 @@ export async function POST(request: Request) {
         amount: Number(body.amount) || 0,
         recovered: Number(body.recovered) || 0,
         count: Number(body.count) || 1,
+        recovered_count: Number(body.recoveredCount) || 0,
         responsible: body.responsible
       }
     })

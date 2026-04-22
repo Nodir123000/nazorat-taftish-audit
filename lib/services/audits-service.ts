@@ -144,7 +144,8 @@ export const auditsService = {
     // --- Financial Audits (Cash Audits) ---
 
     async getFinancialAudits(params?: { inspectorId?: string | number; unitName?: string }): Promise<FinancialAuditDTO[]> {
-        return httpClient.get<FinancialAuditDTO[]>(`${BASE_ENDPOINT}/financial-audits`, { params });
+        const response = await axiosInstance.get<{ items: FinancialAuditDTO[] }>(`${BASE_ENDPOINT}/financial-audits`, { params });
+        return response.items || [];
     },
 
     async getFinancialAudit(id: number): Promise<FinancialAuditDTO> {
@@ -187,5 +188,13 @@ export const auditsService = {
 
     async createRepayment(data: CreateRepaymentDTO): Promise<RepaymentDTO> {
         return httpClient.post<RepaymentDTO>(`${BASE_ENDPOINT}/financial-audits/repayments`, data);
+    },
+
+    async getViolationReferences(): Promise<any[]> {
+        return httpClient.get<any[]>(`/reference/violations`);
+    },
+
+    async getAllReferences(): Promise<{ districts: any[], directions: any[], authorities: any[], violations: any[] }> {
+        return httpClient.get<any>(`/reference/all`);
     },
 };

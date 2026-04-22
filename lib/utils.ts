@@ -19,3 +19,9 @@ export function getDistrictAbbreviation(district: string): string {
 
   return district
 }
+
+export function maskPINFL(pinfl: string | undefined | null): string {
+  if (!pinfl) return "—"
+  if (pinfl.length !== 14) return pinfl
+  return `${pinfl.substring(0, 3)}********${pinfl.substring(11)}`
+}

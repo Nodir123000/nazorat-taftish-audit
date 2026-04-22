@@ -16,6 +16,7 @@ import {
     getLocalizedDirectionName,
     getStatusLabel,
     getInspectionTypeLabel,
+    toSafeString,
     Locale
 } from "@/lib/utils/localization"
 import { militaryUnits } from "@/lib/data/military-data"
@@ -34,12 +35,9 @@ interface ApprovedPlansTableProps {
 }
 
 function getLocalizedName(obj: any, locale: Locale): string {
-    if (!obj?.name) return ""
-    if (typeof obj.name === 'string') return obj.name
-
-    if (locale === "uzLatn") return obj.name.uz || obj.name.ru
-    if (locale === "uzCyrl") return obj.name.uzk || obj.name.ru
-    return obj.name.ru || obj.name.uz
+    if (!obj) return ""
+    const nameData = typeof obj.name === 'object' ? obj.name : obj
+    return toSafeString(nameData, locale)
 }
 
 function getQuarterLabel(dateStr: string | Date, locale: Locale) {
@@ -293,7 +291,7 @@ export function ApprovedPlansTable({
                                                             if (plan.unit?.unit_code) {
                                                                 return `В/Ч ${plan.unit.unit_code.toString().padStart(5, "0")}`;
                                                             }
-                                                            return plan.unit ? getLocalizedName(plan.unit, locale) : plan.controlObject;
+                                                            return plan.unit ? getLocalizedName(plan.unit, locale) : toSafeString(plan.controlObject, locale);
                                                         })()}
                                                     </span>
                                                     {(() => {

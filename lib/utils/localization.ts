@@ -3,14 +3,28 @@ import { classifiers } from "@/components/reference/classifiers"
 
 export type Locale = "ru" | "uzLatn" | "uzCyrl"
 
+// Вспомогательная функция для безопасного извлечения строки из потенциально локализованного объекта
+export const toSafeString = (val: any, locale: Locale): string => {
+    if (val === undefined || val === null) return ""
+    if (typeof val === 'string') return val
+    if (typeof val === 'number') return String(val)
+    
+    if (typeof val === 'object') {
+        const langKey = locale === "uzLatn" ? "uz" : (locale === "uzCyrl" ? "uzk" : "ru")
+        const result = val[langKey] || val["ru"] || val["uz"] || val["uzk"] || ""
+        return typeof result === 'object' ? JSON.stringify(result) : String(result)
+    }
+    
+    return String(val)
+}
+
 export const getStatusLabel = (statusId: string | number | undefined | null, locale: Locale) => {
     if (statusId === undefined || statusId === null) return ""
     const classifier = classifiers.find(c => c.id === 1)
     
-    // Map English status strings to IDs if necessary
     let idToSearch = statusId.toString();
     const englishMap: Record<string, string> = {
-        "draft": "101",
+        "draft": "106",
         "approved": "101",
         "in_progress": "102",
         "completed": "104"
@@ -22,12 +36,12 @@ export const getStatusLabel = (statusId: string | number | undefined | null, loc
     const value = classifier?.values.find(v => v.id?.toString() === idToSearch || v.name === idToSearch)
     if (!value) return String(statusId)
     
-    let result = ""
+    let result: any = ""
     if (locale === "uzLatn") result = value.name_uz_latn || value.name
     else if (locale === "uzCyrl") result = value.name_uz_cyrl || value.name
     else result = value.name
 
-    return typeof result === 'object' ? (result as any).ru || String(statusId) : String(result)
+    return toSafeString(result, locale)
 }
 
 export const getInspectionTypeLabel = (typeId: string | number | undefined | null, locale: Locale) => {
@@ -36,12 +50,12 @@ export const getInspectionTypeLabel = (typeId: string | number | undefined | nul
     const value = classifier?.values.find(v => v.id?.toString() === typeId.toString() || v.name === typeId || (v as any).name?.toLowerCase() === typeId.toString().toLowerCase())
     if (!value) return String(typeId)
 
-    let result = ""
+    let result: any = ""
     if (locale === "uzLatn") result = value.name_uz_latn || value.name
     else if (locale === "uzCyrl") result = value.name_uz_cyrl || value.name
     else result = value.name
 
-    return typeof result === 'object' ? (result as any).ru || String(typeId) : String(result)
+    return toSafeString(result, locale)
 }
 
 export const getLocalizedUnitName = (name: string | number | undefined | null, locale: Locale) => {
@@ -54,33 +68,32 @@ export const getLocalizedUnitName = (name: string | number | undefined | null, l
         u.id?.toString() === name.toString()
     )
     if (!unit) return name.toString()
-    if (locale === "uzLatn") return unit.name_uz_latn || unit.name
-    if (locale === "uzCyrl") return unit.name_uz_cyrl || unit.name
-    return unit.name
+    
+    let result: any = ""
+    if (locale === "uzLatn") result = unit.name_uz_latn || unit.name
+    else if (locale === "uzCyrl") result = unit.name_uz_cyrl || unit.name
+    else result = unit.name
+
+    return toSafeString(result, locale)
 }
 
 export const getLocalizedDistrictName = (name: any, locale: Locale, full: boolean = false) => {
     if (!name) return ""
 
-    let searchName = ""
-    if (typeof name === 'object') {
-        const langKey = locale === "uzLatn" ? "uz" : (locale === "uzCyrl" ? "uzk" : "ru")
-        searchName = name[langKey] || name["ru"] || ""
-    } else {
-        searchName = String(name)
-    }
+    let searchName = toSafeString(name, "ru")
 
     const district = militaryDistricts.find(d =>
-        d.name === searchName ||
-        d.shortName === searchName ||
-        d.name_uz_latn === searchName ||
-        d.shortName_uz_latn === searchName ||
-        d.shortName_uz_cyrl === searchName
+        d.name?.toLowerCase().trim() === searchName.toLowerCase().trim() ||
+        d.shortName?.toLowerCase().trim() === searchName.toLowerCase().trim() ||
+        d.name_uz_latn?.toLowerCase().trim() === searchName.toLowerCase().trim() ||
+        d.shortName_uz_latn?.toLowerCase().trim() === searchName.toLowerCase().trim() ||
+        d.shortName_uz_cyrl?.toLowerCase().trim() === searchName.toLowerCase().trim() ||
+        d.code?.toLowerCase().trim() === searchName.toLowerCase().trim()
     )
 
     if (!district) return String(searchName)
 
-    let result = ""
+    let result: any = ""
     if (full) {
         if (locale === "uzLatn") result = district.name_uz_latn || district.name
         else if (locale === "uzCyrl") result = district.name_uz_cyrl || district.name
@@ -91,13 +104,12 @@ export const getLocalizedDistrictName = (name: any, locale: Locale, full: boolea
         else result = district.shortName
     }
 
-    return typeof result === 'object' ? (result as any).ru || String(searchName) : String(result)
+    return toSafeString(result, locale)
 }
 
 export const getLocalizedAuthorityName = (code: string, locale: Locale, supplyDepartments: any[] = [], mode: 'short' | 'full' = 'full') => {
     if (!code) return ""
 
-    // 1. Try to find in fetched supply departments from DB first
     const dept = supplyDepartments.find(d =>
         d.code === code ||
         d.nameRu === code || d.name_ru === code ||
@@ -109,64 +121,55 @@ export const getLocalizedAuthorityName = (code: string, locale: Locale, supplyDe
     if (dept) {
         if (mode === 'short') {
             const shortName = typeof dept.shortName === 'object' ? dept.shortName : (dept.short_name || {})
-            if (locale === "uzLatn") return String(shortName.uz || dept.short_name_uz_latn || dept.code)
-            if (locale === "uzCyrl") return String(shortName.uzk || dept.short_name_uz_cyrl || dept.code)
-            return String(shortName.ru || dept.short_name || dept.code)
+            return toSafeString(shortName, locale) || String(dept.code)
         }
         const nameData = typeof dept.name === 'object' ? dept.name : { ru: dept.name_ru, uz: dept.name_uz_latn, uzk: dept.name_uz_cyrl }
-        let result = ""
-        if (locale === "uzLatn") result = nameData.uz || dept.name_uz_latn || nameData.ru || ""
-        else if (locale === "uzCyrl") result = nameData.uzk || dept.name_uz_cyrl || nameData.ru || ""
-        else result = nameData.ru || dept.name_ru || ""
-        
-        return result || String(dept.code)
+        return toSafeString(nameData, locale) || String(dept.code)
     }
 
-    // 2. Fallback to static controlAuthorities
-    let key = code
     let auth = (controlAuthorities as any)[code]
-
     if (!auth) {
-        // Try to find by code field in values if it's an object structure, though controlAuthorities is Record<string, any>
-        // But maybe we iterate?
         const entry = Object.entries(controlAuthorities).find(([k, a]: [string, any]) =>
-            k === code || // key matches code
-            a.code === code || // value has code property
-            a.name === code || a.name_uz_latn === code || a.name_uz_cyrl === code
+            k === code || a.code === code || a.name === code || a.name_uz_latn === code || a.name_uz_cyrl === code
         )
-        if (entry) {
-            key = entry[0]
-            auth = entry[1]
-        }
+        if (entry) auth = entry[1]
     }
 
     if (!auth) return code
 
     if (mode === 'short') {
-        if (locale === "ru") return key
-        if (locale === "uzLatn") return auth.short_name_uz_latn || auth.name_uz_latn || key
-        if (locale === "uzCyrl") return auth.short_name_uz_cyrl || auth.name_uz_cyrl || key
-        return key
+        let result: any = ""
+        if (locale === "uzLatn") result = auth.short_name_uz_latn || auth.name_uz_latn || code
+        else if (locale === "uzCyrl") result = auth.short_name_uz_cyrl || auth.name_uz_cyrl || code
+        else result = auth.short_name || code
+        return toSafeString(result, locale)
     }
 
-    if (locale === "uzLatn") return auth.name_uz_latn || auth.name
-    if (locale === "uzCyrl") return auth.name_uz_cyrl || auth.name
-    return auth.name
+    let result: any = ""
+    if (locale === "uzLatn") result = auth.name_uz_latn || auth.name
+    else if (locale === "uzCyrl") result = auth.name_uz_cyrl || auth.name
+    else result = auth.name
+
+    return toSafeString(result, locale)
 }
 
 export const getLocalizedDirectionName = (directionId: string | number | undefined | null, locale: Locale) => {
     if (directionId === undefined || directionId === null) return ""
     const dir = controlDirections.find(d =>
         d.id?.toString() === directionId.toString() ||
-        d.code === directionId || // Added check for code
+        d.code === directionId ||
         d.name === directionId ||
         d.name_uz_latn === directionId ||
         d.name_uz_cyrl === directionId
     )
     if (!dir) return directionId.toString()
-    if (locale === "uzLatn") return dir.name_uz_latn || dir.name
-    if (locale === "uzCyrl") return dir.name_uz_cyrl || dir.name
-    return dir.name
+    
+    let result: any = ""
+    if (locale === "uzLatn") result = dir.name_uz_latn || dir.name
+    else if (locale === "uzCyrl") result = dir.name_uz_cyrl || dir.name
+    else result = dir.name
+
+    return toSafeString(result, locale)
 }
 
 export const getPersonnelName = (personId: any, militaryPersonnel: any[] = [], physicalPersons: any[] = []) => {

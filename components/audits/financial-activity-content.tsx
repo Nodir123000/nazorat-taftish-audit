@@ -17,7 +17,8 @@ import {
     useCreateServiceInvestigation,
     useUpdateServiceInvestigation,
     useCreateLawEnforcementCase,
-    useUpdateLawEnforcementCase
+    useUpdateLawEnforcementCase,
+    useAllReferences
 } from "@/lib/hooks/use-audits"
 import { FinancialAuditDTO, AuditViolationDTO } from "@/lib/types/audits.dto"
 import { useToast } from "@/lib/hooks/use-toast"
@@ -31,6 +32,7 @@ export function FinancialActivityContent() {
     // Data Fetching
     const { data: audits = [], isLoading: auditsLoading } = useFinancialAudits()
     const { data: violations = [], isLoading: violationsLoading } = useAuditViolations()
+    const { data: allRefs } = useAllReferences()
 
     // Mutations
     const createAudit = useCreateFinancialAudit()
@@ -175,7 +177,7 @@ export function FinancialActivityContent() {
             <FinancialAuditRegistry
                 audits={audits}
                 violations={violations}
-                isLoading={auditsLoading || violationsLoading}
+                isLoading={auditsLoading || violationsLoading || !allRefs}
                 onAddAudit={handleAddAudit}
                 onEditAudit={handleEditAudit}
                 onViewDetail={(audit) => window.open(`/audits/financial-activity/${audit.id}`, '_blank')}
@@ -192,6 +194,10 @@ export function FinancialActivityContent() {
                     setSelectedLawCase(null);
                     setLawEnforcementDialogOpen(true);
                 }}
+                districts={allRefs?.districts}
+                directions={allRefs?.directions}
+                authorities={allRefs?.authorities}
+                violationTypes={allRefs?.violations}
             />
 
             <FinancialAuditDialogs

@@ -106,7 +106,7 @@ import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/i18n/hooks"
 import { militaryUnits, militaryDistricts, controlAuthorities, controlDirections } from "@/lib/data/military-data"
 import { classifiers } from "@/components/reference/classifiers"
-import { getLocalizedAuthorityName, getLocalizedDirectionName, getLocalizedDistrictName, getInspectionTypeLabel, getStatusLabel, Locale } from "@/lib/utils/localization"
+import { getLocalizedAuthorityName, getLocalizedDirectionName, getLocalizedDistrictName, getInspectionTypeLabel, getStatusLabel, toSafeString, Locale } from "@/lib/utils/localization"
 
 interface ApprovedPlanDialogProps {
     open: boolean
@@ -261,8 +261,28 @@ export function ApprovedPlanDialog({
         setFormData({ ...formData, subordinateUnitsOnAllowance: updated })
     }
 
-    const handleSubmit = async () => {
-        await onSave(formData)
+    const validateForStatus = (statusId: number | string) => {
+        const errors: string[] = []
+        if (!formData.controlObject) errors.push(locale === "ru" ? "Объект контроля" : "Nazorat ob'ekti")
+        if (statusId.toString() === "101") {
+            if (!formData.inspectionDirection) errors.push(locale === "ru" ? "Направление проверки" : "Tekshiruv yo'nalishi")
+            if (!formData.periodConducted) errors.push(locale === "ru" ? "Период проведения (квартал)" : "O'tkazish davri (chorak)")
+            if (!formData.periodCoveredStart || !formData.periodCoveredEnd) errors.push(locale === "ru" ? "Период охвата" : "Qamrab olingan davr")
+        }
+        return errors
+    }
+
+    const handleSubmit = async (targetStatus?: number) => {
+        const finalStatus = targetStatus || formData.status
+        const errors = validateForStatus(finalStatus)
+        
+        if (errors.length > 0) {
+            // Можно добавить тост-уведомление здесь
+            alert((locale === "ru" ? "Пожалуйста, заполните обязательные поля: " : "Iltimos, majburiy maydonlarni to'ldiring: ") + errors.join(", "))
+            return
+        }
+
+        await onSave({ ...formData, status: finalStatus })
     }
 
     return (
@@ -281,7 +301,7 @@ export function ApprovedPlanDialog({
                         <div className="grid gap-2">
                             <Label>{t("annual.approved.planNumber")}</Label>
                             <Input
-                                value={formData.planNumber}
+                                value={formData.planNumber || ""}
                                 onChange={(e) => setFormData({ ...formData, planNumber: e.target.value })}
                                 placeholder={locale === "ru" ? "Автоматически" : "Avtomatik"}
                                 disabled={true}
@@ -306,11 +326,18 @@ export function ApprovedPlanDialog({
                             <UnitSelect
                                 value={formData.controlObject}
                                 onUnitChange={(unit) => {
+                                    // Robust check: if unit object is incomplete, find it in our data
+                                    let fullUnit = unit;
+                                    if (!unit.district || !unit.location) {
+                                        const found = militaryUnits.find(u => u.name === unit.name || u.stateNumber === unit.name);
+                                        if (found) fullUnit = { ...unit, ...found };
+                                    }
+
                                     setFormData({
                                         ...formData,
-                                        controlObject: unit.name,
-                                        controlObjectSubtitle: unit.district || formData.controlObjectSubtitle,
-                                        controlObjectLocation: unit.location || formData.controlObjectLocation
+                                        controlObject: fullUnit.name,
+                                        controlObjectSubtitle: fullUnit.district || formData.controlObjectSubtitle,
+                                        controlObjectLocation: fullUnit.location || formData.controlObjectLocation
                                     });
                                 }}
                                 onValueChange={(name) => {
@@ -325,7 +352,7 @@ export function ApprovedPlanDialog({
                         <div className="grid gap-2">
                             <Label>{t("common.location") || (locale === "ru" ? "Локация" : "Joylashuvi")}</Label>
                             <Input
-                                value={formData.controlObjectLocation}
+                                value={formData.controlObjectLocation || ""}
                                 onChange={(e) => setFormData({ ...formData, controlObjectLocation: e.target.value })}
                                 placeholder={t("common.location") || (locale === "ru" ? "Место дислокации" : "Manzil")}
                                 className="bg-muted/30"
@@ -335,7 +362,7 @@ export function ApprovedPlanDialog({
                             <Label>{t("common.district")}</Label>
                             <Popover open={openDistrictSelect} onOpenChange={setOpenDistrictSelect}>
                                 <PopoverTrigger asChild>
-                                    <Button variant="outline" className="w-full justify-between h-10 font-normal" disabled={true}>
+                                    <Button variant="outline" className="w-full justify-between h-10 font-normal">
                                         {formData.controlObjectSubtitle ? getLocalizedDistrictName(formData.controlObjectSubtitle, locale, true) : t("common.select")}
                                         <Icons.ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                     </Button>
@@ -356,7 +383,7 @@ export function ApprovedPlanDialog({
                                                         }}
                                                     >
                                                         <Icons.Check className={cn("mr-2 h-4 w-4", formData.controlObjectSubtitle === district.name ? "opacity-100" : "opacity-0")} />
-                                                        {locale === "uzLatn" ? district.name_uz_latn : locale === "uzCyrl" ? district.name_uz_cyrl : district.name}
+                                                        {toSafeString(locale === "uzLatn" ? district.name_uz_latn : locale === "uzCyrl" ? district.name_uz_cyrl : district.name, locale as any)}
                                                     </CommandItem>
                                                 ))}
                                             </CommandGroup>
@@ -401,14 +428,14 @@ export function ApprovedPlanDialog({
                                             {Object.entries(controlAuthorities).map(([code, auth]: [string, any]) => (
                                                 <CommandItem
                                                     key={code}
-                                                    value={`${code} ${locale === "uzLatn" ? auth.name_uz_latn : locale === "uzCyrl" ? auth.name_uz_cyrl : auth.name}`}
+                                                    value={`${code} ${toSafeString(locale === "uzLatn" ? auth.name_uz_latn : locale === "uzCyrl" ? auth.name_uz_cyrl : auth.name, locale as any)}`}
                                                     onSelect={() => {
                                                         setFormData({ ...formData, controlAuthority: code })
                                                         setOpenAuthoritySelect(false)
                                                     }}
                                                 >
                                                     <Icons.Check className={cn("mr-2 h-4 w-4", formData.controlAuthority === code ? "opacity-100" : "opacity-0")} />
-                                                    {locale === "uzLatn" ? auth.name_uz_latn : locale === "uzCyrl" ? auth.name_uz_cyrl : auth.name}
+                                                    {toSafeString(locale === "uzLatn" ? auth.name_uz_latn : locale === "uzCyrl" ? auth.name_uz_cyrl : auth.name, locale as any)}
                                                 </CommandItem>
                                             ))}
                                         </CommandGroup>
@@ -444,7 +471,7 @@ export function ApprovedPlanDialog({
                                                         }}
                                                     >
                                                         <Icons.Check className={cn("mr-2 h-4 w-4", formData.inspectionDirection === dir.name ? "opacity-100" : "opacity-0")} />
-                                                        {locale === "uzLatn" ? dir.name_uz_latn : locale === "uzCyrl" ? dir.name_uz_cyrl : dir.name}
+                                                        {toSafeString(locale === "uzLatn" ? dir.name_uz_latn : locale === "uzCyrl" ? dir.name_uz_cyrl : dir.name, locale as any)}
                                                     </CommandItem>
                                                 ))}
                                             </CommandGroup>
@@ -476,7 +503,7 @@ export function ApprovedPlanDialog({
                                                         }}
                                                     >
                                                         <Icons.Check className={cn("mr-2 h-4 w-4", formData.inspectionType.toString() === type.id?.toString() ? "opacity-100" : "opacity-0")} />
-                                                        {locale === "uzLatn" ? type.name_uz_latn : locale === "uzCyrl" ? type.name_uz_cyrl : type.name}
+                                                        {toSafeString(locale === "uzLatn" ? type.name_uz_latn : locale === "uzCyrl" ? type.name_uz_cyrl : type.name, locale as any)}
                                                     </CommandItem>
                                                 ))}
                                             </CommandGroup>
@@ -638,7 +665,7 @@ export function ApprovedPlanDialog({
                                                     }}
                                                 >
                                                     <Icons.Check className={cn("mr-2 h-4 w-4", formData.status.toString() === status.id?.toString() ? "opacity-100" : "opacity-0")} />
-                                                    {locale === "uzLatn" ? status.name_uz_latn : locale === "uzCyrl" ? status.name_uz_cyrl : status.name}
+                                                    {toSafeString(locale === "uzLatn" ? status.name_uz_latn : locale === "uzCyrl" ? status.name_uz_cyrl : status.name, locale as any)}
                                                 </CommandItem>
                                             ))}
                                         </CommandGroup>
@@ -724,12 +751,35 @@ export function ApprovedPlanDialog({
                             <span>{t("annual.locked.description")}</span>
                         </div>
                     )}
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
+                    <Button variant="outline" onClick={() => onOpenChange(false)} className="order-2 sm:order-1">{t("common.cancel")}</Button>
+                    
                     {!isLocked && (
-                        <Button onClick={handleSubmit} disabled={isSubmitting}>
-                            {isSubmitting && <Icons.Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {t("common.save")}
-                        </Button>
+                        <div className="flex flex-col sm:flex-row gap-2 order-1 sm:order-2 w-full sm:w-auto">
+                            {/* Кнопка сохранения как черновик (только для новых или уже черновиков) */}
+                            {(formData.status.toString() === "106" || !isEditing) && (
+                                <Button 
+                                    variant="secondary" 
+                                    onClick={() => handleSubmit(106)} 
+                                    disabled={isSubmitting || !formData.controlObject}
+                                    className="bg-slate-100 hover:bg-slate-200 text-slate-700"
+                                >
+                                    {isSubmitting && <Icons.Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    <Icons.Edit className="mr-2 h-4 w-4" />
+                                    {locale === "ru" ? "В черновик" : "Qoralama sifatida"}
+                                </Button>
+                            )}
+                            
+                            {/* Кнопка утверждения */}
+                            <Button 
+                                onClick={() => handleSubmit(101)} 
+                                disabled={isSubmitting || !formData.controlObject}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                            >
+                                {isSubmitting && <Icons.Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                <Icons.Check className="mr-2 h-4 w-4" />
+                                {locale === "ru" ? "Утвердить план" : "Rejani tasdiqlash"}
+                            </Button>
+                        </div>
                     )}
                 </DialogFooter>
             </DialogContent>

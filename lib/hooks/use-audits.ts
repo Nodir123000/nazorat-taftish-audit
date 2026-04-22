@@ -973,3 +973,18 @@ export function useCreateRepayment() {
         },
     });
 }
+
+export function useViolationReferences() {
+    return useQuery({
+        queryKey: ["violation-references"],
+        queryFn: () => auditsService.getViolationReferences(),
+    });
+}
+
+export function useAllReferences() {
+    return useQuery({
+        queryKey: ["all-references"],
+        queryFn: () => auditsService.getAllReferences(),
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
+}

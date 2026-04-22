@@ -43,3 +43,9 @@ next-env.d.ts
 .vscode
 *.swp
 *.swo
+
+# AI Scratch & Temporary
+tmp/
+scratch/
+diagram_test.md
+*.fixed.prisma

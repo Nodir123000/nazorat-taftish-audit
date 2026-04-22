@@ -41,7 +41,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { physicalPersons as initialPersons, type PhysicalPerson } from "./physical-persons-data"
 import { useI18n } from "@/lib/i18n/context"
 import { toast } from "sonner"
-import { cn } from "@/lib/utils"
+import { cn, maskPINFL } from "@/lib/utils"
 import { getTerritories, getPhysicalPersons, getPhysicalPersonsCount, savePhysicalPerson, deletePhysicalPerson } from "@/lib/services/reference-db-service"
 import { Lang } from "@/lib/types/i18n"
 import { z } from "zod"
@@ -409,7 +409,7 @@ export function PhysicalPersons() {
                                                         <div className="flex flex-col gap-1">
                                                             <div className="flex items-center gap-2">
                                                                 <Badge variant="outline" className="bg-blue-50/50 text-blue-700 border-blue-100 font-mono text-xs px-2 rounded-md shadow-sm">
-                                                                    {person.pinfl}
+                                                                    {maskPINFL(person.pinfl)}
                                                                 </Badge>
                                                             </div>
                                                             <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-bold px-1">

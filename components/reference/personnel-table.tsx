@@ -30,7 +30,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { cn } from "@/lib/utils"
+import { cn, maskPINFL } from "@/lib/utils"
 
 interface PersonnelTableProps {
     data: any[]
@@ -119,7 +119,7 @@ export function PersonnelTable({
                             {row.original.pnr}
                         </Badge>
                         <span className="text-[9px] text-muted-foreground/70 font-mono tracking-tight truncate w-full">
-                            {row.original.physicalPerson?.pinfl}
+                            {maskPINFL(row.original.physicalPerson?.pinfl)}
                         </span>
                     </div>
                 ),

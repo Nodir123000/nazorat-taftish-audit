@@ -36,14 +36,14 @@ export async function GET(request: Request) {
                 where: { id: { in: orderIds } },
                 select: { plan_id: true }
             });
-            const planIds = orders.map(o => o.plan_id).filter(id => id !== null) as number[];
+            const planIds = orders.map((o: any) => o.plan_id).filter((id: any) => id !== null) as number[];
 
             if (planIds.length > 0) {
                 const prescriptions = await prisma.prescriptions.findMany({
                     where: { plan_id: { in: planIds } },
                     select: { id: true }
                 });
-                prescriptionIds = prescriptions.map(p => p.id);
+                prescriptionIds = prescriptions.map((p: any) => p.id);
             }
         }
 
@@ -125,33 +125,87 @@ export async function GET(request: Request) {
       prisma.financial_audits.count({ where }),
     ])
 
-    // Map to DTO
-    const dtos = audits.map(item => ({
-      id: item.id,
-      unit: item.unit,
-      unitSubtitle: item.unit_subtitle || "",
-      controlBody: item.control_body || "",
-      inspectionDirection: item.inspection_direction || "",
-      inspectionDirectionSubtitle: item.inspection_direction_subtitle || "",
-      inspectionType: item.inspection_type || "",
-      date: item.date?.toLocaleDateString('ru-RU') || "",
-      cashier: item.cashier || "",
-      cashierRole: item.cashier_role || "",
-      balance: item.balance != null ? Number(item.balance).toFixed(2) : "0.00",
-      status: item.status,
-      violations: item.financial_violations?.length || 0,
-      financialAmount: (item.financial_violations || [])
-        .reduce((acc, v) => acc + (v.amount != null ? parseFloat(v.amount.toString()) : 0), 0)
-        .toFixed(2),
-      propertyAmount: "0.00",
-      recoveredAmount: (item.financial_violations || [])
-        .reduce((acc, v) => acc + (v.recovered != null ? parseFloat(v.recovered.toString()) : 0), 0)
-        .toFixed(2),
-      resolvedViolations: 0, // Placeholder
-      inspectorId: item.inspector_id,
-      inspectorName: item.inspector_name,
-      prescriptionId: item.prescription_id
-    }))
+    // Batch fetch prescriptions for enrichment if they have prescription_id
+    const prescriptionIds = audits
+        .map((a: any) => a.prescription_id)
+        .filter((id: any) => id !== null) as number[];
+    
+    let prescriptionsMap: Record<number, any> = {};
+    if (prescriptionIds.length > 0) {
+        const presData = await prisma.prescriptions.findMany({
+            where: { id: { in: prescriptionIds } },
+            include: {
+                rev_plan_year: {
+                    include: {
+                        ref_units: { include: { ref_military_districts: true } },
+                        ref_control_directions: true,
+                        ref_control_authorities: true
+                    }
+                }
+            }
+        } as any);
+        
+        presData.forEach((p: any) => {
+            prescriptionsMap[p.id] = p;
+        });
+    }
+
+    const getLoc = (obj: any): string => {
+        if (!obj) return "";
+        if (typeof obj.name === "string") return obj.name;
+        if (obj.name && typeof obj.name === "object") return obj.name.ru || obj.name.uz || obj.name.uzk || "";
+        return "";
+    };
+
+    // Map to DTO with enrichment
+    const dtos = audits.map((item: any) => {
+      const pres = item.prescription_id ? prescriptionsMap[item.prescription_id] : null;
+      const plan = pres?.rev_plan_year;
+      
+      // Inherit from plan if missing in audit record
+      const displayUnit = (item.unit && item.unit !== "Не указан объект") 
+          ? item.unit 
+          : (plan ? getLoc(plan.ref_units) : item.unit);
+          
+      const displayUnitSubtitle = item.unit_subtitle 
+          ? item.unit_subtitle 
+          : (plan?.ref_units?.ref_military_districts ? (plan.ref_units.ref_military_districts.name?.ru || getLoc(plan.ref_units.ref_military_districts)) : "");
+          
+      const displayDirection = (item.inspection_direction && item.inspection_direction !== "Плановая проверка")
+          ? item.inspection_direction
+          : (plan ? getLoc(plan.ref_control_directions) : item.inspection_direction);
+
+      const displayControlBody = item.control_body
+          ? item.control_body
+          : (plan ? getLoc(plan.ref_control_authorities) : "КРУ МО РУ");
+
+      return {
+        id: item.id,
+        unit: displayUnit || "Не указан объект",
+        unitSubtitle: displayUnitSubtitle || "",
+        controlBody: displayControlBody || "",
+        inspectionDirection: displayDirection || "",
+        inspectionDirectionSubtitle: item.inspection_direction_subtitle || "",
+        inspectionType: item.inspection_type || (plan?.ref_control_directions?.code?.includes("FIN") ? "Финансовая" : "Комплексная"),
+        date: item.date?.toLocaleDateString('ru-RU') || "",
+        cashier: item.cashier || "",
+        cashierRole: item.cashier_role || "",
+        balance: item.balance != null ? Number(item.balance).toFixed(2) : "0.00",
+        status: item.status,
+        violations: item.financial_violations?.length || 0,
+        financialAmount: (item.financial_violations || [])
+          .reduce((acc: number, v: any) => acc + (v.amount != null ? parseFloat(v.amount.toString()) : 0), 0)
+          .toFixed(2),
+        propertyAmount: "0.00",
+        recoveredAmount: (item.financial_violations || [])
+          .reduce((acc: number, v: any) => acc + (v.recovered != null ? parseFloat(v.recovered.toString()) : 0), 0)
+          .toFixed(2),
+        resolvedViolations: 0,
+        inspectorId: item.inspector_id,
+        inspectorName: item.inspector_name,
+        prescriptionId: item.prescription_id
+      };
+    })
 
     return NextResponse.json({ items: dtos, total, page, limit })
   } catch (error: any) {

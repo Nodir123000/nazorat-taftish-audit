@@ -345,9 +345,14 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
     const filteredData = useMemo(() => {
         return allData.filter(item => {
             const searchLower = filters.search.toLowerCase()
+            const matchesCommission = item.commissionMembers?.some(m => 
+                m.name.toLowerCase().includes(searchLower)
+            ) || false
+            
             const matchesSearch = item.orderNum.toLowerCase().includes(searchLower) ||
                 item.entity.toLowerCase().includes(searchLower) ||
-                item.responsible.toLowerCase().includes(searchLower)
+                item.responsible.toLowerCase().includes(searchLower) ||
+                matchesCommission
 
             const matchesStatus = !filters.status || item.status === filters.status
             const matchesDate = !filters.dateFrom || item.date >= filters.dateFrom
@@ -400,39 +405,87 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                         <TableHeader>
                             <TableRow>
                                 <TableHead className="w-[50px]">{t("orders.table.id")}</TableHead>
-                                <TableHead className="w-[100px]">ИД плана</TableHead>
-                                <TableHead className="w-[200px]">Объект контроля</TableHead>
-                                <TableHead className="w-[180px]">Направление проверки</TableHead>
-                                <TableHead className="w-[150px]">{t("orders.table.period")}</TableHead>
-                                <TableHead className="w-[180px]">Номер и дата приказа</TableHead>
-                                <TableHead className="w-[120px]">Инструктаж</TableHead>
-                                <TableHead className="w-[160px]">Предписание</TableHead>
-                                <TableHead className="w-[120px]">{t("orders.table.status")}</TableHead>
+                                <TableHead className="w-[80px]">ИД плана</TableHead>
+                                <TableHead className="w-[180px]">Объект контроля</TableHead>
+                                <TableHead className="w-[150px]">Направление</TableHead>
+                                <TableHead className="w-[100px]">Тип</TableHead>
+                                <TableHead className="w-[180px]">Состав комиссии</TableHead>
+                                <TableHead className="w-[150px]">Номер и дата приказа</TableHead>
+                                <TableHead className="w-[100px]">Инструктаж</TableHead>
+                                <TableHead className="w-[150px]">Предписание</TableHead>
+                                <TableHead className="w-[100px]">{t("orders.table.status")}</TableHead>
                                 <TableHead className="w-[50px]">{t("orders.table.actions")}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {filteredData.map((item, index) => (
-                                <TableRow key={item.id}>
+                                <TableRow key={item.id} className="text-[11px]">
                                     <TableCell>{index + 1}</TableCell>
-                                    <TableCell><Badge variant="outline">{item.planId}</Badge></TableCell>
-                                    <TableCell>{item.controlObject}</TableCell>
+                                    <TableCell><Badge variant="outline" className="font-mono">{item.planId}</Badge></TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-col">
+                                            <span className="font-semibold">{item.controlObject}</span>
+                                            <span className="text-[9px] text-muted-foreground">{item.controlObjectSubtitle}</span>
+                                        </div>
+                                    </TableCell>
                                     <TableCell>{item.inspectionDirection}</TableCell>
-                                    <TableCell>{formatDateShort(item.period)}</TableCell>
-                                    <TableCell>{item.orderNum} ({formatDateShort(item.date)})</TableCell>
+                                    <TableCell>
+                                        <Badge variant="secondary" className="text-[9px] whitespace-nowrap">
+                                            {item.inspectionDirectionSubtitle || "—"}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="max-w-[200px]">
+                                            {item.commissionMembers && item.commissionMembers.length > 0 ? (
+                                                <div className="flex flex-wrap gap-1">
+                                                    {item.commissionMembers.slice(0, 3).map((m, i) => (
+                                                        <Badge key={i} variant="outline" className="text-[9px] bg-slate-50">
+                                                            {m.name.split(' ').map((n, idx) => idx === 0 ? n : n[0] + '.').join(' ')}
+                                                        </Badge>
+                                                    ))}
+                                                    {item.commissionMembers.length > 3 && (
+                                                        <Badge variant="outline" className="text-[9px] bg-blue-50 text-blue-700">
+                                                            +{item.commissionMembers.length - 3}
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <span className="text-slate-400 italic">Не назначена</span>
+                                            )}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        {item.orderNum !== "—" ? (
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">{item.orderNum}</span>
+                                                <span className="text-[9px] text-muted-foreground">{formatDateShort(item.date)}</span>
+                                            </div>
+                                        ) : "—"}
+                                    </TableCell>
                                     <TableCell>{item.briefingDate ? formatDateShort(item.briefingDate) : "—"}</TableCell>
-                                    <TableCell>{item.prescriptionNum ? `${item.prescriptionNum} (${formatDateShort(item.prescriptionDate)})` : "—"}</TableCell>
-                                    <TableCell><Badge variant={item.statusVariant}>{item.status}</Badge></TableCell>
+                                    <TableCell>
+                                        {item.prescriptionNum ? (
+                                            <div className="flex flex-col">
+                                                <span className="font-medium text-amber-700">{item.prescriptionNum}</span>
+                                                <span className="text-[9px] text-muted-foreground">{formatDateShort(item.prescriptionDate)}</span>
+                                            </div>
+                                        ) : "—"}
+                                    </TableCell>
+                                    <TableCell><Badge variant={item.statusVariant} className="text-[9px]">{item.status}</Badge></TableCell>
                                     <TableCell>
                                         <div className="flex gap-1">
-                                            <Button variant="ghost" size="sm" onClick={() => handleOpenManage(item)}>
-                                                <Icons.Plus className="h-4 w-4 text-green-600" />
-                                            </Button>
-                                            <Button variant="ghost" size="sm" onClick={() => handleViewDocument(item)}>
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button variant="ghost" size="sm" onClick={() => handleOpenManage(item)} className="h-7 w-7 p-0">
+                                                            <Icons.Plus className="h-4 w-4 text-green-600" />
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>Управление данными</TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                            <Button variant="ghost" size="sm" onClick={() => handleViewDocument(item)} className="h-7 w-7 p-0">
                                                 <Icons.FileText className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="sm" onClick={() => handleViewHistory(item)}>
-                                                <Icons.Clock className="h-4 w-4 text-slate-500" />
                                             </Button>
                                         </div>
                                     </TableCell>

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, Fragment, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useI18n } from "@/lib/i18n/context"
 import { FinancialAuditDialogs } from "@/components/audits/financial-audit-dialogs"
 import { FinancialAuditStats } from "@/components/audits/financial-audit-stats"
 import { FinancialAuditRegistry } from "@/components/audits/financial-audit-registry"
@@ -10,7 +11,9 @@ import {
     useAuditViolations,
     useCreateAuditViolation,
     useUpdateAuditViolation,
-    useDeleteAuditViolation
+    useDeleteAuditViolation,
+    useViolationReferences,
+    useAllReferences
 } from "@/lib/hooks/use-audits"
 import { useCommissionAssignments, CommissionAssignment } from "@/lib/hooks/use-commission-assignments"
 import { useToast } from "@/lib/hooks/use-toast"
@@ -85,6 +88,109 @@ function InfoRow({ label, value }: { label: string; value: string | React.ReactN
     )
 }
 
+function renderQuantityStats(stats: string | undefined | null) {
+    if (!stats) return <span className="text-muted-foreground">—</span>;
+    
+    // Пытаемся распарсить формат "Всего (Возмещено)" или "Всего/Возмещено"
+    const match = stats.match(/(\d+)(?:\s*[(\/]\s*(\d+)\s*[)]?)?/);
+    
+    if (!match) return <span className="font-mono font-bold">{stats}</span>;
+    
+    const total = match[1];
+    const recovered = match[2];
+    
+    return (
+        <div className="flex items-center justify-center gap-1.5 font-mono text-[11px]">
+            <span className="font-black text-foreground" title="Общее количество лиц">{total}</span>
+            {recovered && (
+                <span className="text-emerald-600 font-black" title="Количество возместивших лиц">({recovered})</span>
+            )}
+        </div>
+    );
+}
+
+function AbbreviatedText({ text }: { text: string | undefined | null }) {
+    const { data: allRefs } = useAllReferences();
+    const { locale } = useI18n();
+    
+    if (!text) return <span>—</span>;
+    
+    let display = text;
+    let isAbbreviated = false;
+
+    const normalize = (s: any) => {
+        if (typeof s !== 'string') return '';
+        return s.toLowerCase().replace(/[-\s]/g, '').trim();
+    };
+    const searchText = normalize(text);
+    
+    // Check all reference categories for abbreviations
+    const refLists = [
+        allRefs?.violations || [],
+        allRefs?.directions || [],
+        allRefs?.authorities || [],
+        allRefs?.districts || []
+    ];
+
+    for (const list of refLists) {
+        if (isAbbreviated) break;
+        
+        const ref = list.find((r: any) => {
+            const rName = normalize(r.name);
+            const rNameRu = normalize(r.nameRu);
+            const rCode = normalize(r.code);
+            
+            if (rName === searchText || rNameRu === searchText || rCode === searchText) return true;
+            
+            // Stem matching for directions
+            if (searchText.includes('финанс') && searchText.includes('хозяйств') && (rCode === 'fin' || rCode === 'fin_s')) return true;
+            if (searchText.includes('материал') && searchText.includes('технич') && (rCode === 'sup' || rCode === 'sup_s')) return true;
+            if (searchText.includes('кадр') && (rCode === 'pers' || rCode === 'pers_s')) return true;
+            if (searchText.includes('боевой') && searchText.includes('подготов') && (rCode === 'train' || rCode === 'train_s')) return true;
+
+            return (r.name && searchText.includes(normalize(r.name))) ||
+                   (r.nameRu && searchText.includes(normalize(r.nameRu)));
+        });
+
+        if (ref) {
+            const localizedAbbr = locale === "uzLatn" 
+                ? ref.abbreviation_uz_latn 
+                : locale === "uzCyrl" 
+                    ? ref.abbreviation_uz_cyrl 
+                    : ref.abbreviation;
+
+            if (localizedAbbr) {
+                const target = [ref.nameRu, ref.name, ref.name_uz_latn, ref.name_uz_cyrl]
+                    .filter(Boolean)
+                    .find(n => searchText.includes(normalize(n!)));
+                
+                if (target) {
+                    // Try to preserve original string structure but replace matched part
+                    // Find actual original substring that matches normalized target
+                    // This is complex so we'll just replace the whole text if it's a direct match or use simple replace
+                    display = localizedAbbr;
+                    isAbbreviated = true;
+                }
+            }
+        }
+    }
+    
+    if (!isAbbreviated) return <span className="uppercase">{text}</span>;
+    
+    return (
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <span className="cursor-help border-b border-dotted border-muted-foreground/40 uppercase font-bold">{display}</span>
+                </TooltipTrigger>
+                <TooltipContent className="bg-slate-900 text-white border-none text-[10px] py-1 px-2 font-bold max-w-[300px]">
+                    {text.toUpperCase()}
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+    );
+}
+
 // Вспомогательный компонент для строки реестра
 function RegistryRow({ label, value, subValue, isLast = false, className }: { label: string; value: React.ReactNode; subValue?: string; isLast?: boolean; className?: string }) {
     return (
@@ -148,43 +254,36 @@ function RegistryGroupHeader({
  */
 function SecureMaskedValue({ value, label }: { value: string | undefined | null; label: string }) {
     const [isVisible, setIsVisible] = useState(false)
-    if (!value) return <span className="text-muted-foreground italic">не указано</span>
+    if (!value) return <span className="text-muted-foreground italic font-mono text-xs">NO_DATA</span>
 
     const maskedValue = value.length > 4
         ? `${"*".repeat(value.length - 4)}${value.slice(-4)}`
-        : "**********"
+        : "••••••••"
 
     return (
         <div className="flex items-center gap-2 group">
             <span className={cn(
-                "font-mono transition-all duration-300 px-1.5 py-0.5 rounded",
+                "font-mono text-sm tracking-tighter transition-all duration-300 px-2 py-0.5 rounded-sm border",
                 isVisible
-                    ? "bg-amber-50 text-amber-900 border border-amber-200"
-                    : "bg-slate-100 text-slate-400 blur-[2px] group-hover:blur-0"
+                    ? "bg-primary/5 text-primary border-primary/30"
+                    : "bg-muted/50 text-muted-foreground/40 border-transparent blur-[1px] group-hover:blur-0"
             )}>
                 {isVisible ? value : maskedValue}
             </span>
-            <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 text-slate-400 hover:text-blue-600 transition-colors"
+            <button
+                type="button"
+                className="p-1 text-muted-foreground hover:text-primary transition-colors outline-none"
                 onClick={(e) => {
                     e.stopPropagation()
                     setIsVisible(!isVisible)
                 }}
-                title={isVisible ? "Скрыть" : "Показать"}
             >
                 {isVisible ? <Icons.EyeOff className="h-3.5 w-3.5" /> : <Icons.Eye className="h-3.5 w-3.5" />}
-            </Button>
+            </button>
         </div>
     )
 }
 
-/**
- * [DESIGN] LegendaryInfoRow Component
- * Provides a modernized, high-precision layout for data rows.
- * Compliant with Frontend Design official plugin.
- */
 function LegendaryInfoRow({
     label,
     value,
@@ -200,25 +299,25 @@ function LegendaryInfoRow({
 }) {
     return (
         <motion.div
-            initial={{ opacity: 0, x: -10 }}
+            initial={{ opacity: 0, x: -5 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, delay }}
-            className="flex flex-col sm:flex-row sm:items-center py-2.5 px-4 hover:bg-slate-50/80 transition-colors border-b border-slate-100 last:border-0"
+            className="flex flex-col sm:flex-row sm:items-center py-3 px-5 hover:bg-primary/5 transition-all border-b border-border/40 last:border-0 group"
         >
-            <div className="w-full sm:w-1/3 mb-1 sm:mb-0">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest leading-none">
+            <div className="w-full sm:w-[40%] mb-1 sm:mb-0">
+                <span className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] group-hover:text-primary/60 transition-colors">
                     {label}
                 </span>
             </div>
-            <div className="w-full sm:w-2/3">
+            <div className="w-full sm:w-[60%]">
                 {isSecure ? (
                     <SecureMaskedValue value={value} label={label} />
                 ) : (
                     <span className={cn(
-                        "text-sm font-medium",
-                        accent ? "text-blue-700 font-semibold" : "text-slate-800"
+                        "text-sm font-mono tracking-tight",
+                        accent ? "text-primary font-bold" : "text-foreground font-medium"
                     )}>
-                        {value || <span className="text-muted-foreground italic">—</span>}
+                        {value || <span className="text-muted-foreground/40 italic">---</span>}
                     </span>
                 )}
             </div>
@@ -226,477 +325,295 @@ function LegendaryInfoRow({
     )
 }
 
-// Основные данные (Объединенный раздел в формате Реестра)
 function MainInformationSection({ inspector }: { inspector: Inspector }) {
-    const [expandedSections, setExpandedSections] = React.useState<Record<string, boolean>>({
-        personal: true,
-        passport: true,
-        contacts: true,
-        addresses: true
-    })
-
-    const toggleSection = (section: string) => {
-        setExpandedSections(prev => ({
-            ...prev,
-            [section]: !prev[section]
-        }))
-    }
-
     return (
-        <div className="space-y-6">
+        <div className="space-y-8 pb-12">
             <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center justify-between border-b-2 border-primary/20 pb-4 mb-6"
             >
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-50 rounded-lg">
-                        <Icons.User className="text-blue-700 w-5 h-5" />
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                        <Icons.User className="text-primary w-6 h-6" />
                     </div>
                     <div>
-                        <h1 className="text-lg font-bold text-slate-900 tracking-tight">Реестр основных данных</h1>
-                        <p className="text-xs text-slate-500">Персональная и идентификационная информация сотрудника</p>
+                        <h1 className="text-2xl font-black text-foreground tracking-tight uppercase">РЕЕСТР ПЕРСОНАЛЬНЫХ ДАННЫХ</h1>
+                        <p className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase mt-1">Официальная идентификация сотрудника</p>
                     </div>
                 </div>
-                <Badge variant="outline" className="text-[10px] font-mono bg-slate-50 text-slate-500 border-slate-200">
-                    ID: {inspector.id || "N/A"}
-                </Badge>
             </motion.div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Секция: ЛИЧНЫЕ ДАННЫЕ */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
-                    className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col"
-                >
-                    <div className="bg-slate-50/80 px-4 py-3 flex items-center justify-between border-b border-slate-200">
-                        <div className="flex items-center gap-2 text-blue-900 font-extrabold uppercase tracking-widest text-[11px]">
-                            <Icons.Fingerprint className="h-4 w-4 text-blue-600" />
-                            Личные данные
-                        </div>
-                    </div>
-
-                    <div className="flex-1">
-                        <LegendaryInfoRow label="Полное ФИО" value={inspector.fullName} accent delay={0.1} />
-                        <LegendaryInfoRow label="Дата рождения" value={formatDate(inspector.dateOfBirth)} delay={0.15} />
-                        <LegendaryInfoRow label="Пол" value={inspector.gender === "MALE" ? "Мужской" : "Женский"} delay={0.2} />
-                        <LegendaryInfoRow label="Национальность" value={inspector.nationality} delay={0.25} />
-                        <LegendaryInfoRow label="Гражданство" value={inspector.citizenship} delay={0.3} />
-                        <LegendaryInfoRow label="Семейное положение" value={inspector.maritalStatus} delay={0.35} />
-                    </div>
-                </motion.div>
-
-                {/* Секция: ПАСПОРТ И ИДЕНТИФИКАЦИЯ */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.1 }}
-                    className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col"
-                >
-                    <div className="bg-slate-50/80 px-4 py-3 flex items-center justify-between border-b border-slate-200">
-                        <div className="flex items-center gap-2 text-amber-800 font-extrabold uppercase tracking-widest text-[11px]">
-                            <Icons.ShieldCheck className="h-4 w-4 text-amber-600" />
-                            Идентификация
-                        </div>
-                    </div>
-
-                    <div className="flex-1">
-                        <LegendaryInfoRow
-                            label="ПИНФЛ"
-                            value={inspector.pin}
-                            isSecure
-                            delay={0.2}
-                        />
-                        <LegendaryInfoRow
-                            label="Паспорт"
-                            value={`${inspector.passportSeries || ""} ${inspector.passportNumber || ""}`}
-                            isSecure
-                            delay={0.25}
-                        />
-                        <LegendaryInfoRow
-                            label="Место выдачи"
-                            value={inspector.passportIssuedBy}
-                            delay={0.3}
-                        />
-                        <LegendaryInfoRow
-                            label="Срок действия"
-                            value={formatDate(inspector.passportExpiryDate)}
-                            delay={0.35}
-                        />
-                    </div>
-                </motion.div>
-
-                {/* Секция: КОНТАКТНАЯ ИНФОРМАЦИЯ */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.2 }}
-                    className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden lg:col-span-2"
-                >
-                    <div className="bg-slate-50/80 px-4 py-3 flex items-center justify-between border-b border-slate-200">
-                        <div className="flex items-center gap-2 text-emerald-900 font-extrabold uppercase tracking-widest text-[11px]">
-                            <Icons.PhoneCall className="h-4 w-4 text-emerald-600" />
-                            Средства связи
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2">
-                        <LegendaryInfoRow label="Служебный телефон" value={inspector.workPhone} delay={0.3} />
-                        <LegendaryInfoRow label="Личный телефон" value={inspector.mobilePhone} delay={0.35} />
-                        <LegendaryInfoRow label="Электронная почта" value={inspector.email} delay={0.4} />
-                    </div>
-                </motion.div>
-
-                {/* Секция: АДРЕСА И МЕСТА */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.3 }}
-                    className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden lg:col-span-2"
-                >
-                    <div className="bg-slate-50/80 px-4 py-3 flex items-center justify-between border-b border-slate-200">
-                        <div className="flex items-center gap-2 text-indigo-900 font-extrabold uppercase tracking-widest text-[11px]">
-                            <Icons.MapPin className="h-4 w-4 text-indigo-600" />
-                            Адреса и локации
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2">
-                        <LegendaryInfoRow label="Место рождения" value={inspector.placeOfBirth} delay={0.4} />
-                        <LegendaryInfoRow label="Адрес регистрации" value={inspector.registrationAddress} delay={0.45} />
-                        <LegendaryInfoRow label="Фактический адрес" value={inspector.actualAddress} delay={0.5} />
-                    </div>
-                </motion.div>
-            </div>
-        </div>
-    )
-}
-
-// Военные данные
-function MilitarySection({ inspector }: { inspector: Inspector }) {
-    const [expandedSections, setExpandedSections] = React.useState<Record<string, boolean>>({
-        basic: true,
-        docs: true
-    })
-
-    const toggleSection = (section: string) => {
-        setExpandedSections(prev => ({
-            ...prev,
-            [section]: !prev[section]
-        }))
-    }
-
-    return (
-        <div className="space-y-6">
-            <div className="flex items-center gap-2">
-                <Icons.Shield className="text-red-700 w-6 h-6" />
-                <h1 className="text-xl font-semibold text-slate-800">Реестр военных данных</h1>
-            </div>
-
-            <div className="space-y-4">
-                {/* Секция: ОСНОВНЫЕ СВЕДЕНИЯ */}
-                <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                    <div
-                        className="bg-slate-50 px-4 py-3 flex items-center justify-between border-b border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors"
-                        onClick={() => toggleSection("basic")}
-                    >
-                        <div className="flex items-center gap-2 text-red-800 font-bold uppercase tracking-wider text-sm">
-                            <Icons.Shield className="h-[18px] w-[18px]" />
+                <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm flex flex-col transition-all hover:border-primary/30">
+                    <div className="bg-muted/30 px-5 py-3 flex items-center justify-between border-b-2 border-border/60">
+                        <div className="flex items-center gap-2 text-primary font-black uppercase tracking-[0.15em] text-[11px]">
+                            <Icons.Fingerprint className="h-4 w-4" />
                             ОСНОВНЫЕ СВЕДЕНИЯ
                         </div>
-                        <Icons.ChevronDown
-                            className={cn(
-                                "h-5 w-5 text-slate-400 transition-transform duration-200",
-                                !expandedSections.basic && "-rotate-90"
-                            )}
-                        />
                     </div>
 
-                    {expandedSections.basic && (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <tbody className="divide-y divide-slate-100">
-                                    <tr className="hover:bg-slate-50 transition-colors">
-                                        <td className="px-4 py-4 text-sm font-bold text-slate-700 w-1/3 border-r border-slate-100">Воинское звание</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600"><Badge variant="destructive">{inspector.militaryRank}</Badge></td>
-                                    </tr>
-                                    <tr className="hover:bg-slate-50 transition-colors">
-                                        <td className="px-4 py-4 text-sm font-bold text-slate-700 border-r border-slate-100">Воинская часть</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600">{inspector.militaryUnit}</td>
-                                    </tr>
-                                    <tr className="hover:bg-slate-50 transition-colors">
-                                        <td className="px-4 py-4 text-sm font-bold text-slate-700 border-r border-slate-100">Военный округ</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600">{inspector.militaryDistrict}</td>
-                                    </tr>
-                                    <tr className="hover:bg-slate-50 transition-colors">
-                                        <td className="px-4 py-4 text-sm font-bold text-slate-700 border-r border-slate-100">Пункт дислокации</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600">{inspector.dislocation || "—"}</td>
-                                    </tr>
-                                    <tr className="hover:bg-slate-50 transition-colors">
-                                        <td className="px-4 py-4 text-sm font-bold text-slate-700 border-r border-slate-100">Должность</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600">{inspector.position}</td>
-                                    </tr>
-                                    <tr className="hover:bg-slate-50 transition-colors">
-                                        <td className="px-4 py-4 text-sm font-bold text-slate-700 border-r border-slate-100">Отдел</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600">{inspector.department}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                    <div className="flex-1 bg-white/50">
+                        <LegendaryInfoRow label="ПОЛНОЕ Ф.И.О." value={inspector.fullName} accent delay={0.1} />
+                        <LegendaryInfoRow label="ДАТА РОЖДЕНИЯ" value={formatDate(inspector.dateOfBirth)} delay={0.15} />
+                        <LegendaryInfoRow label="ПОЛ" value={inspector.gender === "MALE" ? "МУЖСКОЙ" : "ЖЕНСКИЙ"} delay={0.2} />
+                        <LegendaryInfoRow label="НАЦИОНАЛЬНОСТЬ" value={inspector.nationality} delay={0.25} />
+                        <LegendaryInfoRow label="ГРАЖДАНСТВО" value={inspector.citizenship} delay={0.3} />
+                        <LegendaryInfoRow label="СЕМЕЙНОЕ ПОЛОЖЕНИЕ" value={inspector.maritalStatus} delay={0.35} />
+                    </div>
                 </div>
 
-                {/* Секция: ДОКУМЕНТЫ */}
-                <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                    <div
-                        className="bg-slate-50 px-4 py-3 flex items-center justify-between border-b border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors"
-                        onClick={() => toggleSection("docs")}
-                    >
-                        <div className="flex items-center gap-2 text-red-800 font-bold uppercase tracking-wider text-sm">
-                            <Icons.FileText className="h-[18px] w-[18px]" />
-                            ДОКУМЕНТЫ
+                {/* Секция: ИДЕНТИФИКАЦИЯ */}
+                <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm flex flex-col transition-all hover:border-primary/30">
+                    <div className="bg-muted/30 px-5 py-3 flex items-center justify-between border-b-2 border-border/60">
+                        <div className="flex items-center gap-2 text-amber-600 font-black uppercase tracking-[0.15em] text-[11px]">
+                            <Icons.ShieldCheck className="h-4 w-4" />
+                            ИДЕНТИФИКАЦИОННЫЕ ДАННЫЕ
                         </div>
-                        <Icons.ChevronDown
-                            className={cn(
-                                "h-5 w-5 text-slate-400 transition-transform duration-200",
-                                !expandedSections.docs && "-rotate-90"
-                            )}
-                        />
                     </div>
 
-                    {expandedSections.docs && (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <tbody className="divide-y divide-slate-100">
-                                    <tr className="hover:bg-slate-50 transition-colors">
-                                        <td className="px-4 py-4 text-sm font-bold text-slate-700 w-1/3 border-r border-slate-100">Военный билет</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600"><code className="text-xs bg-muted px-2 py-1 rounded">{inspector.militaryID}</code></td>
-                                    </tr>
-                                    <tr className="hover:bg-slate-50 transition-colors">
-                                        <td className="px-4 py-4 text-sm font-bold text-slate-700 border-r border-slate-100">Дата выдачи</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600">{formatDate(inspector.militaryIDIssueDate)}</td>
-                                    </tr>
-                                    <tr className="hover:bg-slate-50 transition-colors">
-                                        <td className="px-4 py-4 text-sm font-bold text-slate-700 border-r border-slate-100">Действителен до</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600">{formatDate(inspector.militaryIDExpiryDate)}</td>
-                                    </tr>
-                                    <tr className="hover:bg-slate-50 transition-colors">
-                                        <td className="px-4 py-4 text-sm font-bold text-slate-700 border-r border-slate-100">Номер службы</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600"><code className="text-xs bg-muted px-2 py-1 rounded">{inspector.serviceNumber}</code></td>
-                                    </tr>
-                                    <tr className="hover:bg-slate-50 transition-colors">
-                                        <td className="px-4 py-4 text-sm font-bold text-slate-700 border-r border-slate-100">Уровень допуска</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600">{inspector.clearanceLevel}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    <div className="flex-1 bg-white/50">
+                        <LegendaryInfoRow label="ПИНФЛ (14 знаков)" value={inspector.pin} isSecure delay={0.2} />
+                        <LegendaryInfoRow label="СЕРИЯ И НОМЕР ПАСПОРТА" value={`${inspector.passportSeries || ""} ${inspector.passportNumber || ""}`} isSecure delay={0.25} />
+                        <LegendaryInfoRow label="ОРГАН ВЫДАЧИ" value={inspector.passportIssuedBy} delay={0.3} />
+                        <LegendaryInfoRow label="СРОК ДЕЙСТВИЯ" value={formatDate(inspector.passportExpiryDate)} delay={0.35} />
+                    </div>
+                </div>
+
+                {/* Секция: КОНТАКТНАЯ ИНФОРМАЦИЯ */}
+                <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm lg:col-span-2 transition-all hover:border-primary/30">
+                    <div className="bg-muted/30 px-5 py-3 flex items-center justify-between border-b-2 border-border/60">
+                        <div className="flex items-center gap-2 text-emerald-600 font-black uppercase tracking-[0.15em] text-[11px]">
+                            <Icons.PhoneCall className="h-4 w-4" />
+                            КОНТАКТЫ И СВЯЗЬ
                         </div>
-                    )}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 bg-white/50">
+                        <LegendaryInfoRow label="СЛУЖЕБНЫЙ ТЕЛЕФОН" value={inspector.workPhone} delay={0.3} />
+                        <LegendaryInfoRow label="ЛИЧНЫЙ ТЕЛЕФОН" value={inspector.personalPhone || inspector.mobilePhone} delay={0.35} />
+                        <LegendaryInfoRow label="E-MAIL АДРЕС" value={inspector.email} delay={0.4} />
+                    </div>
+                </div>
+
+                {/* Секция: АДРЕСА */}
+                <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm lg:col-span-2 transition-all hover:border-primary/30">
+                    <div className="bg-muted/30 px-5 py-3 flex items-center justify-between border-b-2 border-border/60">
+                        <div className="flex items-center gap-2 text-indigo-600 font-black uppercase tracking-[0.15em] text-[11px]">
+                            <Icons.MapPin className="h-4 w-4" />
+                            МЕСТОЖИТЕЛЬСТВО И ПРОПИСКА
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 bg-white/50">
+                        <LegendaryInfoRow label="АДРЕС РЕГИСТРАЦИИ (ПО ПАСПОРТУ)" value={inspector.registrationAddress} delay={0.4} />
+                        <LegendaryInfoRow label="ФАКТИЧЕСКИЙ АДРЕС ПРОЖИВАНИЯ" value={inspector.actualAddress} delay={0.45} />
+                        <LegendaryInfoRow label="МЕСТО РОЖДЕНИЯ" value={inspector.placeOfBirth} delay={0.5} />
+                    </div>
                 </div>
             </div>
         </div>
     )
 }
 
-// Служебная информация (Формат Реестра - Репликация эталонного кода)
+function MilitarySection({ inspector }: { inspector: Inspector }) {
+    return (
+        <div className="space-y-8 pb-12">
+            <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center justify-between border-b-2 border-primary/20 pb-4 mb-6"
+            >
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                        <Icons.Shield className="text-primary w-6 h-6" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black text-foreground tracking-tight uppercase">РЕЕСТР ВОЕННЫХ ДАННЫХ</h1>
+                        <p className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase mt-1">Служебные сведения и документы МО РУз</p>
+                    </div>
+                </div>
+            </motion.div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Секция: СЛУЖЕБНЫЕ СВЕДЕНИЯ */}
+                <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm flex flex-col transition-all hover:border-primary/30">
+                    <div className="bg-muted/30 px-5 py-3 flex items-center justify-between border-b-2 border-border/60">
+                        <div className="flex items-center gap-2 text-primary font-black uppercase tracking-[0.15em] text-[11px]">
+                            <Icons.Shield className="h-4 w-4" />
+                            ОСНОВНЫЕ СВЕДЕНИЯ
+                        </div>
+                    </div>
+
+                    <div className="flex-1 bg-white/50">
+                        <LegendaryInfoRow 
+                            label="ВОИНСКОЕ ЗВАНИЕ" 
+                            value={<Badge variant="destructive" className="rounded-sm font-black px-3">{inspector.militaryRank.toUpperCase()}</Badge>} 
+                            delay={0.1} 
+                        />
+                        <LegendaryInfoRow label="ВОИНСКАЯ ЧАСТЬ" value={inspector.militaryUnit} accent delay={0.15} />
+                        <LegendaryInfoRow label="ВОЕННЫЙ ОКРУГ" value={inspector.militaryDistrict} delay={0.2} />
+                        <LegendaryInfoRow label="ПРИКАЗ О НАЗНАЧЕНИИ" value={inspector.dislocation || "ОТСУТСТВУЕТ"} delay={0.25} />
+                        <LegendaryInfoRow label="ТЕКУЩАЯ ДОЛЖНОСТЬ" value={inspector.position} delay={0.3} />
+                        <LegendaryInfoRow label="ПОДРАЗДЕЛЕНИЕ / ОТДЕЛ" value={inspector.department} delay={0.35} />
+                    </div>
+                </div>
+
+                {/* Секция: ВОЕННЫЕ ДОКУМЕНТЫ */}
+                <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm flex flex-col transition-all hover:border-primary/30">
+                    <div className="bg-muted/30 px-5 py-3 flex items-center justify-between border-b-2 border-border/60">
+                        <div className="flex items-center gap-2 text-amber-600 font-black uppercase tracking-[0.15em] text-[11px]">
+                            <Icons.FileText className="h-4 w-4" />
+                            ДОКУМЕНТЫ И ДОПУСКИ
+                        </div>
+                    </div>
+
+                    <div className="flex-1 bg-white/50">
+                        <LegendaryInfoRow label="ВОЕННЫЙ БИЛЕТ (СЕРИЯ/№)" value={inspector.militaryID} delay={0.2} />
+                        <LegendaryInfoRow label="ДАТА ВЫДАЧИ БИЛЕТА" value={formatDate(inspector.militaryIDIssueDate)} delay={0.25} />
+                        <LegendaryInfoRow label="СРОК ДЕЙСТВИЯ" value={formatDate(inspector.militaryIDExpiryDate)} delay={0.3} />
+                        <LegendaryInfoRow label="ЛИЧНЫЙ НОМЕР (ЖЕТОН)" value={inspector.serviceNumber} accent delay={0.35} />
+                        <LegendaryInfoRow label="УРОВЕНЬ ДОПУСКА (ФОРМА)" value={inspector.clearanceLevel} delay={0.4} />
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 function ServiceSection({ inspector }: { inspector: Inspector }) {
-    const [expandedSections, setExpandedSections] = React.useState<Record<string, boolean>>({
-        contracts: true,
-        history: true
-    })
-
-    const toggleSection = (section: string) => {
-        setExpandedSections(prev => ({
-            ...prev,
-            [section]: !prev[section]
-        }))
-    }
-
     // Обработчики действий
     const handleAction = (action: string, type: string, id: string) => {
         alert(`${action} ${type === "contract" ? "контракта" : "записи службы"}: ${id}`)
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center gap-2">
-                <Icons.File className="text-emerald-700 w-6 h-6" />
-                <h1 className="text-xl font-semibold text-slate-800">Реестр служебной информации</h1>
-            </div>
-
-            <div className="space-y-4">
-                {/* Секция: КОНТРАКТЫ */}
-                <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                    <div
-                        className="bg-slate-50 px-4 py-3 flex items-center justify-between border-b border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors"
-                        onClick={() => toggleSection("contracts")}
-                    >
-                        <div className="flex items-center gap-2 text-emerald-800 font-bold uppercase tracking-wider text-sm">
-                            <Icons.File className="h-[18px] w-[18px]" />
-                            КОНТРАКТЫ
-                        </div>
-                        <Icons.ChevronDown
-                            className={cn(
-                                "h-5 w-5 text-slate-400 transition-transform duration-200",
-                                !expandedSections.contracts && "-rotate-90"
-                            )}
-                        />
+        <div className="space-y-8 pb-12">
+            <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center justify-between border-b-2 border-primary/20 pb-4 mb-6"
+            >
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                        <Icons.History className="text-primary w-6 h-6" />
                     </div>
+                    <div>
+                        <h1 className="text-2xl font-black text-foreground tracking-tight uppercase">РЕЕСТР СЛУЖЕБНОГО ПУТИ</h1>
+                        <p className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase mt-1">История контрактов и кадровых перемещений</p>
+                    </div>
+                </div>
+            </motion.div>
 
-                    {expandedSections.contracts && (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="bg-white border-b border-slate-100">
-                                        <th className="px-4 py-3 text-xs font-bold text-slate-700 uppercase">Серия и номер контракта</th>
-                                        <th className="px-4 py-3 text-xs font-bold text-slate-700 uppercase">Дата заключения контракта</th>
-                                        <th className="px-4 py-3 text-xs font-bold text-slate-700 uppercase">Дата окончания контракта</th>
-                                        <th className="px-4 py-3 text-xs font-bold text-slate-700 uppercase text-right">Действия</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {inspector.contracts && inspector.contracts.length > 0 ? (
-                                        inspector.contracts.map((item) => (
-                                            <tr key={item.id} className="hover:bg-slate-50 transition-colors">
-                                                <td className="px-4 py-4 text-sm font-medium text-slate-700">{item.seriesAndNumber}</td>
-                                                <td className="px-4 py-4 text-sm text-slate-600">{formatDate(item.startDate)}</td>
-                                                <td className="px-4 py-4 text-sm text-slate-600">{formatDate(item.endDate)}</td>
-                                                <td className="px-4 py-4 text-sm text-right">
-                                                    <div className="flex justify-end gap-2">
-                                                        <button
-                                                            onClick={() => handleAction("Просмотр", "contract", item.id)}
-                                                            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded border border-blue-100 shadow-sm transition-all"
-                                                        >
-                                                            <Icons.Eye className="h-[18px] w-[18px]" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleAction("Удаление", "contract", item.id)}
-                                                            className="p-1.5 text-red-500 hover:bg-red-50 rounded border border-red-100 shadow-sm transition-all"
-                                                        >
-                                                            <Icons.Trash className="h-[18px] w-[18px]" />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan={4} className="py-12 text-center text-slate-400 italic text-sm">Данные не найдены</td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+            <div className="space-y-8">
+                {/* Секция: КОНТРАКТЫ */}
+                <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm">
+                    <div className="bg-muted/30 px-5 py-3 border-b-2 border-border/60 flex items-center gap-2 text-emerald-600 font-black uppercase tracking-[0.15em] text-[11px]">
+                        <Icons.FileText className="h-4 w-4" />
+                        ДЕЙСТВУЮЩИЕ И ПРОШЛЫЕ КОНТРАКТЫ
+                    </div>
+                    
+                    <div className="overflow-x-auto">
+                        <Table>
+                            <TableHeader className="bg-muted/10">
+                                <TableRow className="hover:bg-transparent border-b-2 border-border/40">
+                                    <TableHead className="text-[10px] font-black tracking-widest uppercase">Серия и № контракта</TableHead>
+                                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-center">Дата заключения</TableHead>
+                                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-center">Дата окончания</TableHead>
+                                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-right">Действия</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {inspector.contracts && inspector.contracts.length > 0 ? (
+                                    inspector.contracts.map((item) => (
+                                        <TableRow key={item.id} className="hover:bg-primary/5 transition-colors group">
+                                            <TableCell className="font-mono font-bold text-sm text-primary">{item.seriesAndNumber}</TableCell>
+                                            <TableCell className="text-center font-mono text-sm">{formatDate(item.startDate)}</TableCell>
+                                            <TableCell className="text-center font-mono text-sm">{formatDate(item.endDate)}</TableCell>
+                                            <TableCell className="text-right">
+                                                <div className="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/10" onClick={() => handleAction("Просмотр", "contract", item.id)}>
+                                                        <Icons.Eye className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-destructive hover:bg-destructive/10" onClick={() => handleAction("Удаление", "contract", item.id)}>
+                                                        <Icons.Trash className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <td colSpan={4} className="py-12 text-center text-muted-foreground/40 font-mono text-xs italic tracking-widest uppercase">Данные контрактов отсутствуют</td>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </div>
 
-                {/* Секция: СЛУЖБА ПО КОНТРАКТУ */}
-                <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                    <div
-                        className="bg-slate-50 px-4 py-3 flex items-center justify-between border-b border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors"
-                        onClick={() => toggleSection("history")}
-                    >
-                        <div className="flex items-center gap-2 text-orange-700 font-bold uppercase tracking-wider text-sm">
-                            <Icons.History className="h-[18px] w-[18px]" />
-                            СЛУЖБА ПО КОНТРАКТУ
-                        </div>
-                        <Icons.ChevronDown
-                            className={cn(
-                                "h-5 w-5 text-slate-400 transition-transform duration-200",
-                                !expandedSections.history && "-rotate-90"
-                            )}
-                        />
+                {/* Секция: ИСТОРИЯ СЛУЖБЫ */}
+                <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm">
+                    <div className="bg-muted/30 px-5 py-3 border-b-2 border-border/60 flex items-center gap-2 text-orange-600 font-black uppercase tracking-[0.15em] text-[11px]">
+                        <Icons.History className="h-4 w-4" />
+                        ХРОНОЛОГИЯ ПРОХОЖДЕНИЯ СЛУЖБЫ
                     </div>
 
-                    {expandedSections.history && (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-center border-collapse">
-                                <thead>
-                                    <tr className="bg-white border-b border-slate-200">
-                                        <th className="px-4 py-3 text-[11px] font-bold text-slate-700 uppercase border-r border-slate-100">
-                                            Войсковая часть /<br />Военный округ
-                                        </th>
-                                        <th className="px-4 py-3 text-[11px] font-bold text-slate-700 uppercase border-r border-slate-100">
-                                            Должность /<br />Подразделение
-                                        </th>
-                                        <th className="px-2 py-3 text-[10px] font-bold text-slate-700 uppercase border-r border-slate-100">
-                                            Приказ Л/С<br />(назн.)
-                                        </th>
-                                        <th className="px-2 py-3 text-[10px] font-bold text-slate-700 uppercase border-r border-slate-100">
-                                            Приказ Л/С<br />(искл.)
-                                        </th>
-                                        <th className="px-2 py-3 text-[10px] font-bold text-slate-700 uppercase border-r border-slate-100">
-                                            Сут. приказ<br />(зач.)
-                                        </th>
-                                        <th className="px-2 py-3 text-[10px] font-bold text-slate-700 uppercase border-r border-slate-100">
-                                            Сут. приказ<br />(искл.)
-                                        </th>
-                                        <th className="px-4 py-3 text-[11px] font-bold text-slate-700 uppercase">Действия</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {inspector.serviceHistory && inspector.serviceHistory.length > 0 ? (
-                                        inspector.serviceHistory.map((item) => (
-                                            <tr key={item.id} className="hover:bg-slate-50 transition-colors">
-                                                <td className="px-4 py-4 border-r border-slate-50 text-center">
-                                                    <div className="text-sm font-bold whitespace-nowrap text-slate-800">
-                                                        Войсковая часть {item.unit}
-                                                    </div>
-                                                    <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">{item.militaryDistrict || "—"}</div>
-                                                </td>
-                                                <td className="px-4 py-4 border-r border-slate-50 text-center">
-                                                    <div className="text-sm font-bold text-slate-800">{item.position}</div>
-                                                    <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">{item.subdivision || "—"}</div>
-                                                </td>
-                                                <td className="px-2 py-4 text-xs font-medium border-r border-slate-50 text-slate-600">
-                                                    {formatDate(item.personnelOrderAppointmentDate) || formatDate(item.startDate)}
-                                                </td>
-                                                <td className="px-2 py-4 text-xs font-medium border-r border-slate-50 text-slate-600">
-                                                    {formatDate(item.personnelOrderExclusionDate) || "—"}
-                                                </td>
-                                                <td className="px-2 py-4 text-xs font-medium border-r border-slate-50 text-slate-600">
-                                                    {formatDate(item.dailyOrderEnrollmentDate) || "—"}
-                                                </td>
-                                                <td className="px-2 py-4 text-xs font-medium border-r border-slate-50 text-slate-600">
-                                                    {formatDate(item.dailyOrderExclusionDate) || "—"}
-                                                </td>
-                                                <td className="px-4 py-4">
-                                                    <div className="flex justify-center gap-2">
-                                                        <button
-                                                            onClick={() => handleAction("Удаление", "service", item.id)}
-                                                            className="p-1 text-red-400 hover:text-red-600 transition-colors"
-                                                            title="Удалить"
-                                                        >
-                                                            <Icons.Trash className="h-4 w-4" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleAction("Просмотр", "service", item.id)}
-                                                            className="p-1 text-blue-400 hover:text-blue-600 transition-colors"
-                                                            title="Просмотр"
-                                                        >
-                                                            <Icons.Eye className="h-4 w-4" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleAction("Редактирование", "service", item.id)}
-                                                            className="p-1 text-orange-400 hover:text-orange-600 transition-colors"
-                                                            title="Редактировать"
-                                                        >
-                                                            <Icons.Edit className="h-4 w-4" />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan={7} className="py-12 text-center text-slate-400 italic text-sm">Данные не найдены</td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                    <div className="overflow-x-auto">
+                        <Table>
+                            <TableHeader className="bg-muted/10">
+                                <TableRow className="hover:bg-transparent border-b-2 border-border/40">
+                                    <TableHead className="text-[10px] font-black tracking-widest uppercase py-4">Войсковая часть / Округ</TableHead>
+                                    <TableHead className="text-[10px] font-black tracking-widest uppercase py-4">Должность / Отдел</TableHead>
+                                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-center py-4">Приказ Л/С (Назн/Искл)</TableHead>
+                                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-center py-4">Сут. приказ (Зач/Искл)</TableHead>
+                                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-right py-4 pr-6">Управление</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {inspector.serviceHistory && inspector.serviceHistory.length > 0 ? (
+                                    inspector.serviceHistory.map((item) => (
+                                        <TableRow key={item.id} className="hover:bg-primary/5 transition-colors group">
+                                            <TableCell className="py-4">
+                                                <div className="text-sm font-black text-foreground uppercase tracking-tight">В/Ч {item.unit}</div>
+                                                <div className="text-[9px] font-bold text-muted-foreground tracking-widest uppercase mt-1">{item.militaryDistrict}</div>
+                                            </TableCell>
+                                            <TableCell className="py-4">
+                                                <div className="text-sm font-bold text-foreground">{item.position}</div>
+                                                <div className="text-[10px] text-primary font-medium mt-0.5">{item.subdivision}</div>
+                                            </TableCell>
+                                            <TableCell className="py-4 text-center">
+                                                <div className="flex flex-col gap-1 items-center">
+                                                    <span className="font-mono text-[11px] bg-primary/5 px-2 rounded border border-primary/10 text-primary">{formatDate(item.personnelOrderAppointmentDate || item.startDate)}</span>
+                                                    <span className="font-mono text-[11px] text-muted-foreground/60 italic">{formatDate(item.personnelOrderExclusionDate)}</span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="py-4 text-center">
+                                                <div className="flex flex-col gap-1 items-center">
+                                                    <span className="font-mono text-[11px] bg-muted px-2 rounded border border-border/40">{formatDate(item.dailyOrderEnrollmentDate)}</span>
+                                                    <span className="font-mono text-[11px] text-muted-foreground/60 italic">{formatDate(item.dailyOrderExclusionDate)}</span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="py-4 text-right pr-6">
+                                                <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10" onClick={() => handleAction("Редактирование", "service", item.id)}>
+                                                        <Icons.Edit className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-destructive hover:bg-destructive/10" onClick={() => handleAction("Удаление", "service", item.id)}>
+                                                        <Icons.Trash className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <td colSpan={5} className="py-12 text-center text-muted-foreground/40 font-mono text-xs italic tracking-widest uppercase">Служебные записи отсутствуют</td>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -718,6 +635,7 @@ function AuditsSection({
     // Data Fetching - filtered by inspector
     const { data: audits = [], isLoading: auditsLoading } = useFinancialAudits({ inspectorId: inspector.id })
     const { data: violations = [], isLoading: violationsLoading } = useAuditViolations()
+    const { data: allRefs } = useAllReferences()
 
     // Mutations
     const createAudit = useCreateFinancialAudit()
@@ -783,6 +701,14 @@ function AuditsSection({
     }
 
     const handleAddViolation = (audit: FinancialAuditDTO) => {
+        if (!audit.unit || audit.unit === "Не указан объект" || audit.unit.includes("НЕ УКАЗАН")) {
+            toast({
+                variant: "destructive",
+                title: "Объект не указан",
+                description: "Пожалуйста, сначала отредактируйте акт и укажите объект контроля (в/ч), прежде чем добавлять нарушения."
+            })
+            return
+        }
         setSelectedAudit(audit)
         setSelectedViolation(null)
         setViolationDialogOpen(true)
@@ -836,10 +762,10 @@ function AuditsSection({
                 <div>
                     <h3 className="text-xl font-bold flex items-center gap-2">
                         <Icons.Receipt className="h-5 w-5 text-blue-600" />
-                        Реестр результатов ревизии и проверок
+                        Реестр назначенных ревизий
                     </h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Все данные автоматически синхронизируются с общим реестром
+                    <p className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase mt-1">
+                        Мои текущие ревизии и назначенные проверки
                     </p>
                 </div>
                 <div className="flex gap-2">
@@ -858,7 +784,7 @@ function AuditsSection({
             <FinancialAuditRegistry
                 audits={audits}
                 violations={violations}
-                isLoading={auditsLoading || violationsLoading}
+                isLoading={auditsLoading || violationsLoading || !allRefs}
                 onAddAudit={handleAddAudit}
                 onEditAudit={handleEditAudit}
                 onViewDetail={(audit) => window.open(`/audits/financial-activity/${audit.id}`, '_blank')}
@@ -867,6 +793,11 @@ function AuditsSection({
                 onDeleteViolation={handleDeleteViolation}
                 hideFilters={true}
                 hideHeader={true}
+                hideControlBody={true}
+                districts={allRefs?.districts}
+                directions={allRefs?.directions}
+                authorities={allRefs?.authorities}
+                violationTypes={allRefs?.violations}
             />
 
             <FinancialAuditDialogs
@@ -886,180 +817,230 @@ function AuditsSection({
 }
 
 function ResultsSection({ inspector }: { inspector: Inspector }) {
-    const [expandedRows, setExpandedRows] = React.useState<Record<string, boolean>>({})
+    const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({})
 
     const toggleRow = (id: string) => {
-        setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }))
+        setExpandedRows(prev => ({
+            ...prev,
+            [id]: !prev[id]
+        }))
     }
 
+    const totalDetected = useMemo(() => 
+        inspector.inspectionResults?.reduce((sum, r) => sum + (r.totalAmount || 0), 0) || 0,
+    [inspector.inspectionResults])
+
+    const totalRecovered = useMemo(() => 
+        inspector.inspectionResults?.reduce((sum, r) => sum + (r.recoveredAmount || 0), 0) || 0,
+    [inspector.inspectionResults])
+
+    const totalRemainder = totalDetected - totalRecovered
+
     return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <Icons.ListChecks className="h-5 w-5 text-teal-600" />
-                    Реестр результатов ревизии и проверок
-                </h3>
+        <div className="space-y-8 pb-12">
+            <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center justify-between border-b-2 border-primary/20 pb-4 mb-6"
+            >
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                        <Icons.ListChecks className="text-primary w-6 h-6" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black text-foreground tracking-tight uppercase">РЕЕСТР РЕЗУЛЬТАТОВ ПРОВЕРОК</h1>
+                        <p className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase mt-1">Официальные показатели контрольно-ревизионной деятельности</p>
+                    </div>
+                </div>
+            </motion.div>
+
+            {/* Summary Grid */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <div className="bg-card p-4 rounded-xl border-2 border-border/60 flex flex-col justify-between shadow-sm">
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">ПРОВЕДЕНО ПРОВЕРОК</span>
+                    <div className="mt-2 flex items-baseline gap-2">
+                        <span className="text-3xl font-black tabular-nums">{inspector.inspectionResults?.length || 0}</span>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase">АКТОВ</span>
+                    </div>
+                </div>
+                <div className="bg-card p-4 rounded-xl border-2 border-destructive/30 flex flex-col justify-between shadow-sm bg-destructive/[0.02]">
+                    <span className="text-[10px] font-black text-destructive uppercase tracking-widest">ВЫЯВЛЕНО УЩЕРБА</span>
+                    <div className="mt-2">
+                        <span className="text-2xl font-black text-destructive tabular-nums">{formatCurrency(totalDetected)}</span>
+                        <span className="text-[9px] font-bold text-muted-foreground uppercase ml-1">СУМ</span>
+                    </div>
+                </div>
+                <div className="bg-card p-4 rounded-xl border-2 border-emerald-500/30 flex flex-col justify-between shadow-sm bg-emerald-500/[0.02]">
+                    <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">ВОЗМЕЩЕНО</span>
+                    <div className="mt-2">
+                        <span className="text-2xl font-black text-emerald-600 tabular-nums">{formatCurrency(totalRecovered)}</span>
+                        <span className="text-[9px] font-bold text-muted-foreground uppercase ml-1">СУМ</span>
+                    </div>
+                </div>
+                <div className="bg-card p-4 rounded-xl border-2 border-amber-500/30 flex flex-col justify-between shadow-sm bg-amber-500/[0.02]">
+                    <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">ОСТАТОК</span>
+                    <div className="mt-2">
+                        <span className="text-2xl font-black text-amber-600 tabular-nums">{formatCurrency(totalRemainder)}</span>
+                        <span className="text-[9px] font-bold text-muted-foreground uppercase ml-1">СУМ</span>
+                    </div>
+                </div>
             </div>
-            <Card>
-                <CardContent className="p-0">
-                    {inspector.inspectionResults && inspector.inspectionResults.length > 0 ? (
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="bg-muted/30 hover:bg-muted/30">
-                                    <TableHead className="w-[30px]"></TableHead>
-                                    <TableHead className="w-[50px] text-xs">ID плана</TableHead>
-                                    <TableHead className="text-xs">№ акта и дата</TableHead>
-                                    <TableHead className="text-xs">Объект контроля</TableHead>
-                                    <TableHead className="text-xs">Направление проверки</TableHead>
-                                    <TableHead className="text-xs text-center">Вид проверки</TableHead>
-                                    <TableHead className="text-xs text-right">Сумма нарушений</TableHead>
-                                    <TableHead className="text-xs text-right">Возмещено в ходе</TableHead>
-                                    <TableHead className="text-xs text-center">Количество</TableHead>
-                                    <TableHead className="text-xs text-right">Действия</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {inspector.inspectionResults.map((result: InspectionResult, index: number) => (
-                                    <React.Fragment key={result.id}>
-                                        <TableRow className="hover:bg-muted/50 border-b-0">
-                                            <TableCell>
-                                                <button
-                                                    onClick={() => toggleRow(result.id)}
-                                                    className="p-1 hover:bg-muted rounded transition-colors"
-                                                >
-                                                    {expandedRows[result.id] ? (
-                                                        <Icons.ChevronDown className="h-4 w-4 text-muted-foreground" />
-                                                    ) : (
-                                                        <Icons.ChevronRight className="h-4 w-4 text-muted-foreground" />
-                                                    )}
-                                                </button>
-                                            </TableCell>
-                                            <TableCell className="font-medium text-xs text-center">{result.planId}</TableCell>
-                                            <TableCell className="text-xs">
-                                                <div className="font-semibold">{result.actNumber}</div>
-                                                <div className="text-muted-foreground text-[10px]">{result.actDate}</div>
-                                            </TableCell>
 
-                                            <TableCell className="text-xs">
-                                                <div className="font-medium">{result.controlObject}</div>
-                                                <div className="text-muted-foreground text-[10px]">{result.controlObjectRegion}</div>
-                                            </TableCell>
-                                            <TableCell className="text-xs">
-                                                <div className="font-medium line-clamp-2 md:line-clamp-none" title={result.inspectionDirection}>
-                                                    {result.inspectionDirection}
-                                                </div>
-                                                <div className="text-muted-foreground text-[10px]">{result.inspectionDepartment}</div>
-                                            </TableCell>
-                                            <TableCell className="text-center">
-                                                <Badge className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-normal px-2 py-0 h-5">
-                                                    {result.inspectionType === "planned" ? "плановые" : "внеплановые"}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="text-right font-bold text-xs whitespace-nowrap">
-                                                {formatCurrency(result.totalAmount)}
-                                            </TableCell>
-                                            <TableCell className="text-right text-green-600 font-medium text-xs whitespace-nowrap">
-                                                {formatCurrency(result.recoveredAmount)}
-                                            </TableCell>
-                                            <TableCell className="text-center text-xs font-medium">{result.quantityStats}</TableCell>
+            {inspector.inspectionResults && inspector.inspectionResults.length > 0 ? (
+                <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm">
+                    <Table>
+                        <TableHeader className="bg-muted/10">
+                            <TableRow className="hover:bg-transparent border-b-2 border-border/40">
+                                <TableHead className="w-[40px]"></TableHead>
+                                <TableHead className="text-[10px] font-black tracking-widest uppercase py-4 pl-4">№ АКТА / ДАТА</TableHead>
+                                <TableHead className="text-[10px] font-black tracking-widest uppercase py-4">ОБЪЕКТ КОНТРОЛЯ</TableHead>
+                                <TableHead className="text-[10px] font-black tracking-widest uppercase py-4 text-center">ТИП</TableHead>
+                                <TableHead className="text-[10px] font-black tracking-widest uppercase py-4 text-right">СУММА НАРУШЕНИЯ</TableHead>
+                                <TableHead className="text-[10px] font-black tracking-widest uppercase py-4 text-right">ВОЗМЕЩЕНО</TableHead>
+                                <TableHead className="text-[10px] font-black tracking-widest uppercase py-4 text-center">ЛИЦ</TableHead>
+                                <TableHead className="text-[10px] font-black tracking-widest uppercase py-4 text-right pr-6">ДЕЙСТВИЯ</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {inspector.inspectionResults.map((result: InspectionResult) => (
+                                <React.Fragment key={result.id}>
+                                    <TableRow className={cn(
+                                        "hover:bg-primary/5 transition-colors group border-b border-border/40",
+                                        expandedRows[result.id] && "bg-primary/[0.02]"
+                                    )}>
+                                        <TableCell className="pl-4">
+                                            <button
+                                                onClick={() => toggleRow(result.id)}
+                                                className={cn(
+                                                    "p-1.5 rounded transition-all",
+                                                    expandedRows[result.id] ? "bg-primary/20 text-primary" : "text-muted-foreground hover:bg-muted"
+                                                )}
+                                            >
+                                                <Icons.ChevronRight className={cn("h-4 w-4 transition-transform", expandedRows[result.id] && "rotate-90")} />
+                                            </button>
+                                        </TableCell>
+                                        <TableCell className="py-4 pl-4">
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-black text-foreground uppercase tracking-tight">№ {result.actNumber}</span>
+                                                <span className="text-[10px] font-mono text-muted-foreground uppercase">ОТ {result.actDate}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="py-4">
+                                            <div className="flex flex-col">
+                                                <div className="text-[11px] font-bold text-primary uppercase tracking-wider">{result.controlObject}</div>
+                                                <div className="text-[9px] text-muted-foreground uppercase mt-0.5">{result.controlObjectRegion}</div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            <Badge variant="outline" className={cn(
+                                                "text-[9px] font-black uppercase px-2 py-0 h-5 border-2",
+                                                result.inspectionType === "planned" 
+                                                    ? "text-blue-600 border-blue-200 bg-blue-50" 
+                                                    : "text-orange-600 border-orange-200 bg-orange-50"
+                                            )}>
+                                                {result.inspectionType === "planned" ? "ПЛАН" : "ВПЛАН"}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right py-4">
+                                            <span className="text-sm font-mono font-black text-destructive">{formatCurrency(result.totalAmount)}</span>
+                                        </TableCell>
+                                        <TableCell className="text-right py-4">
+                                            <span className="text-sm font-mono font-black text-emerald-600">{formatCurrency(result.recoveredAmount)}</span>
+                                        </TableCell>
+                                        <TableCell className="text-center py-4">
+                                            {renderQuantityStats(result.quantityStats)}
+                                        </TableCell>
+                                        <TableCell className="text-right pr-6">
+                                            <div className="flex justify-end gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-primary">
+                                                    <Icons.Eye className="h-4 w-4" />
+                                                </Button>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-primary">
+                                                    <Icons.Edit className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
 
-                                            <TableCell>
-                                                <div className="flex items-center justify-end gap-1">
-                                                    <button className="text-muted-foreground hover:text-foreground" title="Развернуть">
-                                                        <span className="text-[10px] font-medium mr-1">({result.violations?.length || 0})</span>
-                                                    </button>
-                                                    <button className="text-blue-600 hover:text-blue-700 p-0.5" title="Добавить">
-                                                        <Icons.Plus className="h-3.5 w-3.5" />
-                                                    </button>
-                                                    <button className="text-muted-foreground hover:text-foreground p-0.5" title="Просмотр">
-                                                        <Icons.Eye className="h-3.5 w-3.5" />
-                                                    </button>
-                                                    <button className="text-muted-foreground hover:text-foreground p-0.5" title="Редактировать">
-                                                        <Icons.Edit className="h-3.5 w-3.5" />
-                                                    </button>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-
-                                        {/* Expandable nested table row */}
+                                    {/* Вложенный реестр нарушений */}
+                                    <AnimatePresence>
                                         {expandedRows[result.id] && (
-                                            <TableRow className="hover:bg-transparent bg-muted/5 border-t-0">
-                                                <TableCell colSpan={10} className="p-0 border-t-0">
-                                                    <div className="pl-8 pr-4 py-4 space-y-2 border-l-2 border-l-red-500 ml-5 my-1 bg-red-50/10">
-                                                        <div className="flex items-center gap-2 mb-2 text-red-600 font-semibold text-sm">
-                                                            <Icons.Alert className="h-4 w-4" />
-                                                            Реестр выявленных нарушений
-                                                        </div>
+                                            <TableRow className="hover:bg-transparent border-b border-border/40">
+                                                <TableCell colSpan={7} className="p-0">
+                                                    <motion.div
+                                                        initial={{ height: 0, opacity: 0 }}
+                                                        animate={{ height: "auto", opacity: 1 }}
+                                                        exit={{ height: 0, opacity: 0 }}
+                                                        className="overflow-hidden bg-muted/20"
+                                                    >
+                                                        <div className="pl-14 pr-6 py-6 space-y-4 border-l-4 border-primary/40 ml-6 my-2">
+                                                            <div className="flex items-center gap-2 text-[11px] font-black text-primary uppercase tracking-[0.2em]">
+                                                                <Icons.AlertTriangle className="h-4 w-4" />
+                                                                ДЕТАЛИЗИРОВАННЫЙ ПЕРЕЧЕНЬ НАРУШЕНИЙ
+                                                            </div>
 
-                                                        <div className="rounded-md border bg-white overflow-hidden">
-                                                            <Table>
-                                                                <TableHeader>
-                                                                    <TableRow className="bg-red-50 hover:bg-red-50">
-                                                                        <TableHead className="w-[40px] text-xs text-red-900">№ п/п</TableHead>
-                                                                        <TableHead className="text-xs text-red-900">Вид нарушения</TableHead>
-                                                                        <TableHead className="text-xs text-red-900">Тип нарушения</TableHead>
-                                                                        <TableHead className="text-xs text-red-900">Источник</TableHead>
-                                                                        <TableHead className="text-right text-xs text-red-900">Сумма нарушений</TableHead>
-                                                                        <TableHead className="text-right text-xs text-red-900">Возмещено в ходе</TableHead>
-                                                                        <TableHead className="text-center text-xs text-red-900">Количество</TableHead>
-                                                                        <TableHead className="text-xs text-red-900">Виновные лица</TableHead>
-                                                                        <TableHead className="text-right text-xs text-red-900">Действия</TableHead>
-                                                                    </TableRow>
-                                                                </TableHeader>
-                                                                <TableBody>
-                                                                    {result.violations && result.violations.length > 0 ? (
-                                                                        result.violations.map((violation: InspectionViolation, vIndex: number) => (
-                                                                            <TableRow key={violation.id}>
-                                                                                <TableCell className="text-xs text-center text-muted-foreground">{vIndex + 1}</TableCell>
-                                                                                <TableCell className="text-xs font-medium">{violation.violationType}</TableCell>
-                                                                                <TableCell className="text-xs">{violation.violationSubtype}</TableCell>
-                                                                                <TableCell className="text-xs text-muted-foreground">{violation.source}</TableCell>
-                                                                                <TableCell className="text-right text-xs font-bold text-red-600 whitespace-nowrap">{formatCurrency(violation.amount)}</TableCell>
-                                                                                <TableCell className="text-right text-xs text-green-600 whitespace-nowrap">{formatCurrency(violation.recoveredAmount)}</TableCell>
-                                                                                <TableCell className="text-center text-xs">{violation.quantityStats}</TableCell>
-                                                                                <TableCell className="text-xs">
-                                                                                    <div className="whitespace-pre-line text-[10px] leading-tight">
-                                                                                        {violation.responsiblePerson}
-                                                                                    </div>
-                                                                                </TableCell>
-                                                                                <TableCell>
-                                                                                    <div className="flex items-center justify-end gap-2">
-                                                                                        <button className="text-amber-600 hover:text-amber-700 p-0.5" title="Детали">
-                                                                                            <Icons.Shield className="h-3.5 w-3.5" />
-                                                                                        </button>
-                                                                                        <button className="text-red-600 hover:text-red-700 p-0.5" title="Удалить">
-                                                                                            <Icons.Trash className="h-3.5 w-3.5" />
-                                                                                        </button>
-                                                                                        <button className="text-muted-foreground hover:text-foreground p-0.5" title="Редактировать">
-                                                                                            <Icons.Edit className="h-3.5 w-3.5" />
-                                                                                        </button>
-                                                                                    </div>
-                                                                                </TableCell>
-                                                                            </TableRow>
-                                                                        ))
-                                                                    ) : (
-                                                                        <TableRow>
-                                                                            <TableCell colSpan={9} className="h-10 text-center text-xs text-muted-foreground">
-                                                                                Нарушений не выявлено
-                                                                            </TableCell>
+                                                            <div className="rounded-lg border-2 border-border/60 bg-white overflow-hidden shadow-inner">
+                                                                <Table>
+                                                                    <TableHeader className="bg-muted/30">
+                                                                        <TableRow className="hover:bg-transparent border-b-2 border-border/40">
+                                                                            <TableHead className="text-[9px] font-black uppercase text-center w-[40px]">№</TableHead>
+                                                                            <TableHead className="text-[9px] font-black uppercase">ВИД / ТИП НАРУШЕНИЯ</TableHead>
+                                                                            <TableHead className="text-[9px] font-black uppercase text-right">СУММА</TableHead>
+                                                                            <TableHead className="text-[9px] font-black uppercase text-right">ВОЗМЕЩЕНО</TableHead>
+                                                                            <TableHead className="text-[9px] font-black uppercase text-center">ЛИЦ</TableHead>
+                                                                            <TableHead className="text-[9px] font-black uppercase">ОТВЕТСТВЕННЫЕ</TableHead>
                                                                         </TableRow>
-                                                                    )}
-                                                                </TableBody>
-                                                            </Table>
+                                                                    </TableHeader>
+                                                                    <TableBody>
+                                                                        {result.violations && result.violations.length > 0 ? (
+                                                                            result.violations.map((violation: InspectionViolation, vIndex: number) => (
+                                                                                <TableRow key={violation.id} className="hover:bg-muted/10 border-b border-border/20 last:border-0">
+                                                                                    <TableCell className="text-[11px] font-mono text-center text-muted-foreground">{vIndex + 1}</TableCell>
+                                                                                    <TableCell className="py-3">
+                                                                                        <div className="text-[11px] font-bold text-foreground leading-tight">
+                                                                                            <AbbreviatedText text={violation.violationType} />
+                                                                                        </div>
+                                                                                        <div className="text-[9px] text-muted-foreground mt-0.5">
+                                                                                            <AbbreviatedText text={violation.violationSubtype} />
+                                                                                        </div>
+                                                                                    </TableCell>
+                                                                                    <TableCell className="text-right font-mono text-[11px] font-black text-destructive">{formatCurrency(violation.amount)}</TableCell>
+                                                                                    <TableCell className="text-right font-mono text-[11px] font-black text-emerald-600">{formatCurrency(violation.recoveredAmount)}</TableCell>
+                                                                                    <TableCell className="text-center">
+                                                                                        {renderQuantityStats(violation.quantityStats)}
+                                                                                    </TableCell>
+                                                                                    <TableCell className="py-3">
+                                                                                        <div className="text-[10px] font-medium leading-tight max-w-[200px] truncate uppercase" title={violation.responsiblePerson}>
+                                                                                            {violation.responsiblePerson}
+                                                                                        </div>
+                                                                                    </TableCell>
+                                                                                </TableRow>
+                                                                            ))
+                                                                        ) : (
+                                                                            <TableRow>
+                                                                                <TableCell colSpan={6} className="h-12 text-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Нарушений не зафиксировано</TableCell>
+                                                                            </TableRow>
+                                                                        )}
+                                                                    </TableBody>
+                                                                </Table>
+                                                            </div>
                                                         </div>
-                                                    </div>
+                                                    </motion.div>
                                                 </TableCell>
                                             </TableRow>
                                         )}
-                                    </React.Fragment>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    ) : (
-                        <NoDataFound description="Результаты проверок отсутствуют" />
-                    )}
-                </CardContent>
-            </Card>
+                                    </AnimatePresence>
+                                </React.Fragment>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+            ) : (
+                <div className="bg-muted/10 border-2 border-dashed border-border/60 rounded-xl p-12 text-center">
+                    <Icons.Inbox className="h-12 w-12 text-muted-foreground/20 mx-auto mb-4" />
+                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Результаты проверок в базе данных отсутствуют</p>
+                </div>
+            )}
         </div>
     )
 }
@@ -1091,271 +1072,144 @@ function FinancialViolationsSection({ inspector }: { inspector: Inspector }) {
         allViolations.filter((v: any) => v.type === "Недоплата"), 
     [allViolations])
 
-    const toggleRowExpansion = useCallback((id: number) => {
-        setExpandedRows((prev) => {
-            const newExpanded = new Set(prev)
-            if (newExpanded.has(id)) {
-                newExpanded.delete(id)
-            } else {
-                newExpanded.add(id)
-            }
-            return newExpanded
-        })
-    }, [])
+    const totalDetected = useMemo(() => 
+        allViolations.reduce((sum: number, v: any) => sum + Number(v.amount || 0), 0),
+    [allViolations])
 
-    const getViolationRepayments = (violationId: number) => {
-        const violation = allViolations.find((v: any) => v.id === violationId) as any
-        return violation?.financial_repayments || []
-    }
-
-    const getViolationRepaidTotal = (violationId: number) => {
-        const repayments = getViolationRepayments(violationId)
-        return repayments.reduce((sum: number, r: any) => sum + Number(r.repaid_amount || 0), 0)
-    }
+    const totalRecovered = useMemo(() => 
+        allViolations.reduce((sum: number, v: any) => sum + Number(v.recovered || 0), 0),
+    [allViolations])
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center gap-2">
-                <Icons.TrendingDown className="text-orange-700 w-6 h-6" />
-                <h1 className="text-xl font-semibold text-slate-800">Реестр финансовых нарушений</h1>
+        <div className="space-y-8 pb-12">
+            <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center justify-between border-b-2 border-primary/20 pb-4 mb-6"
+            >
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                        <Icons.TrendingDown className="text-primary w-6 h-6" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black text-foreground tracking-tight uppercase">РЕЕСТР ФИНАНСОВЫХ НАРУШЕНИЙ</h1>
+                        <p className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase mt-1">Персональный учет допущенных нарушений и возмещений</p>
+                    </div>
+                </div>
+            </motion.div>
+
+            {/* Summary Grid */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <div className="bg-card p-4 rounded-xl border-2 border-border/60 flex flex-col justify-between shadow-sm">
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">ВСЕГО НАРУШЕНИЙ</span>
+                    <div className="mt-2 flex items-baseline gap-2">
+                        <span className="text-3xl font-black tabular-nums">{allViolations.length}</span>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase">СЛУЧАЕВ</span>
+                    </div>
+                </div>
+                <div className="bg-card p-4 rounded-xl border-2 border-destructive/30 flex flex-col justify-between shadow-sm bg-destructive/[0.02]">
+                    <span className="text-[10px] font-black text-destructive uppercase tracking-widest">СУММА УЩЕРБА</span>
+                    <div className="mt-2">
+                        <span className="text-2xl font-black text-destructive tabular-nums">{formatCurrency(totalDetected)}</span>
+                        <span className="text-[9px] font-bold text-muted-foreground uppercase ml-1">СУМ</span>
+                    </div>
+                </div>
+                <div className="bg-card p-4 rounded-xl border-2 border-emerald-500/30 flex flex-col justify-between shadow-sm bg-emerald-500/[0.02]">
+                    <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">ВОЗМЕЩЕНО</span>
+                    <div className="mt-2">
+                        <span className="text-2xl font-black text-emerald-600 tabular-nums">{formatCurrency(totalRecovered)}</span>
+                        <span className="text-[9px] font-bold text-muted-foreground uppercase ml-1">СУМ</span>
+                    </div>
+                </div>
+                <div className="bg-card p-4 rounded-xl border-2 border-amber-500/30 flex flex-col justify-between shadow-sm bg-amber-500/[0.02]">
+                    <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">ОСТАТОК</span>
+                    <div className="mt-2">
+                        <span className="text-2xl font-black text-amber-600 tabular-nums">{formatCurrency(totalDetected - totalRecovered)}</span>
+                        <span className="text-[9px] font-bold text-muted-foreground uppercase ml-1">СУМ</span>
+                    </div>
+                </div>
             </div>
 
-            {/* Summary Cards from violations/financial/page.tsx */}
-            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6 print:hidden">
-                <Card className="relative overflow-hidden border-2 border-cyan-200 bg-gradient-to-br from-cyan-50 to-cyan-100 hover:shadow-lg transition-all hover:scale-105">
-                    <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
-                        <CardTitle className="text-sm font-medium text-cyan-900">Всего переплат</CardTitle>
-                        <div className="rounded-full bg-cyan-200 p-2 ring-2 ring-cyan-300">
-                            <Icons.TrendingUp className="h-5 w-5 text-cyan-700" />
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-bold text-cyan-900">{overpayments.length}</div>
-                        <p className="text-xs text-cyan-700 font-medium">Выявлено</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="relative overflow-hidden border-2 border-sky-200 bg-gradient-to-br from-sky-50 to-sky-100 hover:shadow-lg transition-all hover:scale-105">
-                    <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
-                        <CardTitle className="text-sm font-medium text-sky-900">Общая сумма</CardTitle>
-                        <div className="rounded-full bg-sky-200 p-2 ring-2 ring-sky-300">
-                            <Icons.DollarSign className="h-5 w-5 text-sky-700" />
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-xl font-bold text-sky-900">
-                            {formatCurrency(overpayments.reduce((sum, o) => sum + Number(o.amount || 0), 0))} cум
-                        </div>
-                        <p className="text-xs text-sky-700 font-medium">Переплачено</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="relative overflow-hidden border-2 border-lime-200 bg-gradient-to-br from-lime-50 to-lime-100 hover:shadow-lg transition-all hover:scale-105">
-                    <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
-                        <CardTitle className="text-sm font-medium text-lime-900">Возвращено</CardTitle>
-                        <div className="rounded-full bg-lime-200 p-2 ring-2 ring-lime-300">
-                            <Icons.Check className="h-5 w-5 text-lime-700" />
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-bold text-lime-900">
-                            {overpayments.filter((o: any) => Number(o.recovered) >= Number(o.amount)).length}
-                        </div>
-                        <p className="text-xs text-lime-700 font-medium">Случаев</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="relative overflow-hidden border-2 border-yellow-200 bg-gradient-to-br from-yellow-50 to-yellow-100 hover:shadow-lg transition-all hover:scale-105">
-                    <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
-                        <CardTitle className="text-sm font-medium text-yellow-900">Частично</CardTitle>
-                        <div className="rounded-full bg-yellow-200 p-2 ring-2 ring-yellow-300">
-                            <Icons.PieChart className="h-5 w-5 text-yellow-700" />
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-bold text-yellow-900">
-                            {overpayments.filter((o: any) => Number(o.recovered) > 0 && Number(o.recovered) < Number(o.amount)).length}
-                        </div>
-                        <p className="text-xs text-yellow-700 font-medium">Возмещено</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="relative overflow-hidden border-2 border-red-200 bg-gradient-to-br from-red-50 to-red-100 hover:shadow-lg transition-all hover:scale-105">
-                    <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
-                        <CardTitle className="text-sm font-medium text-red-900">В процессе</CardTitle>
-                        <div className="rounded-full bg-red-200 p-2 ring-2 ring-red-300">
-                            <Icons.Clock className="h-5 w-5 text-red-700" />
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-bold text-red-900">
-                            {overpayments.filter((o: any) => Number(o.recovered) <= 0).length}
-                        </div>
-                        <p className="text-xs text-red-700 font-medium">Возврата</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="relative overflow-hidden border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100 hover:shadow-lg transition-all hover:scale-105">
-                    <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
-                        <CardTitle className="text-sm font-medium text-purple-900">Крупные</CardTitle>
-                        <div className="rounded-full bg-purple-200 p-2 ring-2 ring-purple-300">
-                            <Icons.AlertCircle className="h-5 w-5 text-purple-700" />
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-bold text-purple-900">
-                            {overpayments.filter((o: any) => Number(o.amount) > 5000000).length}
-                        </div>
-                        <p className="text-xs text-purple-700 font-medium">&gt; 5 млн сум</p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+            <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm">
                 <div
-                    className="bg-slate-50 px-4 py-3 flex items-center justify-between border-b border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors"
+                    className="bg-muted/20 px-6 py-4 flex items-center justify-between border-b-2 border-border/60 cursor-pointer hover:bg-muted/30 transition-colors"
                     onClick={() => toggleSection("financial")}
                 >
-                    <div className="flex items-center gap-2 text-orange-800 font-bold uppercase tracking-wider text-sm flex-col items-start gap-0">
+                    <div className="flex flex-col">
                         <div className="flex items-center gap-2">
-                            <Icons.TrendingDown className="h-[18px] w-[18px]" />
-                            Финансовые нарушения
+                            <Icons.ShieldAlert className="h-4 w-4 text-primary" />
+                            <span className="text-[11px] font-black text-foreground uppercase tracking-widest">ДЕТАЛИЗИРОВАННЫЙ РЕЕСТР</span>
                         </div>
-                        <span className="text-[10px] text-muted-foreground font-normal normal-case ml-6">Всего записей: {overpayments.length + underpayments.length}</span>
                     </div>
-                    <Icons.ChevronDown
-                        className={cn(
-                            "h-5 w-5 text-slate-400 transition-transform duration-200",
-                            !expandedSections.financial && "-rotate-90"
-                        )}
-                    />
+                    <Icons.ChevronDown className={cn("h-5 w-5 text-muted-foreground transition-transform", !expandedSections.financial && "-rotate-90")} />
                 </div>
 
                 {expandedSections.financial && (
-                    <div className="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="bg-slate-50/80">
-                                    <TableHead className="text-center text-[11px] font-bold">ID</TableHead>
-                                    <TableHead className="text-[11px] font-bold">№ акта и дата</TableHead>
-                                    <TableHead className="text-[11px] font-bold">Воинская часть</TableHead>
-                                    <TableHead className="text-[11px] font-bold">Выплата</TableHead>
-                                    <TableHead className="text-[11px] font-bold text-center">Источник</TableHead>
-                                    <TableHead className="text-[11px] font-bold text-right">Сумма</TableHead>
-                                    <TableHead className="text-[11px] font-bold text-right text-green-600">Возмещено</TableHead>
-                                    <TableHead className="text-[11px] font-bold text-right">Остаток</TableHead>
-                                    <TableHead className="text-[11px] font-bold text-center">Статус</TableHead>
-                                    <TableHead className="text-[11px] font-bold text-center w-[60px]"></TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {[...overpayments, ...underpayments].map((v: any) => {
-                                    const repayments = getViolationRepayments(v.id)
-                                    const isExpanded = expandedRows.has(v.id)
-                                    const detected = Number(v.amount || 0)
-                                    const compensated = Number(v.recovered || 0)
-                                    const repaidExtra = getViolationRepaidTotal(v.id)
-                                    const remainder = detected - compensated - repaidExtra
-                                    const audit = v.financial_audits
+                    <Table>
+                        <TableHeader className="bg-muted/10">
+                            <TableRow className="hover:bg-transparent border-b-2 border-border/40">
+                                <TableHead className="text-[9px] font-black tracking-widest uppercase py-4 pl-6">№ АКТА / ДАТА</TableHead>
+                                <TableHead className="text-[9px] font-black tracking-widest uppercase py-4">ОБЪЕКТ КОНТРОЛЯ</TableHead>
+                                <TableHead className="text-[9px] font-black tracking-widest uppercase py-4">ВИД / ТИП НАРУШЕНИЯ</TableHead>
+                                <TableHead className="text-[9px] font-black tracking-widest uppercase py-4 text-center">ЛИЦ</TableHead>
+                                <TableHead className="text-[9px] font-black tracking-widest uppercase py-4 text-right">СУММА НАРУШЕНИЯ</TableHead>
+                                <TableHead className="text-[9px] font-black tracking-widest uppercase py-4 text-right">ВОЗМЕЩЕНО</TableHead>
+                                <TableHead className="text-[9px] font-black tracking-widest uppercase py-4 text-center pr-6">СТАТУС</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {[...overpayments, ...underpayments].map((v: any) => {
+                                const detected = Number(v.amount || 0)
+                                const compensated = Number(v.recovered || 0)
+                                const remainder = detected - compensated
+                                const audit = v.financial_audits
 
-                                    return (
-                                        <Fragment key={v.id}>
-                                            <TableRow className="hover:bg-muted/30 transition-colors">
-                                                <TableCell className="font-mono text-[11px] text-center text-muted-foreground">{v.id}</TableCell>
-                                                <TableCell>
-                                                    <div className="flex flex-col">
-                                                        <span className="font-bold text-slate-800">{audit?.act_number || "—"}</span>
-                                                        <span className="text-[10px] text-muted-foreground font-mono">{audit?.act_date ? new Date(audit.act_date).toLocaleDateString() : "—"}</span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex flex-col">
-                                                        <span className="font-semibold text-[13px]">{audit?.unit_name || "—"}</span>
-                                                        <span className="text-[11px] text-muted-foreground">{audit?.district || "—"}</span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[13px]">{v.type || "—"}</span>
-                                                        <span className="text-[10px] text-muted-foreground uppercase opacity-70 tracking-tight">{v.kind === "Financial" ? 'Финансовое' : v.kind}</span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="text-center text-[12px]">{v.source || "—"}</TableCell>
-                                                <TableCell className="text-right font-bold text-[13px] whitespace-nowrap">
-                                                    {formatCurrency(detected)} сум
-                                                </TableCell>
-                                                <TableCell className="text-right font-bold text-[13px] text-green-600 whitespace-nowrap">
-                                                    {formatCurrency(compensated + repaidExtra)} сум
-                                                </TableCell>
-                                                <TableCell className="text-right font-bold text-[13px] whitespace-nowrap">
-                                                    {formatCurrency(remainder)} сум
-                                                </TableCell>
-                                                <TableCell className="text-center">
-                                                    <Badge className={cn(
-                                                        "text-[10px] font-bold px-2 py-0 h-5 border-none",
-                                                        remainder <= 0 ? "bg-green-100 text-green-700" :
-                                                            remainder < detected ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
-                                                    )}>
-                                                        {remainder <= 0 ? "Возвращено" : (remainder < detected ? "Частично" : "В работе")}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className="text-center p-0">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="h-8 w-8 p-0 hover:bg-slate-100 rounded-full"
-                                                        onClick={() => toggleRowExpansion(v.id)}
-                                                    >
-                                                        {isExpanded ? (
-                                                            <Icons.ChevronUp className="h-4 w-4 text-slate-500" />
-                                                        ) : (
-                                                            <Icons.ChevronDown className="h-4 w-4 text-slate-500" />
-                                                        )}
-                                                    </Button>
-                                                </TableCell>
-                                            </TableRow>
-                                            {isExpanded && repayments.length > 0 && (
-                                                <TableRow className="bg-slate-50/50">
-                                                    <TableCell colSpan={10} className="p-0 border-b">
-                                                        <div className="p-4 bg-white/50 border-l-[4px] border-emerald-500 ml-8 my-2 rounded-r-lg shadow-sm">
-                                                            <div className="flex items-center gap-2 mb-3">
-                                                                 <Icons.History className="h-4 w-4 text-emerald-600" />
-                                                                 <h4 className="font-bold text-sm text-emerald-900">История погашений</h4>
-                                                            </div>
-                                                            <Table>
-                                                                <TableHeader>
-                                                                    <TableRow className="bg-emerald-50/50 border-none">
-                                                                        <TableHead className="h-8 text-[10px] font-bold uppercase py-0">Документ</TableHead>
-                                                                        <TableHead className="h-8 text-[10px] font-bold uppercase py-0">№ и дата</TableHead>
-                                                                        <TableHead className="h-8 text-[10px] font-bold uppercase py-0 text-right">Погашено</TableHead>
-                                                                        <TableHead className="h-8 text-[10px] font-bold uppercase py-0 text-right">Остаток</TableHead>
-                                                                    </TableRow>
-                                                                </TableHeader>
-                                                                <TableBody>
-                                                                    {repayments.map((repayment: any) => (
-                                                                        <TableRow key={repayment.id} className="border-none hover:bg-emerald-50/30 transition-colors">
-                                                                            <TableCell className="py-2 text-[12px]">{repayment.document_name}</TableCell>
-                                                                            <TableCell className="py-2 text-[11px] font-mono">{repayment.document_number} от {repayment.document_date ? new Date(repayment.document_date).toLocaleDateString() : "—"}</TableCell>
-                                                                            <TableCell className="py-2 text-right font-bold text-emerald-600 text-[12px]">
-                                                                                {formatCurrency(Number(repayment.repaid_amount))} сум
-                                                                            </TableCell>
-                                                                            <TableCell className="py-2 text-right font-semibold text-[12px]">
-                                                                                {formatCurrency(Number(repayment.remainder_after))} сум
-                                                                            </TableCell>
-                                                                        </TableRow>
-                                                                    ))}
-                                                                </TableBody>
-                                                            </Table>
-                                                        </div>
-                                                    </TableCell>
-                                                </TableRow>
-                                            )}
-                                        </Fragment>
-                                    )
-                                })}
-                            </TableBody>
-                        </Table>
-                    </div>
+                                return (
+                                    <TableRow key={v.id} className="hover:bg-primary/5 transition-colors border-b border-border/40 last:border-0">
+                                        <TableCell className="py-4 pl-6">
+                                            <div className="flex flex-col">
+                                                <span className="text-[11px] font-black text-foreground uppercase tracking-tight">№ {audit?.act_number || "—"}</span>
+                                                <span className="text-[9px] font-mono text-muted-foreground uppercase">ОТ {audit?.act_date ? new Date(audit.act_date).toLocaleDateString() : "—"}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="py-4">
+                                            <div className="flex flex-col">
+                                                <span className="text-[11px] font-bold text-primary uppercase tracking-wider">{audit?.unit_name || "—"}</span>
+                                                <span className="text-[9px] text-muted-foreground uppercase mt-0.5">{audit?.district || "—"}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="py-4">
+                                            <div className="flex flex-col">
+                                                <div className="text-[11px] font-bold text-primary">
+                                                    <AbbreviatedText text={v.type} />
+                                                </div>
+                                                <div className="text-[9px] text-muted-foreground mt-0.5">
+                                                    <AbbreviatedText text={v.kind === "Financial" ? 'ФИНАНСОВОЕ' : v.kind} />
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="py-4 text-center">
+                                            {renderQuantityStats(v.quantityStats || "1 (0)")}
+                                        </TableCell>
+                                        <TableCell className="py-4 text-right">
+                                            <span className="text-[11px] font-mono font-black text-destructive">{formatCurrency(detected)}</span>
+                                        </TableCell>
+                                        <TableCell className="py-4 text-right">
+                                            <span className="text-[11px] font-mono font-black text-emerald-600">{formatCurrency(compensated)}</span>
+                                        </TableCell>
+                                        <TableCell className="py-4 text-center pr-6">
+                                            <Badge variant="outline" className={cn(
+                                                "text-[9px] font-black uppercase px-2 py-0 h-5 border-2",
+                                                remainder <= 0 ? "text-emerald-600 border-emerald-200 bg-emerald-50" : "text-amber-600 border-amber-200 bg-amber-50"
+                                            )}>
+                                                {remainder <= 0 ? "ВОЗМЕЩЕНО" : "В РАБОТЕ"}
+                                            </Badge>
+                                        </TableCell>
+                                    </TableRow>
+                                )
+                            })}
+                        </TableBody>
+                    </Table>
                 )}
             </div>
         </div>
@@ -1373,13 +1227,6 @@ function AssetViolationsSection({ inspector }: { inspector: Inspector }) {
             ...prev,
             [section]: !prev[section]
         }))
-    }
-
-    const formatNumber = (value: number | undefined | null): string => {
-        if (value === undefined || value === null || isNaN(value)) {
-            return "0"
-        }
-        return value.toLocaleString()
     }
 
     const { data: allViolations = [], isLoading } = useAuditViolations({ inspectorId: inspector.id })
@@ -1401,9 +1248,6 @@ function AssetViolationsSection({ inspector }: { inspector: Inspector }) {
     const totalDetected = shortages.reduce((sum, s) => sum + Number(s.amount || 0), 0)
     const totalCompensated = shortages.reduce((sum, s) => sum + Number(s.recovered || 0) + getViolationRepaidTotal(s.id), 0)
     const totalRemainder = totalDetected - totalCompensated
-    const inventoryCount = shortages.filter((s: any) => s.type === "Недостача при инвентаризации").length
-    // 'status' field does not exist on DB model - calculate from amount/recovered
-    const writtenOffCount = shortages.filter((s: any) => Number(s.recovered || 0) >= Number(s.amount || 0)).length
 
     const toggleRowExpansion = (id: number) => {
         const newExpanded = new Set(expandedRows)
@@ -1416,267 +1260,135 @@ function AssetViolationsSection({ inspector }: { inspector: Inspector }) {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center gap-2">
-                <Icons.Package className="text-amber-700 w-6 h-6" />
-                <h1 className="text-xl font-semibold text-slate-800">Реестр имущественных нарушений</h1>
+        <div className="space-y-8 pb-12">
+            <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center justify-between border-b-2 border-primary/20 pb-4 mb-6"
+            >
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                        <Icons.Package className="text-primary w-6 h-6" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black text-foreground tracking-tight uppercase">РЕЕСТР ИМУЩЕСТВЕННЫХ НАРУШЕНИЙ</h1>
+                        <p className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase mt-1">Учет недостач и материального ущерба</p>
+                    </div>
+                </div>
+            </motion.div>
+
+            {/* Summary Grid */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <div className="bg-card p-4 rounded-xl border-2 border-border/60 flex flex-col justify-between shadow-sm">
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">ВСЕГО НЕСТАЧ</span>
+                    <div className="mt-2 flex items-baseline gap-2">
+                        <span className="text-3xl font-black tabular-nums">{shortages.length}</span>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase">СЛУЧАЕВ</span>
+                    </div>
+                </div>
+                <div className="bg-card p-4 rounded-xl border-2 border-destructive/30 flex flex-col justify-between shadow-sm bg-destructive/[0.02]">
+                    <span className="text-[10px] font-black text-destructive uppercase tracking-widest">СУММА НЕДОСТАЧИ</span>
+                    <div className="mt-2">
+                        <span className="text-2xl font-black text-destructive tabular-nums">{formatCurrency(totalDetected)}</span>
+                        <span className="text-[9px] font-bold text-muted-foreground uppercase ml-1">СУМ</span>
+                    </div>
+                </div>
+                <div className="bg-card p-4 rounded-xl border-2 border-emerald-500/30 flex flex-col justify-between shadow-sm bg-emerald-500/[0.02]">
+                    <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">ПОГАШЕНО</span>
+                    <div className="mt-2">
+                        <span className="text-2xl font-black text-emerald-600 tabular-nums">{formatCurrency(totalCompensated)}</span>
+                        <span className="text-[9px] font-bold text-muted-foreground uppercase ml-1">СУМ</span>
+                    </div>
+                </div>
+                <div className="bg-card p-4 rounded-xl border-2 border-amber-500/30 flex flex-col justify-between shadow-sm bg-amber-500/[0.02]">
+                    <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">К ВОЗМЕЩЕНИЮ</span>
+                    <div className="mt-2">
+                        <span className="text-2xl font-black text-amber-600 tabular-nums">{formatCurrency(totalRemainder)}</span>
+                        <span className="text-[9px] font-bold text-muted-foreground uppercase ml-1">СУМ</span>
+                    </div>
+                </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6 print:hidden">
-                <Card className="relative overflow-hidden border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 hover:shadow-lg transition-all hover:scale-105">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-blue-900">Всего недостач</CardTitle>
-                        <div className="rounded-full bg-blue-500 p-2 ring-4 ring-blue-200">
-                            <Icons.FileText className="h-5 w-5 text-white" />
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-bold text-blue-700">{shortages.length}</div>
-                        <p className="text-xs text-blue-600 mt-1">Зарегистрировано</p>
-                    </CardContent>
-                </Card>
-                <Card className="relative overflow-hidden border-2 border-green-200 bg-gradient-to-br from-green-50 to-green-100 hover:shadow-lg transition-all hover:scale-105">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-green-900">Общая сумма</CardTitle>
-                        <div className="rounded-full bg-green-500 p-2 ring-4 ring-green-200">
-                            <Icons.DollarSign className="h-5 w-5 text-white" />
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-xl font-bold text-green-700">
-                            {formatNumber(totalDetected)} cум
-                        </div>
-                        <p className="text-xs text-green-600 mt-1">Выявлено недостач</p>
-                    </CardContent>
-                </Card>
-                <Card className="relative overflow-hidden border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-orange-100 hover:shadow-lg transition-all hover:scale-105">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-orange-900">Возмещено</CardTitle>
-                        <div className="rounded-full bg-orange-500 p-2 ring-4 ring-orange-200">
-                            <Icons.TrendingUp className="h-5 w-5 text-white" />
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-xl font-bold text-orange-700">
-                            {formatNumber(totalCompensated)} cум
-                        </div>
-                        <p className="text-xs text-orange-600 mt-1">Погашено</p>
-                    </CardContent>
-                </Card>
-                <Card className="relative overflow-hidden border-2 border-yellow-200 bg-gradient-to-br from-yellow-50 to-yellow-100 hover:shadow-lg transition-all hover:scale-105">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-yellow-900">Инвентаризация</CardTitle>
-                        <div className="rounded-full bg-yellow-500 p-2 ring-4 ring-yellow-200">
-                            <Icons.Clipboard className="h-5 w-5 text-white" />
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-bold text-yellow-700">
-                            {inventoryCount}
-                        </div>
-                        <p className="text-xs text-yellow-600 mt-1">Выявлено</p>
-                    </CardContent>
-                </Card>
-                <Card className="relative overflow-hidden border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100 hover:shadow-lg transition-all hover:scale-105">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-purple-900">Остаток</CardTitle>
-                        <div className="rounded-full bg-purple-500 p-2 ring-4 ring-purple-200">
-                            <Icons.AlertCircle className="h-5 w-5 text-white" />
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-xl font-bold text-purple-700">
-                            {formatNumber(totalRemainder)} cум
-                        </div>
-                        <p className="text-xs text-purple-600 mt-1">К возмещению</p>
-                    </CardContent>
-                </Card>
-                <Card className="relative overflow-hidden border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100 hover:shadow-lg transition-all hover:scale-105">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-slate-900">Списано</CardTitle>
-                        <div className="rounded-full bg-slate-500 p-2 ring-4 ring-slate-200">
-                            <Icons.Trash className="h-5 w-5 text-white" />
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-bold text-slate-700">
-                            {writtenOffCount}
-                        </div>
-                        <p className="text-xs text-slate-600 mt-1">Дел закрыто</p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+            <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm">
                 <div
-                    className="bg-slate-50 px-4 py-3 flex items-center justify-between border-b border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors"
+                    className="bg-muted/20 px-6 py-4 flex items-center justify-between border-b-2 border-border/60 cursor-pointer hover:bg-muted/30 transition-colors"
                     onClick={() => toggleSection("asset")}
                 >
-                    <div className="flex items-center gap-2 text-amber-800 font-bold uppercase tracking-wider text-sm flex-col items-start gap-0">
+                    <div className="flex flex-col">
                         <div className="flex items-center gap-2">
-                            <Icons.Package className="h-[18px] w-[18px]" />
-                            Имущественные нарушения
+                            <Icons.Package className="h-4 w-4 text-primary" />
+                            <span className="text-[11px] font-black text-foreground uppercase tracking-widest">ДЕТАЛИЗИРОВАННЫЙ РЕЕСТР ИМУЩЕСТВА</span>
                         </div>
-                        <span className="text-[10px] text-muted-foreground font-normal normal-case ml-6">Список имущественных нарушений закрепленных за сотрудником</span>
                     </div>
-                    <Icons.ChevronDown
-                        className={cn(
-                            "h-5 w-5 text-slate-400 transition-transform duration-200",
-                            !expandedSections.asset && "-rotate-90"
-                        )}
-                    />
+                    <Icons.ChevronDown className={cn("h-5 w-5 text-muted-foreground transition-transform", !expandedSections.asset && "-rotate-90")} />
                 </div>
 
                 {expandedSections.asset && (
-                    <div className="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="bg-slate-50/80">
-                                    <TableHead className="text-center w-[50px]">ID</TableHead>
-                                    <TableHead className="text-center whitespace-nowrap">№ акта и дата</TableHead>
-                                    <TableHead className="text-center">Воинская часть</TableHead>
-                                    <TableHead className="text-center">Ответственный</TableHead>
-                                    <TableHead className="text-center">Виды материальных средств</TableHead>
-                                    <TableHead className="text-center">Вид нарушения</TableHead>
-                                    <TableHead className="text-center">Источник</TableHead>
-                                    <TableHead className="text-center whitespace-nowrap">Сумма выявленная</TableHead>
-                                    <TableHead className="text-center whitespace-nowrap">Сумма возмещена</TableHead>
-                                    <TableHead className="text-center">Остаток</TableHead>
-                                    <TableHead className="text-center">Статус</TableHead>
-                                    <TableHead className="text-center">Действия</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {shortages.length > 0 ? (
-                                    shortages.map((shortage: any) => {
-                                        const repayments = getViolationRepayments(shortage.id)
-                                        const isExpanded = expandedRows.has(shortage.id)
-                                        const audit = shortage.financial_audits
-                                        const detected = Number(shortage.amount || 0)
-                                        const compensated = Number(shortage.recovered || 0)
-                                        const repaidExtra = getViolationRepaidTotal(shortage.id)
-                                        const remainder = detected - compensated - repaidExtra
+                    <Table>
+                        <TableHeader className="bg-muted/10">
+                            <TableRow className="hover:bg-transparent border-b-2 border-border/40">
+                                <TableHead className="text-[9px] font-black tracking-widest uppercase py-4 pl-6">№ АКТА / ДАТА</TableHead>
+                                <TableHead className="text-[9px] font-black tracking-widest uppercase py-4">ОБЪЕКТ КОНТРОЛЯ</TableHead>
+                                <TableHead className="text-[9px] font-black tracking-widest uppercase py-4">ВИД / ТИП НАРУШЕНИЯ</TableHead>
+                                <TableHead className="text-[9px] font-black tracking-widest uppercase py-4 text-center">ЛИЦ</TableHead>
+                                <TableHead className="text-[9px] font-black tracking-widest uppercase py-4 text-right">СУММА НАРУШЕНИЯ</TableHead>
+                                <TableHead className="text-[9px] font-black tracking-widest uppercase py-4 text-right">ВОЗМЕЩЕНО</TableHead>
+                                <TableHead className="text-[9px] font-black tracking-widest uppercase py-4 text-center pr-6">СТАТУС</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {shortages.map((shortage: any) => {
+                                const detected = Number(shortage.amount || 0)
+                                const compensated = Number(shortage.recovered || 0) + getViolationRepaidTotal(shortage.id)
+                                const remainder = detected - compensated
+                                const audit = shortage.financial_audits
 
-                                        return (
-                                            <Fragment key={shortage.id}>
-                                                <TableRow className="hover:bg-muted/30 transition-colors">
-                                                    <TableCell className="font-mono text-center">{shortage.id}</TableCell>
-                                                    <TableCell className="align-top">
-                                                        <div className="flex flex-col">
-                                                            <span className="font-medium whitespace-nowrap">{audit?.act_number || "—"}</span>
-                                                            <span className="text-xs text-muted-foreground">{audit?.act_date ? new Date(audit.act_date).toLocaleDateString() : "—"}</span>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="align-top min-w-[200px]">
-                                                        <div className="flex flex-col gap-1">
-                                                            <div className="text-[14px] font-semibold text-slate-800">
-                                                                {audit?.unit_name || "—"}
-                                                            </div>
-                                                            <div className="text-[12px] text-muted-foreground">
-                                                                {audit?.district || "—"}
-                                                            </div>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="align-top">
-                                                        <div className="flex flex-col gap-1">
-                                                            <div className="text-[14px] font-semibold text-slate-800">
-                                                                {shortage.responsible || "—"}
-                                                            </div>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="font-medium text-center">{shortage.source || "—"}</TableCell>
-                                                    <TableCell className="text-center">
-                                                        <Badge variant="outline" className="text-[10px] uppercase font-bold px-2 py-0 h-5">
-                                                            {shortage.type || "—"}
-                                                        </Badge>
-                                                    </TableCell>
-                                                    <TableCell className="text-center">{shortage.source || "—"}</TableCell>
-                                                    <TableCell className="text-right font-bold whitespace-nowrap">
-                                                        {formatCurrency(detected)} сум
-                                                    </TableCell>
-                                                    <TableCell className="text-right font-bold text-green-600 whitespace-nowrap">
-                                                        {formatCurrency(compensated + repaidExtra)} сум
-                                                    </TableCell>
-                                                    <TableCell className="text-right font-bold whitespace-nowrap">
-                                                        {formatCurrency(remainder)} сум
-                                                    </TableCell>
-                                                    <TableCell className="text-center">
-                                                        <Badge className={cn(
-                                                            "text-[10px] font-bold px-2 py-0 h-5 border-none",
-                                                            remainder <= 0 ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
-                                                        )}>
-                                                            {remainder <= 0 ? (shortage.status === "Списано" ? "Списано" : "Возвращено") : "В работе"}
-                                                        </Badge>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex gap-1 justify-center">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="h-8 w-8 p-0"
-                                                                onClick={() => toggleRowExpansion(shortage.id)}
-                                                                title={isExpanded ? "Скрыть погашения" : "Показать погашения"}
-                                                            >
-                                                                {isExpanded ? (
-                                                                    <Icons.ChevronUp className="h-4 w-4" />
-                                                                ) : (
-                                                                    <Icons.ChevronDown className="h-4 w-4" />
-                                                                )}
-                                                            </Button>
-                                                        </div>
-                                                    </TableCell>
-                                                </TableRow>
-                                                {isExpanded && repayments.length > 0 && (
-                                                    <TableRow className="bg-green-50/30 hover:bg-green-50/50">
-                                                        <TableCell colSpan={12} className="p-0 border-t-0">
-                                                            <div className="p-4 border-l-4 border-green-500 ml-4 my-2 bg-white rounded-r-md shadow-sm">
-                                                                <div className="flex items-center gap-2 mb-3 text-green-800 font-semibold">
-                                                                    <Icons.FileText className="h-5 w-5" />
-                                                                    Реестр погашений для акта {audit?.act_number}
-                                                                </div>
-                                                                <Table>
-                                                                    <TableHeader>
-                                                                        <TableRow className="bg-green-100/50 hover:bg-green-100/50 h-8">
-                                                                            <TableHead className="text-green-900 text-[11px] font-bold py-0">Статья ДЖ</TableHead>
-                                                                            <TableHead className="text-green-900 text-[11px] font-bold py-0">Документ</TableHead>
-                                                                            <TableHead className="text-green-900 text-[11px] font-bold py-0">№ и дата</TableHead>
-                                                                            <TableHead className="text-green-900 text-[11px] font-bold py-0 text-right">Сумма</TableHead>
-                                                                            <TableHead className="text-green-900 text-[11px] font-bold py-0 text-right">Остаток</TableHead>
-                                                                        </TableRow>
-                                                                    </TableHeader>
-                                                                    <TableBody>
-                                                                        {repayments.map((repayment: any) => (
-                                                                            <TableRow key={repayment.id} className="hover:bg-green-50/50 border-none transition-colors">
-                                                                                <TableCell className="py-2 text-[13px]">{repayment.dj_article || "—"}</TableCell>
-                                                                                <TableCell className="py-2 text-[13px]">{repayment.document_name}</TableCell>
-                                                                                <TableCell className="py-2 text-[12px] font-mono">{repayment.document_number} от {repayment.document_date ? new Date(repayment.document_date).toLocaleDateString() : "—"}</TableCell>
-                                                                                <TableCell className="py-2 text-right font-bold text-green-600 text-[13px]">
-                                                                                    {formatCurrency(Number(repayment.repaid_amount))} сум
-                                                                                </TableCell>
-                                                                                <TableCell className="py-2 text-right font-semibold text-[13px]">
-                                                                                    {formatCurrency(Number(repayment.remainder_after))} сум
-                                                                                </TableCell>
-                                                                            </TableRow>
-                                                                        ))}
-                                                                    </TableBody>
-                                                                </Table>
-                                                            </div>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                )}
-                                            </Fragment>
-                                        )
-                                    })
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={12} className="h-24 text-center text-muted-foreground text-sm italic">
-                                            Имущественных нарушений не найдено
+                                return (
+                                    <TableRow key={shortage.id} className="hover:bg-primary/5 transition-colors border-b border-border/40 last:border-0">
+                                        <TableCell className="py-4 pl-6">
+                                            <div className="flex flex-col">
+                                                <span className="text-[11px] font-black text-foreground uppercase tracking-tight">№ {audit?.act_number || "—"}</span>
+                                                <span className="text-[9px] font-mono text-muted-foreground uppercase">ОТ {audit?.act_date ? new Date(audit.act_date).toLocaleDateString() : "—"}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="py-4">
+                                            <div className="flex flex-col">
+                                                <span className="text-[11px] font-bold text-primary uppercase tracking-wider">{audit?.unit_name || "—"}</span>
+                                                <span className="text-[9px] text-muted-foreground uppercase mt-0.5">{audit?.district || "—"}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="py-4">
+                                            <div className="flex flex-col">
+                                                <div className="text-[11px] font-bold text-foreground">
+                                                    <AbbreviatedText text={shortage.type} />
+                                                </div>
+                                                <div className="text-[9px] text-muted-foreground mt-0.5">
+                                                    <AbbreviatedText text={shortage.source} />
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="py-4 text-center">
+                                            {renderQuantityStats(shortage.quantityStats || "1 (0)")}
+                                        </TableCell>
+                                        <TableCell className="py-4 text-right">
+                                            <span className="text-[11px] font-mono font-black text-destructive">{formatCurrency(detected)}</span>
+                                        </TableCell>
+                                        <TableCell className="py-4 text-right">
+                                            <span className="text-[11px] font-mono font-black text-emerald-600">{formatCurrency(compensated)}</span>
+                                        </TableCell>
+                                        <TableCell className="py-4 text-center pr-6">
+                                            <Badge variant="outline" className={cn(
+                                                "text-[9px] font-black uppercase px-2 py-0 h-5 border-2",
+                                                remainder <= 0 ? "text-emerald-600 border-emerald-200 bg-emerald-50" : "text-amber-600 border-amber-200 bg-amber-50"
+                                            )}>
+                                                {remainder <= 0 ? "ВОЗМЕЩЕНО" : "ОСТАТОК"}
+                                            </Badge>
                                         </TableCell>
                                     </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
+                                )
+                            })}
+                        </TableBody>
+                    </Table>
                 )}
             </div>
         </div>
@@ -1684,78 +1396,77 @@ function AssetViolationsSection({ inspector }: { inspector: Inspector }) {
 }
 
 
+
 function KpiSection({ inspector }: { inspector: Inspector }) {
     return (
-        <div className="space-y-3">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Icons.Chart className="h-5 w-5 text-green-600" />
-                KPI показатели
-            </h3>
+        <div className="space-y-8 pb-12">
+            <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center justify-between border-b-2 border-primary/20 pb-4 mb-6"
+            >
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                        <Icons.Chart className="text-primary w-6 h-6" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black text-foreground tracking-tight uppercase">АНАЛИТИКА ЭФФЕКТИВНОСТИ (KPI)</h1>
+                        <p className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase mt-1">Автоматизированный расчет рейтинга инспектора</p>
+                    </div>
+                </div>
+            </motion.div>
 
-            {/* Main KPI card */}
-            <Card className="bg-gradient-to-br from-green-50 to-emerald-100 border-green-200">
-                <CardContent className="p-3">
-                    <div className="flex items-center justify-between mb-4">
-                        <div>
-                            <h4 className="text-2xl font-bold text-green-700">Общий рейтинг KPI</h4>
-                            <p className="text-green-600">На основе всех показателей</p>
+            {/* Main KPI Dashboard */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-1 bg-card rounded-xl border-2 border-primary/30 overflow-hidden shadow-lg flex flex-col items-center justify-center p-8 bg-gradient-to-br from-primary/[0.02] to-primary/[0.05]">
+                    <div className="text-[10px] font-black text-primary tracking-[0.3em] uppercase mb-4">ОБЩИЙ РЕЙТИНГ</div>
+                    <div className="relative">
+                        <div className="text-7xl font-black text-primary tracking-tighter tabular-nums">{inspector.kpiScore}%</div>
+                        <div className="absolute -right-4 top-0 w-2 h-2 rounded-full bg-primary animate-ping" />
+                    </div>
+                    <Badge className={cn(
+                        "mt-6 px-4 py-1 text-[11px] font-black uppercase tracking-widest border-2",
+                        getKpiRatingColor(inspector.kpiRating)
+                    )}>
+                        {getKpiRatingText(inspector.kpiRating)}
+                    </Badge>
+                    <div className="w-full mt-8 space-y-1">
+                        <div className="flex justify-between text-[9px] font-bold text-muted-foreground uppercase">
+                            <span>Уровень выполнения</span>
+                            <span>{inspector.kpiScore}/100</span>
                         </div>
-                        <div className="text-right">
-                            <div className="text-5xl font-bold text-green-600">{inspector.kpiScore}%</div>
-                            <Badge className={getKpiRatingColor(inspector.kpiRating)}>
-                                {getKpiRatingText(inspector.kpiRating)}
-                            </Badge>
+                        <Progress value={inspector.kpiScore} className="h-2 bg-muted border border-border/40" />
+                    </div>
+                </div>
+
+                <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm">
+                        <div className="bg-muted/30 px-4 py-2 border-b-2 border-border/60 text-[10px] font-black text-muted-foreground uppercase tracking-widest">КОЛИЧЕСТВЕННЫЙ АНАЛИЗ</div>
+                        <div className="p-2">
+                            <LegendaryInfoRow label="ПРОВЕДЕНО РЕВИЗИЙ" value={inspector.auditsCompleted} accent />
+                            <LegendaryInfoRow label="ВЫЯВЛЕНО НАРУШЕНИЙ" value={inspector.violationsFound} />
+                            <LegendaryInfoRow label="РЕВИЗИЙ В РАБОТЕ" value={inspector.auditsInProgress} />
+                            <LegendaryInfoRow label="ЗАПЛАНИРОВАНО" value={inspector.auditsPlanned} />
                         </div>
                     </div>
-                    <Progress value={inspector.kpiScore} className="h-3 [&>div]:bg-green-500" />
-                </CardContent>
-            </Card>
-
-            {/* KPI metrics */}
-            <div className="grid md:grid-cols-2 gap-4">
-                <Card>
-                    <CardHeader className="p-3 pb-1">
-                        <CardTitle className="text-sm text-muted-foreground">Количественные показатели</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-3">
-                        <InfoRow label="Проведено ревизий (всего)" value={<span className="font-bold text-lg">{inspector.auditsCompleted}</span>} />
-                        <Separator />
-                        <InfoRow label="Выявлено нарушений" value={<span className="font-bold text-lg text-red-600">{inspector.violationsFound}</span>} />
-                        <Separator />
-                        <InfoRow label="Ревизий в работе" value={<span className="font-bold text-lg text-blue-600">{inspector.auditsInProgress}</span>} />
-                        <Separator />
-                        <InfoRow label="Запланировано" value={<span className="font-bold text-lg text-amber-600">{inspector.auditsPlanned}</span>} />
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="p-3 pb-1">
-                        <CardTitle className="text-sm text-muted-foreground">Финансовые показатели</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-3">
-                        <InfoRow
-                            label="Общая сумма выявленного ущерба"
-                            value={<span className="font-bold text-lg text-emerald-600">{formatCurrency(inspector.totalDamageAmount)}</span>}
-                        />
-                        <Separator />
-                        <InfoRow
-                            label="Средний ущерб на ревизию"
-                            value={
-                                <span className="font-bold">
-                                    {formatCurrency(inspector.auditsCompleted > 0 ? inspector.totalDamageAmount / inspector.auditsCompleted : 0)}
-                                </span>
-                            }
-                        />
-                        <Separator />
-                        <InfoRow
-                            label="Нарушений на ревизию"
-                            value={
-                                <span className="font-bold">
-                                    {inspector.auditsCompleted > 0 ? (inspector.violationsFound / inspector.auditsCompleted).toFixed(1) : 0}
-                                </span>
-                            }
-                        />
-                    </CardContent>
-                </Card>
+                    <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm">
+                        <div className="bg-muted/30 px-4 py-2 border-b-2 border-border/60 text-[10px] font-black text-muted-foreground uppercase tracking-widest">ФИНАНСОВЫЙ АНАЛИЗ</div>
+                        <div className="p-2">
+                            <LegendaryInfoRow 
+                                label="ОБЩАЯ СУММА УЩЕРБА" 
+                                value={<span className="text-destructive font-black">{formatCurrency(inspector.totalDamageAmount)}</span>} 
+                            />
+                            <LegendaryInfoRow 
+                                label="СРЕДНИЙ УЩЕРБ / РЕВИЗИЯ" 
+                                value={formatCurrency(inspector.auditsCompleted > 0 ? inspector.totalDamageAmount / inspector.auditsCompleted : 0)} 
+                            />
+                            <LegendaryInfoRow 
+                                label="НАРУШЕНИЙ / РЕВИЗИЯ" 
+                                value={(inspector.auditsCompleted > 0 ? (inspector.violationsFound / inspector.auditsCompleted).toFixed(1) : 0)} 
+                            />
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     )
@@ -1768,125 +1479,95 @@ function KpiSection({ inspector }: { inspector: Inspector }) {
 function CommissionAssignmentsSection({ inspector }: { inspector: Inspector }) {
     const { data: assignments = [], isLoading } = useCommissionAssignments(inspector.id)
 
-    const getRoleBadge = (role: string, isResponsible: boolean) => {
+    const getRoleBadge = (role: string) => {
         if (role === "Главный ревизор") {
-            return <Badge className="bg-purple-600 hover:bg-purple-700 text-white text-[10px]">Главный ревизор</Badge>
+            return <Badge className="bg-purple-600 hover:bg-purple-700 text-white text-[9px] font-black uppercase tracking-widest rounded-sm px-2">ГЛАВНЫЙ</Badge>
         }
         if (role === "Привлечённый специалист") {
-            return <Badge className="bg-teal-600 hover:bg-teal-700 text-white text-[10px]">Специалист</Badge>
+            return <Badge className="bg-teal-600 hover:bg-teal-700 text-white text-[9px] font-black uppercase tracking-widest rounded-sm px-2">СПЕЦИАЛИСТ</Badge>
         }
-        return <Badge variant="secondary" className="text-[10px]">Ревизор</Badge>
+        return <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest rounded-sm px-2">РЕВИЗОР</Badge>
     }
 
     const getStatusBadge = (status: string) => {
-        if (status === "approved") return <Badge className="bg-green-500/20 text-green-700 border-green-500/30 text-[10px]">Утверждён</Badge>
-        if (status === "in_progress") return <Badge className="bg-blue-500/20 text-blue-700 border-blue-500/30 text-[10px]">В работе</Badge>
-        if (status === "draft") return <Badge className="bg-slate-500/20 text-slate-700 border-slate-500/30 text-[10px]">Черновик</Badge>
-        return <Badge variant="outline" className="text-[10px]">{status}</Badge>
+        if (status === "approved") return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[9px] font-black uppercase tracking-widest">УТВЕРЖДЕН</Badge>
+        if (status === "in_progress") return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-[9px] font-black uppercase tracking-widest">В РАБОТЕ</Badge>
+        if (status === "draft") return <Badge className="bg-slate-500/10 text-slate-600 border-slate-500/20 text-[9px] font-black uppercase tracking-widest">ЧЕРНОВИК</Badge>
+        return <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest">{status}</Badge>
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h3 className="text-xl font-bold flex items-center gap-2">
-                        <Icons.Users className="h-5 w-5 text-purple-600" />
-                        Реестр служебных заданий и назначений
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Все сведения о командировках, приказах и предписаниях сотрудника
-                    </p>
+        <div className="space-y-8 pb-12">
+            <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center justify-between border-b-2 border-primary/20 pb-4 mb-6"
+            >
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                        <Icons.Users className="text-primary w-6 h-6" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black text-foreground tracking-tight uppercase">РЕЕСТР СЛУЖЕБНЫХ ЗАДАНИЙ</h1>
+                        <p className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase mt-1">Официальные назначения в контрольные группы</p>
+                    </div>
                 </div>
-                {!isLoading && (
-                    <Badge variant="outline" className="text-purple-600 border-purple-300">
-                        {assignments.length} записей
-                    </Badge>
-                )}
-            </div>
+            </motion.div>
 
             {isLoading ? (
-                <div className="flex items-center justify-center py-12">
-                    <Icons.Loader2 className="h-6 w-6 animate-spin text-purple-500 mr-2" />
-                    <span className="text-muted-foreground">Загрузка данных...</span>
+                <div className="flex items-center justify-center py-24">
+                    <Icons.Loader2 className="h-8 w-8 animate-spin text-primary opacity-20" />
                 </div>
             ) : assignments.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                    <Icons.Users className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                    <p>Назначений не найдено</p>
-                    <p className="text-xs mt-1">Сотрудник не включён ни в одно служебное задание</p>
+                <div className="bg-muted/10 border-2 border-dashed border-border/60 rounded-xl p-24 text-center">
+                    <Icons.Inbox className="h-12 w-12 text-muted-foreground/20 mx-auto mb-4" />
+                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Назначения на текущий период отсутствуют</p>
                 </div>
             ) : (
-                <div className="bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
+                <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm">
                     <Table>
-                        <TableHeader>
-                            <TableRow className="bg-slate-50">
-                                <TableHead className="text-[10px] font-bold text-slate-700 w-[80px]">ИД плана</TableHead>
-                                <TableHead className="text-[10px] font-bold text-slate-700">Объект контроля</TableHead>
-                                <TableHead className="text-[10px] font-bold text-slate-700">Направление</TableHead>
-                                <TableHead className="text-[10px] font-bold text-slate-700">Роль в группе</TableHead>
-                                <TableHead className="text-[10px] font-bold text-slate-700">Приказ №</TableHead>
-                                <TableHead className="text-[10px] font-bold text-slate-700">Инструктаж</TableHead>
-                                <TableHead className="text-[10px] font-bold text-slate-700">Предписание</TableHead>
-                                <TableHead className="text-[10px] font-bold text-slate-700">Период</TableHead>
-                                <TableHead className="text-[10px] font-bold text-slate-700 text-center">Статус</TableHead>
+                        <TableHeader className="bg-muted/10">
+                            <TableRow className="hover:bg-transparent border-b-2 border-border/40">
+                                <TableHead className="text-[10px] font-black tracking-widest uppercase py-4 pl-6">Объект / План</TableHead>
+                                <TableHead className="text-[10px] font-black tracking-widest uppercase py-4">Роль в группе</TableHead>
+                                <TableHead className="text-[10px] font-black tracking-widest uppercase py-4">Приказ / Предписание</TableHead>
+                                <TableHead className="text-[10px] font-black tracking-widest uppercase py-4 text-center">Срок проведения</TableHead>
+                                <TableHead className="text-[10px] font-black tracking-widest uppercase py-4 text-right pr-6">Статус</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {assignments.map((a) => (
-                                <TableRow key={a.assignmentId} className="hover:bg-slate-50 transition-colors">
-                                    <TableCell className="py-2.5">
-                                        <a
-                                            href={`/planning/orders`}
-                                            className="font-mono text-[10px] bg-purple-50 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded hover:bg-purple-100 transition-colors"
-                                            title={`Перейти к плану ${a.planNumber}`}
-                                        >
-                                            {a.planNumber}
-                                        </a>
-                                    </TableCell>
-                                    <TableCell className="py-2.5">
-                                        <div className="font-semibold text-xs text-slate-800">{a.controlObject}</div>
-                                        {a.controlObjectSubtitle && (
-                                            <div className="text-[9px] text-slate-400 leading-tight">{a.controlObjectSubtitle}</div>
-                                        )}
-                                    </TableCell>
-                                    <TableCell className="py-2.5">
-                                        <div className="text-[10px] text-slate-600 line-clamp-1" title={a.inspectionDirectionLabel || ""}>
-                                            {a.inspectionDirectionLabel || "—"}
+                                <TableRow key={a.assignmentId} className="hover:bg-primary/5 transition-colors group border-b border-border/40 last:border-0">
+                                    <TableCell className="py-4 pl-6">
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-black text-foreground uppercase tracking-tight">{a.controlObject}</span>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-[10px] font-mono bg-primary/5 text-primary border border-primary/20 px-1.5 rounded">ID: {a.planNumber}</span>
+                                                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">{a.inspectionDirectionLabel}</span>
+                                            </div>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="py-2.5">
-                                        {getRoleBadge(a.role, a.isResponsible)}
+                                    <TableCell className="py-4">
+                                        {getRoleBadge(a.role)}
                                     </TableCell>
-                                    <TableCell className="py-2.5">
-                                        <code className="text-[10px] bg-muted px-1.5 py-0.5 rounded font-bold">{a.orderNumber}</code>
-                                        <div className="text-[9px] text-slate-400 mt-1">{a.orderDate}</div>
-                                    </TableCell>
-                                    <TableCell className="py-2.5">
-                                        <div className="flex items-center gap-1.5">
-                                            {a.briefingDate ? (
-                                                <>
-                                                    <Icons.Check className="h-3 w-3 text-green-500" />
-                                                    <span className="text-[10px] text-slate-600">{a.briefingDate}</span>
-                                                </>
-                                            ) : (
-                                                <span className="text-[10px] text-slate-400">не проведён</span>
+                                    <TableCell className="py-4">
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] font-black text-foreground uppercase tracking-tighter">ПРИКАЗ:</span>
+                                                <code className="text-[11px] font-black text-primary">{a.orderNumber}</code>
+                                            </div>
+                                            {a.prescriptionNum && (
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">ПРЕДПИС:</span>
+                                                    <code className="text-[11px] font-bold text-blue-600">{a.prescriptionNum}</code>
+                                                </div>
                                             )}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="py-2.5">
-                                        {a.prescriptionNum ? (
-                                            <div className="space-y-0.5">
-                                                <div className="text-[10px] font-bold text-blue-700">№ {a.prescriptionNum}</div>
-                                                <div className="text-[9px] text-slate-400">{a.prescriptionDate}</div>
-                                            </div>
-                                        ) : (
-                                            <span className="text-[10px] text-slate-400">—</span>
-                                        )}
+                                    <TableCell className="py-4 text-center">
+                                        <span className="text-[11px] font-mono font-bold text-foreground bg-muted/50 px-2 py-1 rounded border border-border/40">{a.period}</span>
                                     </TableCell>
-                                    <TableCell className="py-2.5">
-                                        <span className="text-[10px] text-slate-600 whitespace-nowrap">{a.period}</span>
-                                    </TableCell>
-                                    <TableCell className="py-2.5 text-center">
+                                    <TableCell className="py-4 text-right pr-6">
                                         {getStatusBadge(a.status)}
                                     </TableCell>
                                 </TableRow>
@@ -1894,11 +1575,11 @@ function CommissionAssignmentsSection({ inspector }: { inspector: Inspector }) {
                         </TableBody>
                     </Table>
                 </div>
-            )
-}
+            )}
         </div>
     )
 }
+
 
 // Main component
 export function InspectorSectionContent({ section, inspector, action, planId }: InspectorSectionContentProps) {
