@@ -232,15 +232,15 @@ export function UnitNamesTable() {
                         <Table>
                             <TableHeader>
                                 <TableRow className="hover:bg-transparent border-b border-border/50 h-16 bg-muted/20">
-                                    <TableHead className="w-[80px] px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">ID</TableHead>
-                                    <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 w-[120px]">{t("Код", "Kod", "Код")}</TableHead>
+                                    <TableHead className="w-20 px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">ID</TableHead>
+                                    <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 w-30">{t("Код", "Kod", "Код")}</TableHead>
                                     <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">
                                         <div className="flex items-center gap-2">
                                             <Building2 className="h-3.5 w-3.5 text-primary/70" />
                                             {t("Наименование подразделения", "Bo'linma nomi", "Бўлинма номи")}
                                         </div>
                                     </TableHead>
-                                    <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 w-[120px]">{t("Статус", "Status", "Статус")}</TableHead>
+                                    <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 w-30">{t("Статус", "Status", "Статус")}</TableHead>
                                     <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 text-right">{t("Действия", "Harakatlar", "Ҳаракатлар")}</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -381,7 +381,7 @@ export function UnitNamesTable() {
                                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-[200px] p-0 z-[10000]" align="start">
+                                    <PopoverContent className="w-50 p-0 z-10000" align="start">
                                         <Command>
                                             <CommandList>
                                                 <CommandGroup>

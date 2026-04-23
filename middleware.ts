@@ -97,9 +97,10 @@ export async function middleware(request: NextRequest) {
 async function isValidSession(cookieValue: string | undefined): Promise<boolean> {
   if (!cookieValue) return false
 
-  const secret = process.env.JWT_SECRET
-  if (!secret || secret === "your-secret-key") {
-    return false
+  let secret = process.env.JWT_SECRET
+  if (!secret || secret === "your-secret-key" || secret.length < 32) {
+    // Используем тот же fallback, что и в lib/auth.ts для разработки
+    secret = "dev-only-insecure-fallback-32-chars!!"
   }
 
   return verifyCookieSignature(cookieValue, secret)

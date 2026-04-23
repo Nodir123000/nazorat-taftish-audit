@@ -8,6 +8,7 @@ import { ApprovedPlansTable } from "./components/ApprovedPlansTable"
 import { ViewPlanDialog } from "./components/ViewPlanDialog"
 import { CreatePlanDialog } from "./components/CreatePlanDialog"
 import { ApprovedPlanDialog } from "./components/ApprovedPlanDialog"
+import { AutoDistributionDialog } from "./components/AutoDistributionDialog"
 import { useTranslation } from "@/lib/i18n/hooks"
 import { useI18n } from "@/lib/i18n/context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -21,6 +22,14 @@ import {
     PaginationLink,
     PaginationEllipsis
 } from "@/components/ui/pagination"
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 import { militaryUnits } from "@/lib/data/military-data"
 
 interface AnnualPlanPageProps {
@@ -51,6 +60,7 @@ export function AnnualPlanPage({ initialPlans = [] }: AnnualPlanPageProps) {
         handleCreatePlan,
         handleUpdatePlan,
         handleDeletePlan,
+        handleBulkCreatePlans,
     } = useAnnualPlans({ initialPlans, locale: locale as any })
 
     // UI state
@@ -58,6 +68,7 @@ export function AnnualPlanPage({ initialPlans = [] }: AnnualPlanPageProps) {
     const [createPlanOpen, setCreatePlanOpen] = useState(false)
     const [viewPlanOpen, setViewPlanOpen] = useState(false)
     const [approvedPlanDialogOpen, setApprovedPlanDialogOpen] = useState(false)
+    const [autoDistributionOpen, setAutoDistributionOpen] = useState(false)
 
     // Local filtering (until we move to server-side)
     const filteredPlans = plans.filter((plan) => {
@@ -68,7 +79,20 @@ export function AnnualPlanPage({ initialPlans = [] }: AnnualPlanPageProps) {
             (plan.controlAuthority || "").toLowerCase().includes(search)
 
         const matchesYear = !filters.year || filters.year === "all" || plan.year.toString() === filters.year
-        const matchesStatus = !filters.status || filters.status === "all" || plan.status.toString() === filters.status
+        
+        let matchesStatus = true
+        if (filters.status && filters.status !== "all") {
+            if (filters.status === "overdue") {
+                const now = new Date()
+                const isNotFinal = plan.status !== 101 && plan.status !== 105 && plan.status !== 'approved' && plan.status !== 'completed' && plan.status !== "101" && plan.status !== "105"
+                const startDate = plan.periodCoveredStart ? new Date(plan.periodCoveredStart) : null
+                matchesStatus = isNotFinal && startDate && startDate < now
+            } else if (filters.status === "coverage") {
+                matchesStatus = (plan.objectsFS || 0) + (plan.objectsOS || 0) > 0
+            } else {
+                matchesStatus = plan.status.toString() === filters.status
+            }
+        }
 
         return matchesSearch && matchesYear && matchesStatus
     })
@@ -179,19 +203,43 @@ export function AnnualPlanPage({ initialPlans = [] }: AnnualPlanPageProps) {
 
     return (
         <div className="space-y-6">
+            <Breadcrumb>
+                <BreadcrumbList>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink href="/">{t("common.home")}</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                        <BreadcrumbLink href="/planning">{t("nav.planning")}</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>{t("annual.title")}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                </BreadcrumbList>
+            </Breadcrumb>
+
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">{t("annual.title")}</h1>
+                    <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                        {t("annual.title")}
+                    </h1>
                     <p className="text-muted-foreground">{t("annual.description")}</p>
                 </div>
-                <Button onClick={() => {
-                    setSelectedPlan(null);
-                    setIsEditing(false);
-                    setApprovedPlanDialogOpen(true);
-                }}>
-                    <Icons.Plus className="mr-2 h-4 w-4" />
-                    {t("common.add")}
-                </Button>
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => setAutoDistributionOpen(true)} className="border-amber-200 text-amber-700 hover:bg-amber-50">
+                        <Icons.Zap className="mr-2 h-4 w-4 text-amber-500" />
+                        {locale === "ru" ? "Авто-распределение" : "Avto-taqsimlash"}
+                    </Button>
+                    <Button onClick={() => {
+                        setSelectedPlan(null);
+                        setIsEditing(false);
+                        setApprovedPlanDialogOpen(true);
+                    }}>
+                        <Icons.Plus className="mr-2 h-4 w-4" />
+                        {t("common.add")}
+                    </Button>
+                </div>
             </div>
 
 
@@ -278,6 +326,14 @@ export function AnnualPlanPage({ initialPlans = [] }: AnnualPlanPageProps) {
                 supplyDepartments={supplyDepartments}
                 isSubmitting={isSubmitting}
                 suggestedPlanNumber={nextPlanNumber}
+            />
+
+            <AutoDistributionDialog
+                open={autoDistributionOpen}
+                onOpenChange={setAutoDistributionOpen}
+                onGenerate={handleBulkCreatePlans}
+                locale={locale as any}
+                supplyDepartments={supplyDepartments}
             />
         </div>
     )

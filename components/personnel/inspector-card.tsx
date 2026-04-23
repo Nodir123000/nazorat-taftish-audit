@@ -38,19 +38,19 @@ export function InspectorCard({
             className="flex flex-col h-full bg-background"
         >
             {/* Header - Refined Military Aesthetic */}
-            <div className="border-b-2 border-primary/20 bg-gradient-to-r from-card via-card/95 to-muted/30 p-6 shadow-md relative overflow-hidden">
+            <div className="border-b-2 border-primary/20 bg-linear-to-r from-card via-card/95 to-muted/30 p-6 shadow-md relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-1 h-full bg-primary shadow-[0_0_15px_rgba(var(--primary),0.5)]" />
                 <div className="flex items-center justify-between relative z-10">
                     <div className="flex items-center gap-6">
                         <div>
                             <div className="flex items-center gap-4 mb-1">
-                                <span className="text-[10px] font-mono tracking-[0.3em] text-primary/70 uppercase">{headerTitle}</span>
+                                <span className="text-tiny font-mono tracking-[0.3em] text-primary/70 uppercase">{headerTitle}</span>
                             </div>
                             <h1 className="text-4xl font-black text-foreground tracking-tight uppercase">
                                 {inspector.fullName}
                             </h1>
                             <div className="flex items-center gap-3 mt-2">
-                                <span className="px-2 py-0.5 bg-primary/10 border border-primary/20 rounded-sm text-[11px] font-bold text-primary tracking-wider uppercase">
+                                <span className="px-2 py-0.5 bg-primary/10 border border-primary/20 rounded-sm text-tiny font-bold text-primary tracking-wider uppercase">
                                     {inspector.inspectorCategory}
                                 </span>
                                 <span className="text-sm text-muted-foreground font-mono">
@@ -83,7 +83,7 @@ export function InspectorCard({
 
             {/* Main Content Area */}
             <div className="flex-1 overflow-auto p-8 bg-[#f8f9fa] dark:bg-[#0a0a0b]">
-                <div className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-8 h-full">
+                <div className="max-w-400 mx-auto grid grid-cols-1 lg:grid-cols-[--spacing(90)_1fr] gap-8 h-full">
                     {/* Left Sidebar - Staggered Reveal */}
                     <motion.div 
                         initial={{ opacity: 0, x: -20 }}
@@ -95,7 +95,7 @@ export function InspectorCard({
 
                         <div className="bg-card border-2 border-border/60 rounded-lg overflow-hidden shadow-sm">
                             <div className="p-3 border-b border-border/60 bg-muted/30">
-                                <span className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground uppercase">Навигация</span>
+                                <span className="text-tiny font-bold tracking-[0.2em] text-muted-foreground uppercase">Навигация</span>
                             </div>
                             <InspectorNavigation
                                 sections={defaultSections}

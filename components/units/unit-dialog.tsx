@@ -164,7 +164,7 @@ export function UnitDialog({ open, onOpenChange, unit, onSuccess }: UnitDialogPr
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-2xl overflow-hidden p-0 border-none shadow-2xl rounded-[24px]">
+            <DialogContent className="max-w-2xl overflow-hidden p-0 border-none shadow-2xl rounded-3xl">
                 <DialogHeader className="p-6 bg-slate-50 border-b">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-200">
@@ -202,7 +202,7 @@ export function UnitDialog({ open, onOpenChange, unit, onSuccess }: UnitDialogPr
                                         <Icons.ChevronDown className="h-4 w-4 opacity-50" />
                                     </Button>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-[200px] p-0 rounded-xl shadow-2xl border-none">
+                                <PopoverContent className="w-50 p-0 rounded-xl shadow-2xl border-none">
                                     <Command>
                                         <CommandList>
                                             <CommandGroup>
@@ -265,7 +265,7 @@ export function UnitDialog({ open, onOpenChange, unit, onSuccess }: UnitDialogPr
                                             <Icons.ChevronDown className="h-4 w-4 opacity-50" />
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-[300px] p-0 rounded-xl shadow-2xl border-none">
+                                    <PopoverContent className="w-75 p-0 rounded-xl shadow-2xl border-none">
                                         <Command>
                                             <CommandInput placeholder="Поиск округа..." />
                                             <CommandList>
@@ -294,7 +294,7 @@ export function UnitDialog({ open, onOpenChange, unit, onSuccess }: UnitDialogPr
                                                 <Icons.ChevronDown className="h-4 w-4 opacity-50" />
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-[250px] p-0 rounded-xl shadow-2xl border-none">
+                                        <PopoverContent className="w-60 p-0 rounded-xl shadow-2xl border-none">
                                             <Command>
                                                 <CommandInput placeholder="Поиск области..." />
                                                 <CommandList>
@@ -321,7 +321,7 @@ export function UnitDialog({ open, onOpenChange, unit, onSuccess }: UnitDialogPr
                                                 <Icons.ChevronDown className="h-4 w-4 opacity-50" />
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-[250px] p-0 rounded-xl shadow-2xl border-none">
+                                        <PopoverContent className="w-60 p-0 rounded-xl shadow-2xl border-none">
                                             <Command>
                                                 <CommandInput placeholder="Поиск района..." />
                                                 <CommandList>
@@ -343,10 +343,10 @@ export function UnitDialog({ open, onOpenChange, unit, onSuccess }: UnitDialogPr
                 </div>
 
                 <DialogFooter className="p-6 bg-slate-50 border-t gap-3">
-                    <Button variant="ghost" onClick={() => onOpenChange(false)} className="rounded-xl font-bold uppercase tracking-widest text-[10px]">
+                    <Button variant="ghost" onClick={() => onOpenChange(false)} className="rounded-xl font-bold uppercase tracking-widest text-tiny">
                         Отмена
                     </Button>
-                    <Button onClick={handleSave} disabled={loading} className="rounded-xl px-8 bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200 font-bold uppercase tracking-widest text-[10px]">
+                    <Button onClick={handleSave} disabled={loading} className="rounded-xl px-8 bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200 font-bold uppercase tracking-widest text-tiny">
                         {loading && <Icons.Spinner className="h-3 w-3 mr-2 animate-spin" />}
                         {unit ? "Сохранить изменения" : "Добавить часть"}
                     </Button>

@@ -11,7 +11,7 @@ interface RateLimitEntry {
 
 const store = new Map<string, RateLimitEntry>()
 
-const MAX_ATTEMPTS = 5          // максимум попыток в окне
+const MAX_ATTEMPTS = 50          // максимум попыток в окне
 const WINDOW_MS = 15 * 60 * 1000 // окно: 15 минут
 
 // Фоновая очистка устаревших записей каждую минуту

@@ -64,7 +64,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           : (item.ref_units?.unit_id ? (item.ref_units.unit_id % 5 === 0 ? "Ташкент" : item.ref_units.unit_id % 5 === 1 ? "Самарканд" : "Бухара") : ""),
 
         dob: p?.birth_date?.toISOString() || "",
-        gender: item.ref_physical_persons?.gender_id === 801 ? "MALE" : "FEMALE",
+        gender: (item.ref_physical_persons?.gender_id === 801 ? "MALE" : "FEMALE") as "MALE" | "FEMALE",
         nationality: "Узбек",
 
         passportNumber: `${p?.passport_series || ""}${p?.passport_number || ""}`,
@@ -83,6 +83,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         serviceStartDate: item.service_start_date?.toISOString() || "",
         violationsFound: 0,
         serviceNumber: item.service_number || "",
+        licenseCount: 0,
+        auditCount: 0,
 
         createdAt: item.created_at?.toISOString() || new Date().toISOString(),
         updatedAt: item.updated_at?.toISOString() || new Date().toISOString(),
@@ -93,7 +95,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   return (
     <ErrorBoundary>
       <Suspense fallback={<PageSkeleton />}>
-        <PersonnelViewClient employee={employee} id={idStr} />
+        <PersonnelViewClient employee={employee as any} id={idStr} />
       </Suspense>
     </ErrorBoundary>
   )

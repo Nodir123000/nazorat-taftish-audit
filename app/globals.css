@@ -122,6 +122,27 @@
   --color-sidebar-ring: var(--sidebar-ring);
   /* Inter font configuration matching reference design */
   --font-sans: var(--font-inter);
+  
+  /* Additional Military Design Tokens */
+  --font-size-tiny: 0.625rem; /* 10px */
+  --font-size-mini: 0.5625rem; /* 9px */
+  
+  --spacing-15: 3.75rem; /* 60px */
+  --spacing-25: 6.25rem; /* 100px */
+  --spacing-30: 7.5rem; /* 120px */
+  --spacing-35: 8.75rem; /* 140px */
+  --spacing-37_5: 9.375rem; /* 150px */
+  --spacing-45: 11.25rem; /* 180px */
+  --spacing-50: 12.5rem; /* 200px */
+  --spacing-55: 13.75rem; /* 220px */
+  --spacing-75: 18.75rem; /* 300px */
+  --spacing-80: 20rem; /* 320px */
+  --spacing-100: 25rem; /* 400px */
+  --spacing-112: 28rem; /* 448px */
+  --spacing-125: 31.25rem; /* 500px */
+  --spacing-150: 37.5rem; /* 600px */
+  --spacing-200: 50rem; /* 800px */
+  --spacing-250: 62.5rem; /* 1000px */
 }
 
 @layer base {

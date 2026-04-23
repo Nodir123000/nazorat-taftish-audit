@@ -106,25 +106,25 @@ export function UnitSectionContent({ section, unit }: UnitSectionContentProps) {
                         <Card className="bg-slate-50 border-none shadow-sm h-full">
                             <CardContent className="p-4 flex flex-col items-center justify-center text-center">
                                 <span className="text-2xl font-black text-slate-800">{unit.personnelCount}</span>
-                                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Всего штата</span>
+                                <span className="text-tiny uppercase font-bold text-slate-400 tracking-wider">Всего штата</span>
                             </CardContent>
                         </Card>
                         <Card className="bg-emerald-50 border-none shadow-sm h-full">
                             <CardContent className="p-4 flex flex-col items-center justify-center text-center">
                                 <span className="text-2xl font-black text-emerald-600">432</span>
-                                <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">В наличии</span>
+                                <span className="text-tiny uppercase font-bold text-emerald-400 tracking-wider">В наличии</span>
                             </CardContent>
                         </Card>
                         <Card className="bg-amber-50 border-none shadow-sm h-full">
                             <CardContent className="p-4 flex flex-col items-center justify-center text-center">
                                 <span className="text-2xl font-black text-amber-600">18</span>
-                                <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider">Вакант</span>
+                                <span className="text-tiny uppercase font-bold text-amber-400 tracking-wider">Вакант</span>
                             </CardContent>
                         </Card>
                     </div>
                     <div className="rounded-xl border border-slate-100 overflow-hidden">
                         <table className="w-full text-sm">
-                            <thead className="bg-slate-50 text-slate-500 font-bold text-[10px] uppercase tracking-widest border-b border-slate-100">
+                            <thead className="bg-slate-50 text-slate-500 font-bold text-tiny uppercase tracking-widest border-b border-slate-100">
                                 <tr>
                                     <th className="px-4 py-3 text-left">ФИО</th>
                                     <th className="px-4 py-3 text-left">Звание</th>
@@ -165,7 +165,7 @@ export function UnitSectionContent({ section, unit }: UnitSectionContentProps) {
                                 </div>
                                 <div className="text-right">
                                     <div className="text-sm font-black text-emerald-600">Успешно</div>
-                                    <div className="text-[10px] text-slate-400">15.12.2023</div>
+                                    <div className="text-tiny text-slate-400">15.12.2023</div>
                                 </div>
                             </CardContent>
                         </Card>
@@ -177,7 +177,7 @@ export function UnitSectionContent({ section, unit }: UnitSectionContentProps) {
                                 </div>
                                 <div className="text-right">
                                     <div className="text-sm font-black text-amber-600">Замечания</div>
-                                    <div className="text-[10px] text-slate-400">22.06.2022</div>
+                                    <div className="text-tiny text-slate-400">22.06.2022</div>
                                 </div>
                             </CardContent>
                         </Card>
@@ -207,7 +207,7 @@ export function UnitSectionContent({ section, unit }: UnitSectionContentProps) {
                                     <span className="text-xs font-black text-blue-600">98%</span>
                                 </div>
                                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                                    <div className="bg-blue-500 h-full w-[98%]" />
+                                    <div className="bg-blue-500 h-full" style={{ width: '98%' }} />
                                 </div>
                             </div>
                             <div>
@@ -216,7 +216,7 @@ export function UnitSectionContent({ section, unit }: UnitSectionContentProps) {
                                     <span className="text-xs font-black text-amber-600">82%</span>
                                 </div>
                                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                                    <div className="bg-amber-500 h-full w-[82%]" />
+                                    <div className="bg-amber-500 h-full" style={{ width: '82%' }} />
                                 </div>
                             </div>
                             <div>
@@ -225,14 +225,14 @@ export function UnitSectionContent({ section, unit }: UnitSectionContentProps) {
                                     <span className="text-xs font-black text-emerald-600">95%</span>
                                 </div>
                                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                                    <div className="bg-emerald-500 h-full w-[95%]" />
+                                    <div className="bg-emerald-500 h-full" style={{ width: '95%' }} />
                                 </div>
                             </div>
                         </div>
                         <div className="bg-indigo-600 rounded-2xl p-6 text-white flex flex-col items-center justify-center text-center shadow-xl shadow-indigo-200">
                             <span className="text-4xl font-black mb-1">92.4</span>
-                            <span className="text-[10px] uppercase font-bold tracking-widest opacity-80">Итоговый балл (2024)</span>
-                            <div className="mt-4 px-3 py-1 bg-white/20 rounded-full text-[10px] font-bold">
+                            <span className="text-tiny uppercase font-bold tracking-widest opacity-80">Итоговый балл (2024)</span>
+                            <div className="mt-4 px-3 py-1 bg-white/20 rounded-full text-tiny font-bold">
                                 4 место в округе
                             </div>
                         </div>

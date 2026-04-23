@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidateTag } from "next/cache"
+import { prisma } from "@/lib/db/prisma"
 import { planningService } from "@/lib/services/planning-service"
 
 export async function getAnnualPlans(filters?: any) {
@@ -50,7 +51,8 @@ export async function createAnnualPlan(formData: {
       try {
         await planningService.createOrder({
           planId: newPlan.planId ?? (newPlan as any).id,
-          unitId: Number(formData.unit) || null,
+          unitId: formData.unitId ? Number(formData.unitId) : (formData.unit ? Number(formData.unit) : null),
+          unit: formData.unit || null,
           orderNumber: `Пр-${formData.planNumber || newPlan.planId || Date.now()}`,
           orderDate: new Date().toISOString(),
           orderType: "revision",
@@ -279,5 +281,49 @@ export async function exportPlansToCSV(plans: any[]) {
       success: false,
       error: "Failed to export plans",
     }
+  }
+}
+
+export async function bulkCreateAnnualPlans(plans: any[]) {
+  try {
+    // Предварительно загружаем справочники для быстрого поиска ID
+    const authorities = await prisma.ref_control_authorities.findMany()
+    const directions = await prisma.ref_control_directions.findMany()
+    const inspectionTypes = await prisma.ref_inspection_types.findMany()
+
+    const preparedPlans = plans.map(p => {
+      const authId = authorities.find((a: any) => a.code === p.controlAuthority)?.id
+      const dirId = directions.find((d: any) => 
+        (typeof d.name === 'string' && d.name === p.inspectionDirection) || 
+        (typeof d.name === 'object' && (d.name as any)?.ru === p.inspectionDirection)
+      )?.id
+      const typeId = inspectionTypes.find((t: any) => 
+        (typeof t.name === 'string' && t.name.includes("Плановая")) || 
+        (typeof t.name === 'object' && (t.name as any)?.ru?.includes("Плановая"))
+      )?.id || 2301
+
+      return {
+        ...p,
+        controlAuthorityId: authId,
+        controlDirectionId: dirId,
+        inspectionTypeId: typeId,
+        startDate: p.periodCoveredStart,
+        endDate: p.periodCoveredEnd,
+        status: p.status || 106,
+        planNumber: p.planNumber || `АВТО-${Math.random().toString().slice(2, 6)}`
+      }
+    })
+
+    const result = await planningService.bulkCreateAnnualPlans(preparedPlans)
+    revalidateTag("annual-plans", "default")
+    
+    return { 
+      success: true, 
+      count: result.count,
+      message: `Успешно создано ${result.count} планов` 
+    }
+  } catch (error) {
+    console.error("Bulk create action failed:", error)
+    return { success: false, error: "Ошибка при массовом создании" }
   }
 }

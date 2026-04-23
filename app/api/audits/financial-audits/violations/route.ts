@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/db/prisma"
 import { getCurrentUser } from "@/lib/auth"
@@ -23,7 +24,7 @@ export async function GET(request: Request) {
       orderBy: { created_at: 'desc' }
     })
 
-    const dtos = violations.map(v => ({
+    const dtos = violations.map((v: any) => ({
       id: v.id,
       auditId: v.audit_id,
       kind: v.kind,
@@ -73,3 +74,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
+

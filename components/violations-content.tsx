@@ -24,7 +24,7 @@ export function ViolationsContent({ user, initialSection = "list" }: ViolationsC
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <div className="w-12 h-12 bg-gradient-to-br from-red-600 to-red-800 rounded-lg flex items-center justify-center">
+        <div className="w-12 h-12 bg-linear-to-br from-red-600 to-red-800 rounded-lg flex items-center justify-center">
           <Icons.Alert className="w-6 h-6 text-white" />
         </div>
         <div>
@@ -34,7 +34,7 @@ export function ViolationsContent({ user, initialSection = "list" }: ViolationsC
       </div>
 
       <Tabs defaultValue={initialSection} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:w-[800px]">
+        <TabsList className="grid w-full grid-cols-4 lg:w-200">
           <TabsTrigger value="list" className="gap-2">
             <Icons.Alert className="w-4 h-4" />
             Все нарушения

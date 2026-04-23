@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { withAuth, AuthContext } from '@/lib/security/rbac-guardian';
 import { translationExtendedService } from '@/lib/services/translation-extended-service';
 import { NextResponse } from 'next/server';
@@ -28,3 +29,4 @@ export const PUT = withAuth(async (req: Request, ctx: AuthContext) => {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }, 'PS-9', 'EDIT');
+

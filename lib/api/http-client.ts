@@ -47,8 +47,13 @@ class HttpClient {
 
             return data as T;
 
-        } catch (error) {
-            console.error(`API Request Failed: ${endpoint}`, error);
+        } catch (error: any) {
+            const errorMsg = error?.message || error?.error || "Unknown Error";
+            console.error(`API Request Failed: ${endpoint}`, {
+                message: errorMsg,
+                status: error?.status || "N/A",
+                original: error
+            });
             throw error;
         }
     }

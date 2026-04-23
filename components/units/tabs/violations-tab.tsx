@@ -178,15 +178,15 @@ export function ViolationsTab({ unitName, unitNumber }: ViolationsTabProps) {
                                 <Table>
                                     <TableHeader className="bg-slate-50/80 border-b">
                                         <TableRow>
-                                            <TableHead className="text-center w-12 font-bold text-[10px] uppercase text-slate-500 tracking-widest">ID</TableHead>
-                                            <TableHead className="font-bold text-[10px] uppercase text-slate-500 tracking-widest pl-6 text-left">№ Акта и Дата</TableHead>
-                                            <TableHead className="font-bold text-[10px] uppercase text-slate-500 tracking-widest text-left">Ответственный</TableHead>
-                                            <TableHead className="font-bold text-[10px] uppercase text-slate-500 tracking-widest text-left">Тип / Причина</TableHead>
-                                            <TableHead className="text-right font-bold text-[10px] uppercase text-slate-500 tracking-widest">Выявлено</TableHead>
-                                            <TableHead className="text-right font-bold text-[10px] uppercase text-slate-500 tracking-widest">Возмещено</TableHead>
-                                            <TableHead className="text-right font-bold text-[10px] uppercase text-slate-500 tracking-widest">Остаток</TableHead>
-                                            <TableHead className="text-center font-bold text-[10px] uppercase text-slate-500 tracking-widest">Статус</TableHead>
-                                            <TableHead className="text-center w-24 font-bold text-[10px] uppercase text-slate-500 tracking-widest">Детали</TableHead>
+                                            <TableHead className="text-center w-12 font-bold text-tiny uppercase text-slate-500 tracking-widest">ID</TableHead>
+                                            <TableHead className="font-bold text-tiny uppercase text-slate-500 tracking-widest pl-6 text-left">№ Акта и Дата</TableHead>
+                                            <TableHead className="font-bold text-tiny uppercase text-slate-500 tracking-widest text-left">Ответственный</TableHead>
+                                            <TableHead className="font-bold text-tiny uppercase text-slate-500 tracking-widest text-left">Тип / Причина</TableHead>
+                                            <TableHead className="text-right font-bold text-tiny uppercase text-slate-500 tracking-widest">Выявлено</TableHead>
+                                            <TableHead className="text-right font-bold text-tiny uppercase text-slate-500 tracking-widest">Возмещено</TableHead>
+                                            <TableHead className="text-right font-bold text-tiny uppercase text-slate-500 tracking-widest">Остаток</TableHead>
+                                            <TableHead className="text-center font-bold text-tiny uppercase text-slate-500 tracking-widest">Статус</TableHead>
+                                            <TableHead className="text-center w-24 font-bold text-tiny uppercase text-slate-500 tracking-widest">Детали</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -202,23 +202,23 @@ export function ViolationsTab({ unitName, unitNumber }: ViolationsTabProps) {
                                             return (
                                                 <Fragment key={`${v.category}-${v.id}-${idx}`}>
                                                     <TableRow className="hover:bg-slate-50/50 group border-b last:border-0 transition-colors">
-                                                        <TableCell className="font-mono text-[10px] text-center text-slate-400">{v.id}</TableCell>
+                                                        <TableCell className="font-mono text-tiny text-center text-slate-400">{v.id}</TableCell>
                                                         <TableCell className="pl-6 text-left">
                                                             <div className="flex flex-col">
                                                                 <span className="font-black text-slate-800 tracking-tight text-sm">{v.actNumber}</span>
-                                                                <span className="text-[10px] font-bold text-slate-400 uppercase">{v.detectionDate}</span>
+                                                                <span className="text-tiny font-bold text-slate-400 uppercase">{v.detectionDate}</span>
                                                             </div>
                                                         </TableCell>
                                                         <TableCell className="text-left">
                                                             <div className="flex flex-col">
                                                                 <span className="font-bold text-slate-700">{v.responsible || v.responsiblePerson || "—"}</span>
-                                                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter line-clamp-1">{v.responsiblePosition || "—"}</span>
+                                                                <span className="text-tiny text-slate-400 font-bold uppercase tracking-tighter line-clamp-1">{v.responsiblePosition || "—"}</span>
                                                             </div>
                                                         </TableCell>
                                                         <TableCell className="text-left">
                                                             <div className="flex flex-col">
                                                                 <span className="font-bold text-slate-700 text-sm">{v.type}</span>
-                                                                {v.paymentName && <span className="text-[10px] text-slate-400 font-medium italic mt-0.5">{v.paymentName}</span>}
+                                                                {v.paymentName && <span className="text-tiny text-slate-400 font-medium italic mt-0.5">{v.paymentName}</span>}
                                                             </div>
                                                         </TableCell>
                                                         <TableCell className="text-right font-black text-slate-900">
@@ -231,7 +231,7 @@ export function ViolationsTab({ unitName, unitNumber }: ViolationsTabProps) {
                                                             {remainder.toLocaleString()}
                                                         </TableCell>
                                                         <TableCell className="text-center">
-                                                            <Badge variant={v.status === "Возвращено" || v.status === "Взыскано" ? "default" : "outline"} className="whitespace-nowrap font-bold text-[10px] py-0.5 px-2.5">
+                                                            <Badge variant={v.status === "Возвращено" || v.status === "Взыскано" ? "default" : "outline"} className="whitespace-nowrap font-bold text-tiny py-0.5 px-2.5">
                                                                 {v.status}
                                                             </Badge>
                                                         </TableCell>
@@ -270,21 +270,21 @@ export function ViolationsTab({ unitName, unitNumber }: ViolationsTabProps) {
                                                                         <Table>
                                                                             <TableHeader>
                                                                                 <TableRow className="bg-emerald-50/50 border-b border-emerald-100">
-                                                                                    <TableHead className="h-10 text-[9px] uppercase font-black text-emerald-800 tracking-wider pl-4 text-left">Платёжный документ</TableHead>
-                                                                                    <TableHead className="h-10 text-[9px] uppercase font-black text-emerald-800 tracking-wider text-left">№ / Дата</TableHead>
-                                                                                    <TableHead className="h-10 text-[9px] uppercase font-black text-emerald-800 tracking-wider text-right">Сумма</TableHead>
+                                                                                    <TableHead className="h-10 text-mini uppercase font-black text-emerald-800 tracking-wider pl-4 text-left">Платёжный документ</TableHead>
+                                                                                    <TableHead className="h-10 text-mini uppercase font-black text-emerald-800 tracking-wider text-left">№ / Дата</TableHead>
+                                                                                    <TableHead className="h-10 text-mini uppercase font-black text-emerald-800 tracking-wider text-right">Сумма</TableHead>
                                                                                 </TableRow>
                                                                             </TableHeader>
                                                                             <TableBody>
                                                                                 {violationRepayments.length > 0 ? violationRepayments.map((r: any) => (
                                                                                     <TableRow key={r.id} className="hover:bg-slate-50 last:border-0 border-b border-emerald-50/50">
-                                                                                        <TableCell className="py-3 text-[11px] font-bold text-slate-700 pl-4 text-left">{r.documentName}</TableCell>
-                                                                                        <TableCell className="py-3 text-[11px] font-medium text-slate-500 text-left">{r.documentNumber} от {r.documentDate}</TableCell>
-                                                                                        <TableCell className="py-3 text-[11px] text-right font-black text-emerald-600">{r.repaidAmount.toLocaleString()} сум</TableCell>
+                                                                                        <TableCell className="py-3 text-tiny font-bold text-slate-700 pl-4 text-left">{r.documentName}</TableCell>
+                                                                                        <TableCell className="py-3 text-tiny font-medium text-slate-500 text-left">{r.documentNumber} от {r.documentDate}</TableCell>
+                                                                                        <TableCell className="py-3 text-tiny text-right font-black text-emerald-600">{r.repaidAmount.toLocaleString()} сум</TableCell>
                                                                                     </TableRow>
                                                                                 )) : (
                                                                                     <TableRow>
-                                                                                        <TableCell colSpan={3} className="text-center py-8 text-[11px] text-slate-400 italic">
+                                                                                        <TableCell colSpan={3} className="text-center py-8 text-tiny text-slate-400 italic">
                                                                                             Погашений по данному акту не зафиксировано
                                                                                         </TableCell>
                                                                                     </TableRow>
@@ -329,14 +329,14 @@ export function ViolationsTab({ unitName, unitNumber }: ViolationsTabProps) {
                                 <Table>
                                     <TableHeader className="bg-slate-50/80 border-b">
                                         <TableRow>
-                                            <TableHead className="text-center w-12 font-bold text-[10px] uppercase text-slate-500 tracking-widest">ID</TableHead>
-                                            <TableHead className="font-bold text-[10px] uppercase text-slate-500 tracking-widest pl-6 text-left">№ Акта / Дата</TableHead>
-                                            <TableHead className="font-bold text-[10px] uppercase text-slate-500 tracking-widest text-left">Ответственный</TableHead>
-                                            <TableHead className="font-bold text-[10px] uppercase text-slate-500 tracking-widest text-left">Имущество / Вид нарушения</TableHead>
-                                            <TableHead className="text-right font-bold text-[10px] uppercase text-slate-500 tracking-widest">Выявлено</TableHead>
-                                            <TableHead className="text-right font-bold text-[10px] uppercase text-slate-500 tracking-widest">Возмещено</TableHead>
-                                            <TableHead className="text-right font-bold text-[10px] uppercase text-slate-500 tracking-widest">Остаток</TableHead>
-                                            <TableHead className="text-center font-bold text-[10px] uppercase text-slate-500 tracking-widest">Статус</TableHead>
+                                            <TableHead className="text-center w-12 font-bold text-tiny uppercase text-slate-500 tracking-widest">ID</TableHead>
+                                            <TableHead className="font-bold text-tiny uppercase text-slate-500 tracking-widest pl-6 text-left">№ Акта / Дата</TableHead>
+                                            <TableHead className="font-bold text-tiny uppercase text-slate-500 tracking-widest text-left">Ответственный</TableHead>
+                                            <TableHead className="font-bold text-tiny uppercase text-slate-500 tracking-widest text-left">Имущество / Вид нарушения</TableHead>
+                                            <TableHead className="text-right font-bold text-tiny uppercase text-slate-500 tracking-widest">Выявлено</TableHead>
+                                            <TableHead className="text-right font-bold text-tiny uppercase text-slate-500 tracking-widest">Возмещено</TableHead>
+                                            <TableHead className="text-right font-bold text-tiny uppercase text-slate-500 tracking-widest">Остаток</TableHead>
+                                            <TableHead className="text-center font-bold text-tiny uppercase text-slate-500 tracking-widest">Статус</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -346,23 +346,23 @@ export function ViolationsTab({ unitName, unitNumber }: ViolationsTabProps) {
 
                                             return (
                                                 <TableRow key={`asset-${v.id}`} className="hover:bg-slate-50 group border-b last:border-0 transition-colors">
-                                                    <TableCell className="font-mono text-[10px] text-center text-slate-400">{v.id}</TableCell>
+                                                    <TableCell className="font-mono text-tiny text-center text-slate-400">{v.id}</TableCell>
                                                     <TableCell className="pl-6 text-left">
                                                         <div className="flex flex-col">
                                                             <span className="font-black text-slate-800 tracking-tight text-sm">{v.actNumber}</span>
-                                                            <span className="text-[10px] font-bold text-slate-400 uppercase">{v.detectionDate}</span>
+                                                            <span className="text-tiny font-bold text-slate-400 uppercase">{v.detectionDate}</span>
                                                         </div>
                                                     </TableCell>
                                                     <TableCell className="text-left">
                                                         <div className="flex flex-col">
                                                             <span className="font-bold text-slate-700">{v.responsible}</span>
-                                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">{v.responsiblePosition}</span>
+                                                            <span className="text-tiny text-slate-400 font-bold uppercase tracking-tighter">{v.responsiblePosition}</span>
                                                         </div>
                                                     </TableCell>
                                                     <TableCell className="text-left">
                                                         <div className="flex flex-col">
                                                             <span className="font-bold text-slate-700 text-sm">{v.assetName || "Имущество"}</span>
-                                                            <span className="text-[10px] text-slate-400 font-medium italic mt-0.5">{v.shortageType || "Недостача"}</span>
+                                                            <span className="text-tiny text-slate-400 font-medium italic mt-0.5">{v.shortageType || "Недостача"}</span>
                                                         </div>
                                                     </TableCell>
                                                     <TableCell className="text-right font-black text-slate-900">
@@ -375,7 +375,7 @@ export function ViolationsTab({ unitName, unitNumber }: ViolationsTabProps) {
                                                         {remainder.toLocaleString()}
                                                     </TableCell>
                                                     <TableCell className="text-center">
-                                                        <Badge variant={v.status === "Возвращено" ? "default" : "outline"} className="font-bold text-[10px]">
+                                                        <Badge variant={v.status === "Возвращено" ? "default" : "outline"} className="font-bold text-tiny">
                                                             {v.status}
                                                         </Badge>
                                                     </TableCell>
@@ -387,7 +387,7 @@ export function ViolationsTab({ unitName, unitNumber }: ViolationsTabProps) {
                             </div>
                         ) : (
                             <div className="text-center py-20 bg-slate-50 border-b">
-                                <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] text-left">Материальных средств не выявлено</p>
+                                <p className="text-slate-400 font-bold uppercase tracking-widest text-tiny text-left">Материальных средств не выявлено</p>
                             </div>
                         )}
                     </CardContent>

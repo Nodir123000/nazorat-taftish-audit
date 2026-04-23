@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db/prisma"
 import { getCurrentUser } from "@/lib/auth"
@@ -31,3 +32,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Ошибка загрузки списка сотрудников КРУ" }, { status: 500 })
   }
 }
+

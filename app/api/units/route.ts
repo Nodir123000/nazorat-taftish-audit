@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server";
 import { getUnits, getUnitsCount, saveUnit } from "@/lib/services/reference-db-service";
 import { getCurrentUser } from "@/lib/auth";
@@ -38,3 +39,4 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }
+

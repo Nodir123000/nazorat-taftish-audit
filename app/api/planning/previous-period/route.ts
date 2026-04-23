@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { type NextRequest, NextResponse } from "next/server"
 import { planningService } from "@/lib/services/planning-service"
 
@@ -32,3 +33,4 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+

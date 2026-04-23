@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db/prisma"
 import { getCurrentUser } from "@/lib/auth"
@@ -124,3 +126,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Ошибка создания пользователя" }, { status: 500 })
   }
 }
+

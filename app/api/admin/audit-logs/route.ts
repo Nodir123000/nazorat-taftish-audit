@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db/prisma"
 import { getCurrentUser } from "@/lib/auth"
@@ -66,7 +67,7 @@ export async function GET(req: NextRequest) {
     ])
 
     return NextResponse.json({
-      logs: logs.map((l) => ({
+      logs: logs.map((l: any) => ({
         log_id: l.log_id,
         user_id: l.user_id,
         username: l.users?.username ?? "—",
@@ -86,3 +87,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Ошибка загрузки журнала аудита" }, { status: 500 })
   }
 }
+

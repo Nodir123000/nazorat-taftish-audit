@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import type { Employee, User } from "@/lib/types"
-import { employeeService } from "@/lib/services/employee-service"
+// import { employeeService } from "@/lib/services/employee-service" - REMOVED: Direct DB access from client component causes build errors
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -68,13 +68,29 @@ export function EmployeeRegistry({ user }: EmployeeRegistryProps) {
   const loadEmployees = async () => {
     setIsLoading(true)
     try {
-      const filters = {
-        role: filterRole === "all" ? undefined : (filterRole as any),
-        isActive: filterStatus === "all" ? undefined : filterStatus === "active",
-        search: searchQuery,
+      const params = new URLSearchParams()
+      if (filterRole !== "all") params.append("role", filterRole)
+      if (searchQuery) params.append("search", searchQuery)
+      
+      const response = await fetch(`/api/admin/users?${params.toString()}`)
+      const data = await response.json()
+      
+      if (data.users) {
+        setEmployees(data.users.map((u: any) => ({
+          employee_id: u.user_id,
+          fullname: u.fullname,
+          rank: u.rank,
+          position: u.position,
+          specialization: u.specialization,
+          role: u.role,
+          is_active: u.is_active,
+          created_at: u.created_at,
+          updated_at: u.updated_at
+        })))
       }
-      const data = await employeeService.getEmployees(filters)
-      setEmployees(data)
+    } catch (err) {
+      console.error("Failed to load employees:", err)
+      toast.error("Ошибка загрузки данных")
     } finally {
       setIsLoading(false)
     }
@@ -210,7 +226,7 @@ export function EmployeeRegistry({ user }: EmployeeRegistryProps) {
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0 rounded-xl" align="start">
+            <PopoverContent className="w-50 p-0 rounded-xl" align="start">
               <Command>
                 <CommandList>
                   <CommandGroup>
@@ -261,7 +277,7 @@ export function EmployeeRegistry({ user }: EmployeeRegistryProps) {
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[180px] p-0 rounded-xl" align="start">
+            <PopoverContent className="w-45 p-0 rounded-xl" align="start">
               <Command>
                 <CommandList>
                   <CommandGroup>
@@ -450,7 +466,7 @@ export function EmployeeRegistry({ user }: EmployeeRegistryProps) {
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[250px] p-0 z-[10000]" align="start">
+                    <PopoverContent className="w-64 p-0 z-10000" align="start">
                       <Command>
                         <CommandList>
                           <CommandGroup>
@@ -503,7 +519,7 @@ export function EmployeeRegistry({ user }: EmployeeRegistryProps) {
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[180px] p-0 z-[10000]" align="start">
+                    <PopoverContent className="w-45 p-0 z-10000" align="start">
                       <Command>
                         <CommandList>
                           <CommandGroup>

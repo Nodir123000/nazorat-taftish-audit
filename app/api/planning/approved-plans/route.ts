@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db/prisma"
 import { getCurrentUser } from "@/lib/auth"
@@ -80,3 +81,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: "Failed to create approved plan" }, { status: 500 })
   }
 }
+

@@ -227,7 +227,7 @@ export function ControlTypes() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-b border-border/50 h-16 bg-muted/20">
-                  <TableHead className="w-[80px] px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 text-center">ID</TableHead>
+                  <TableHead className="w-20 px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 text-center">ID</TableHead>
                   <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{locale === "ru" ? "Наименование" : "Nomlanishi"}</TableHead>
                   <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{locale === "ru" ? "Описание" : "Tavsifi"}</TableHead>
                   <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{locale === "ru" ? "Статус" : "Status"}</TableHead>
@@ -397,7 +397,7 @@ export function ControlTypes() {
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-40" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0 rounded-2xl border-none shadow-2xl z-[10000]" align="start">
+                    <PopoverContent className="w-50 p-0 rounded-2xl border-none shadow-2xl z-10000" align="start">
                       <Command className="rounded-2xl">
                         <CommandList>
                           <CommandGroup>

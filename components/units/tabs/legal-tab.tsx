@@ -64,11 +64,11 @@ export function LegalTab({ unitName, unitNumber }: LegalTabProps) {
         <div className="space-y-6">
             <Tabs value={subTab} onValueChange={setSubTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6">
-                    <TabsTrigger value="investigations" className="font-bold text-[11px] uppercase tracking-widest">
+                    <TabsTrigger value="investigations" className="font-bold text-tiny uppercase tracking-widest">
                         <Icons.ShieldAlert className="w-4 h-4 mr-2" />
                         Служебные расследования
                     </TabsTrigger>
-                    <TabsTrigger value="law-enforcement" className="font-bold text-[11px] uppercase tracking-widest">
+                    <TabsTrigger value="law-enforcement" className="font-bold text-tiny uppercase tracking-widest">
                         <Icons.Gavel className="w-4 h-4 mr-2" />
                         Правоохранительные органы
                     </TabsTrigger>
@@ -82,7 +82,7 @@ export function LegalTab({ unitName, unitNumber }: LegalTabProps) {
                                     <Icons.ShieldAlert className="w-4 h-4 text-amber-500" />
                                     Реестр служебных расследований
                                 </CardTitle>
-                                <CardDescription className="text-[10px] font-bold">Дисциплинарные меры по итогам проверок</CardDescription>
+                                <CardDescription className="text-tiny font-bold">Дисциплинарные меры по итогам проверок</CardDescription>
                             </div>
                         </CardHeader>
                         <CardContent className="p-0">
@@ -90,32 +90,32 @@ export function LegalTab({ unitName, unitNumber }: LegalTabProps) {
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="bg-slate-50/30">
-                                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-left">№ Предп.</TableHead>
-                                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-left">Суть нарушения</TableHead>
-                                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-left">Виновный</TableHead>
-                                            <TableHead className="text-right text-[10px] font-black uppercase tracking-widest">Сумма</TableHead>
-                                            <TableHead className="text-center text-[10px] font-black uppercase tracking-widest">Статус</TableHead>
+                                            <TableHead className="text-tiny font-black uppercase tracking-widest text-left">№ Предп.</TableHead>
+                                            <TableHead className="text-tiny font-black uppercase tracking-widest text-left">Суть нарушения</TableHead>
+                                            <TableHead className="text-tiny font-black uppercase tracking-widest text-left">Виновный</TableHead>
+                                            <TableHead className="text-right text-tiny font-black uppercase tracking-widest">Сумма</TableHead>
+                                            <TableHead className="text-center text-tiny font-black uppercase tracking-widest">Статус</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {filteredInvestigations.length > 0 ? filteredInvestigations.map((si) => (
                                             <TableRow key={si.id} className="group hover:bg-slate-50/50 transition-colors">
-                                                <TableCell className="font-mono text-[10px] font-bold text-amber-600 text-left">{si.prescriptionNum}</TableCell>
-                                                <TableCell className="max-w-[150px] text-left">
-                                                    <div className="text-[11px] font-bold text-slate-800 line-clamp-1">{si.violationSummary}</div>
-                                                    <div className="text-[9px] text-slate-400 font-bold uppercase">{si.assignmentOrder}</div>
+                                                <TableCell className="font-mono text-tiny font-bold text-amber-600 text-left">{si.prescriptionNum}</TableCell>
+                                                <TableCell className="max-w-40 text-left">
+                                                    <div className="text-tiny font-bold text-slate-800 line-clamp-1">{si.violationSummary}</div>
+                                                    <div className="text-mini text-slate-400 font-bold uppercase">{si.assignmentOrder}</div>
                                                 </TableCell>
-                                                <TableCell className="text-[11px] font-black text-slate-700 text-left">{si.responsiblePerson}</TableCell>
-                                                <TableCell className="text-right text-[11px] font-bold text-slate-900">{si.amountToRecover?.toLocaleString()}</TableCell>
+                                                <TableCell className="text-tiny font-black text-slate-700 text-left">{si.responsiblePerson}</TableCell>
+                                                <TableCell className="text-right text-tiny font-bold text-slate-900">{si.amountToRecover?.toLocaleString()}</TableCell>
                                                 <TableCell className="text-center">
-                                                    <Badge variant={si.status === "Завершено" ? "default" : "secondary"} className="text-[9px] font-black uppercase tracking-tighter px-1.5 h-4">
+                                                    <Badge variant={si.status === "Завершено" ? "default" : "secondary"} className="text-mini font-black uppercase tracking-tighter px-1.5 h-4">
                                                         {si.status}
                                                     </Badge>
                                                 </TableCell>
                                             </TableRow>
                                         )) : (
                                             <TableRow>
-                                                <TableCell colSpan={5} className="h-24 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Нет активных расследований</TableCell>
+                                                <TableCell colSpan={5} className="h-24 text-center text-tiny font-black text-slate-400 uppercase tracking-widest">Нет активных расследований</TableCell>
                                             </TableRow>
                                         )}
                                     </TableBody>
@@ -133,7 +133,7 @@ export function LegalTab({ unitName, unitNumber }: LegalTabProps) {
                                     <Icons.Gavel className="w-4 h-4 text-rose-600" />
                                     Реестр материалов в правоохранительные органы
                                 </CardTitle>
-                                <CardDescription className="text-[10px] font-bold">Материалы переданые в компетентные органы</CardDescription>
+                                <CardDescription className="text-tiny font-bold">Материалы переданые в компетентные органы</CardDescription>
                             </div>
                         </CardHeader>
                         <CardContent className="p-0">
@@ -141,32 +141,32 @@ export function LegalTab({ unitName, unitNumber }: LegalTabProps) {
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="bg-slate-50/30">
-                                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-left">Исх. № / Дата</TableHead>
-                                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-left">Тип нарушения</TableHead>
-                                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-left">Орган</TableHead>
-                                            <TableHead className="text-right text-[10px] font-black uppercase tracking-widest">Сумма</TableHead>
-                                            <TableHead className="text-center text-[10px] font-black uppercase tracking-widest">Статус</TableHead>
+                                            <TableHead className="text-tiny font-black uppercase tracking-widest text-left">Исх. № / Дата</TableHead>
+                                            <TableHead className="text-tiny font-black uppercase tracking-widest text-left">Тип нарушения</TableHead>
+                                            <TableHead className="text-tiny font-black uppercase tracking-widest text-left">Орган</TableHead>
+                                            <TableHead className="text-right text-tiny font-black uppercase tracking-widest">Сумма</TableHead>
+                                            <TableHead className="text-center text-tiny font-black uppercase tracking-widest">Статус</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {filteredCases.length > 0 ? filteredCases.map((c) => (
                                             <TableRow key={c.id} className="group hover:bg-slate-50/50 transition-colors">
                                                 <TableCell className="text-left">
-                                                    <div className="text-[11px] font-black text-slate-800 uppercase tracking-widest">{c.outgoingNumber}</div>
-                                                    <div className="text-[9px] text-slate-400 font-bold">{c.outgoingDate}</div>
+                                                    <div className="text-tiny font-black text-slate-800 uppercase tracking-widest">{c.outgoingNumber}</div>
+                                                    <div className="text-mini text-slate-400 font-bold">{c.outgoingDate}</div>
                                                 </TableCell>
-                                                <TableCell className="text-[11px] font-bold text-slate-700 text-left">{c.type}</TableCell>
-                                                <TableCell className="text-[11px] font-bold text-slate-600 text-left">{c.recipientOrg}</TableCell>
-                                                <TableCell className="text-right text-[11px] font-black text-rose-600">{c.amount.toLocaleString()}</TableCell>
+                                                <TableCell className="text-tiny font-bold text-slate-700 text-left">{c.type}</TableCell>
+                                                <TableCell className="text-tiny font-bold text-slate-600 text-left">{c.recipientOrg}</TableCell>
+                                                <TableCell className="text-right text-tiny font-black text-rose-600">{c.amount.toLocaleString()}</TableCell>
                                                 <TableCell className="text-center">
-                                                    <Badge variant="outline" className="text-[9px] font-black uppercase tracking-tighter px-1.5 h-4 border-rose-200 text-rose-700 bg-rose-50">
+                                                    <Badge variant="outline" className="text-mini font-black uppercase tracking-tighter px-1.5 h-4 border-rose-200 text-rose-700 bg-rose-50">
                                                         {c.status}
                                                     </Badge>
                                                 </TableCell>
                                             </TableRow>
                                         )) : (
                                             <TableRow>
-                                                <TableCell colSpan={5} className="h-24 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Материалы не передавались</TableCell>
+                                                <TableCell colSpan={5} className="h-24 text-center text-tiny font-black text-slate-400 uppercase tracking-widest">Материалы не передавались</TableCell>
                                             </TableRow>
                                         )}
                                     </TableBody>

@@ -111,7 +111,7 @@ export function DistrictForm({ form, setForm, regions, errors, getLocalizedName,
                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[400px] p-0 rounded-xl" align="start">
+                        <PopoverContent className="w-100 p-0 rounded-xl" align="start">
                             <Command>
                                 <CommandInput placeholder={ui("ref.territories.placeholder.search_region")} />
                                 <CommandList>

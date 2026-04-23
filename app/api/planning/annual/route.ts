@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server";
 import { planningService } from "@/lib/services/planning-service";
 import { getCurrentUser } from "@/lib/auth";
@@ -39,3 +40,4 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Failed to create plan" }, { status: 500 });
     }
 }
+

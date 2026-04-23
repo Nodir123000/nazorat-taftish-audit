@@ -201,9 +201,9 @@ export function UzbekistanMap({ view: controlledView, onViewChange, hideControls
                     </g>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="bg-zinc-950/95 text-white border-zinc-800 backdrop-blur-md px-3 py-2 shadow-2xl">
-                    <div className="space-y-1.5 min-w-[140px]">
+                    <div className="space-y-1.5 min-w-35">
                       <p className="font-bold text-sm text-blue-400 border-b border-zinc-800 pb-1 mb-1">{item.name}</p>
-                      <div className="grid grid-cols-2 gap-x-2 text-[11px] leading-relaxed">
+                      <div className="grid grid-cols-2 gap-x-2 text-tiny leading-relaxed">
                         <span className="text-zinc-400">Нарушений:</span>
                         <span className="font-semibold text-right">{item.violations}</span>
                         <span className="text-zinc-400">Ревизий:</span>

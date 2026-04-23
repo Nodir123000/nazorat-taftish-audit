@@ -25,9 +25,9 @@ export function PageSkeleton() {
             <Card className="border-none shadow-xl rounded-3xl overflow-hidden">
                 <CardContent className="p-6">
                     <div className="flex flex-wrap gap-4 items-center">
-                        <Skeleton className="h-12 flex-1 min-w-[300px] rounded-2xl" />
-                        <Skeleton className="h-12 w-[200px] rounded-2xl" />
-                        <Skeleton className="h-12 w-[120px] rounded-2xl" />
+                        <Skeleton className="h-12 flex-1 min-w-75 rounded-2xl" />
+                        <Skeleton className="h-12 w-50 rounded-2xl" />
+                        <Skeleton className="h-12 w-30 rounded-2xl" />
                     </div>
                 </CardContent>
             </Card>
@@ -36,8 +36,8 @@ export function PageSkeleton() {
             <Card className="border-none shadow-2xl rounded-3xl overflow-hidden">
                 <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
                     <div className="space-y-2">
-                        <Skeleton className="h-8 w-[300px]" />
-                        <Skeleton className="h-4 w-[450px]" />
+                        <Skeleton className="h-8 w-75" />
+                        <Skeleton className="h-4 w-md" />
                     </div>
                     <div className="flex gap-3">
                         <Skeleton className="h-11 w-24 rounded-xl" />

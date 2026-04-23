@@ -113,6 +113,14 @@ export function GenericReferenceTable({
 
     const getLocalizedValue = (item: any) => {
         if (!item) return ""
+        
+        // Handle name object if present
+        if (item.name && typeof item.name === 'object') {
+            if (locale === "uzLatn") return item.name.uz || item.name.ru || ""
+            if (locale === "uzCyrl") return item.name.uzk || item.name.ru || ""
+            return item.name.ru || ""
+        }
+        
         if (locale === "uzLatn") return item.name_uz_latn || item.name || ""
         if (locale === "uzCyrl") return item.name_uz_cyrl || item.name || ""
         return item.name || ""
@@ -217,12 +225,13 @@ export function GenericReferenceTable({
         if (!item) return ""
         const names = []
 
-        // In this component, 'item.name' is typically the RU name (mapped from service)
-        // item.name_uz_latn and item.name_uz_cyrl are the others.
+        const nameRu = (typeof item.name === 'object') ? item.name.ru : item.name;
+        const nameUzL = (typeof item.name === 'object') ? item.name.uz : item.name_uz_latn;
+        const nameUzC = (typeof item.name === 'object') ? item.name.uzk : item.name_uz_cyrl;
 
-        if (locale !== "ru" && item.name) names.push(item.name)
-        if (locale !== "uzLatn" && item.name_uz_latn) names.push(item.name_uz_latn)
-        if (locale !== "uzCyrl" && item.name_uz_cyrl) names.push(item.name_uz_cyrl)
+        if (locale !== "ru" && nameRu) names.push(nameRu)
+        if (locale !== "uzLatn" && nameUzL) names.push(nameUzL)
+        if (locale !== "uzCyrl" && nameUzC) names.push(nameUzC)
 
         return names.filter(Boolean).join(" / ")
     }
@@ -272,8 +281,8 @@ export function GenericReferenceTable({
                         <Table>
                             <TableHeader>
                                 <TableRow className="hover:bg-transparent border-b border-border/50 h-16 bg-muted/20">
-                                    <TableHead className="w-[80px] px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">ID</TableHead>
-                                    <TableHead className="w-[120px] px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{locale === "ru" ? "Код" : "Kod"}</TableHead>
+                                    <TableHead className="w-20 px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">ID</TableHead>
+                                    <TableHead className="w-30 px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{locale === "ru" ? "Код" : "Kod"}</TableHead>
                                     <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">
                                         {locale === "ru" ? "Наименование значения" : "Qiymat nomi"}
                                     </TableHead>

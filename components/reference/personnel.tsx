@@ -578,7 +578,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                     {t("Принять на службу", "Xizmatga qabul qilish", "Хизматга қабул қилиш")}
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl rounded-3xl border-none shadow-2xl backdrop-blur-2xl bg-white/95 z-[9999]">
+                <DialogContent className="max-w-2xl rounded-3xl border-none shadow-2xl backdrop-blur-2xl bg-white/95 z-9999">
                   <DialogHeader>
                     <DialogTitle className="text-2xl font-bold">{t("Прием на военную службу", "Harbiy xizmatga qabul qilish", "Ҳарбий хизматга қабул қилиш")}</DialogTitle>
                     <DialogDescription className="text-base font-medium">
@@ -609,7 +609,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[450px] p-0 rounded-2xl border-none shadow-2xl z-[10000]" align="start">
+                        <PopoverContent className="w-md p-0 rounded-2xl border-none shadow-2xl z-10000" align="start">
                           <Command shouldFilter={false}>
                             <CommandInput
                               placeholder={t("Поиск физического лица...", "Jismoniy shaxsni qidirish...", "Жисмоний шахсни қидириш...")}
@@ -679,7 +679,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-[300px] p-0 rounded-2xl border-none shadow-2xl z-[10000]" align="start">
+                          <PopoverContent className="w-75 p-0 rounded-2xl border-none shadow-2xl z-10000" align="start">
                             <Command>
                               <CommandInput placeholder={t("Поиск звания...", "Unvonni qidirish...", "Унвонни қидириш...")} />
                               <CommandList>
@@ -730,7 +730,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-[200px] p-0 rounded-2xl border-none shadow-2xl z-[10000]" align="start">
+                          <PopoverContent className="w-50 p-0 rounded-2xl border-none shadow-2xl z-10000" align="start">
                             <Command>
                               <CommandList>
                                 <CommandGroup>
@@ -781,7 +781,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-[450px] p-0 rounded-2xl border-none shadow-2xl z-[10000]" align="start">
+                          <PopoverContent className="w-md p-0 rounded-2xl border-none shadow-2xl z-10000" align="start">
                             <Command>
                               <CommandInput placeholder={t("Поиск ВУС...", "HHRMni qidirish...", "ВУСни қидириш...")} />
                               <CommandList>
@@ -807,7 +807,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                                         <span className="font-bold underline decoration-primary/30 decoration-2 underline-offset-2">
                                           {v.code}
                                         </span>
-                                        <span className="text-xs text-muted-foreground truncate max-w-[300px]">
+                                        <span className="text-xs text-muted-foreground truncate max-w-75">
                                           {getLocalizedName(v)}
                                         </span>
                                       </div>
@@ -844,7 +844,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-[450px] p-0 rounded-2xl border-none shadow-2xl z-[10000]" align="start">
+                          <PopoverContent className="w-md p-0 rounded-2xl border-none shadow-2xl z-10000" align="start">
                             <Command>
                               <CommandInput placeholder={t("Поиск части...", "Qismni qidirish...", "Қисмни қидириш...")} />
                               <CommandList>
@@ -898,7 +898,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-[450px] p-0 rounded-2xl border-none shadow-2xl z-[10000]" align="start">
+                          <PopoverContent className="w-md p-0 rounded-2xl border-none shadow-2xl z-10000" align="start">
                             <Command>
                               <CommandInput placeholder={t("Поиск должности...", "Lavozimni qidirish...", "Лавозимни қидириш...")} />
                               <CommandList>
@@ -955,7 +955,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[200px] p-0 rounded-2xl border-none shadow-2xl z-[10000]" align="start">
+                        <PopoverContent className="w-50 p-0 rounded-2xl border-none shadow-2xl z-10000" align="start">
                           <Command>
                             <CommandList>
                               <CommandGroup>
@@ -1031,7 +1031,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
 
       {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={(val) => { setIsEditOpen(val); if (!val) resetForm(); }}>
-        <DialogContent className="max-w-2xl rounded-3xl border-none shadow-2xl backdrop-blur-2xl bg-white/95 z-[9999]">
+        <DialogContent className="max-w-2xl rounded-3xl border-none shadow-2xl backdrop-blur-2xl bg-white/95 z-9999">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 rounded-xl bg-blue-100 text-blue-600">
@@ -1070,7 +1070,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[200px] p-0" align="start">
+                  <PopoverContent className="w-50 p-0" align="start">
                     <Command>
                       <CommandInput placeholder={t("Поиск звания...", "Unvon qidirish...", "Унвон қидириш...")} />
                       <CommandList>
@@ -1120,7 +1120,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[200px] p-0" align="start">
+                  <PopoverContent className="w-50 p-0" align="start">
                     <Command>
                       <CommandInput placeholder={t("Поиск категории...", "Toifa qidirish...", "Тоифа қидириш...")} />
                       <CommandList>
@@ -1174,7 +1174,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[300px] p-0" align="start">
+                  <PopoverContent className="w-75 p-0" align="start">
                     <Command>
                       <CommandInput placeholder={t("Поиск ВУС...", "HHRM qidirish...", "ВУС қидириш...")} />
                       <CommandList>
@@ -1242,7 +1242,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[300px] p-0" align="start">
+                  <PopoverContent className="w-75 p-0" align="start">
                     <Command>
                       <CommandInput placeholder={t("Поиск части...", "Qism qidirish...", "Қисм қидириш...")} />
                       <CommandList>
@@ -1300,7 +1300,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[300px] p-0" align="start">
+                  <PopoverContent className="w-75 p-0" align="start">
                     <Command>
                       <CommandInput placeholder={t("Поиск должности...", "Lavozim qidirish...", "Лавозим қидириш...")} />
                       <CommandList>
@@ -1334,7 +1334,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                 )}
               </div>
               <div className="space-y-2.5">
-                <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider uppercase tracking-wider">{t("Статус", "Status", "Статус")}</Label>
+                <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{t("Статус", "Status", "Статус")}</Label>
                 <Popover open={openEditStatusSelect} onOpenChange={setOpenEditStatusSelect}>
                   <PopoverTrigger asChild>
                     <Button
@@ -1358,7 +1358,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[200px] p-0" align="start">
+                  <PopoverContent className="w-50 p-0" align="start">
                     <Command>
                       <CommandList>
                         <CommandGroup>
@@ -1409,7 +1409,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
 
       {/* Move Dialog */}
       < Dialog open={isMoveOpen} onOpenChange={setIsMoveOpen} >
-        <DialogContent className="max-w-md rounded-3xl border-none shadow-2xl backdrop-blur-2xl bg-white/95 z-[9999]">
+        <DialogContent className="max-w-md rounded-3xl border-none shadow-2xl backdrop-blur-2xl bg-white/95 z-9999">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 rounded-xl bg-emerald-100 text-emerald-600">
@@ -1480,7 +1480,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                     </div>
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0" align="start">
+                <PopoverContent className="w-100 p-0" align="start">
                   <Command>
                     <CommandInput placeholder={t("Поиск части...", "Qism qidirish...", "Қисм қидириш...")} />
                     <CommandList>
@@ -1530,8 +1530,8 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
         </DialogContent>
       </Dialog >
       <Dialog open={isCardOpen} onOpenChange={setIsCardOpen}>
-        <DialogContent className="max-w-3xl rounded-3xl border-none shadow-2xl backdrop-blur-2xl bg-white/95 z-[9999] p-0 overflow-hidden text-slate-900">
-          <div className="relative h-32 bg-gradient-to-r from-primary/10 to-primary/5">
+        <DialogContent className="max-w-3xl rounded-3xl border-none shadow-2xl backdrop-blur-2xl bg-white/95 z-9999 p-0 overflow-hidden text-slate-900">
+          <div className="relative h-32 bg-linear-to-r from-primary/10 to-primary/5">
             <div className="absolute -bottom-12 left-8 flex items-end gap-6">
               <div className={cn(
                 "h-24 w-24 rounded-3xl flex items-center justify-center font-bold text-3xl shadow-2xl border-4 border-white",

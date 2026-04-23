@@ -30,13 +30,13 @@ const getPersonnelFullName = (id: string) => {
 };
 
 export function CommissionAvatarGroup({ members, maxVisible = 3 }: CommissionAvatarGroupProps) {
-    const visibleMembers = members.map(m => ({ ...m, isLead: m.role === "Главный ревизор" })).sort((a, b) => (a.isLead === b.isLead ? 0 : a.isLead ? -1 : 1)).slice(0, maxVisible)
+    const visibleMembers = members.map(m => ({ ...m, isLead: m.role === "Председатель комиссии" })).sort((a, b) => (a.isLead === b.isLead ? 0 : a.isLead ? -1 : 1)).slice(0, maxVisible)
     const remainingCount = Math.max(members.length - maxVisible, 0)
 
     // Sort members for tooltip: Lead first
     const sortedMembers = [...members].sort((a, b) => {
-        if (a.role === "Главный ревизор") return -1;
-        if (b.role === "Главный ревизор") return 1;
+        if (a.role === "Председатель комиссии") return -1;
+        if (b.role === "Председатель комиссии") return 1;
         return 0;
     });
 
@@ -50,10 +50,10 @@ export function CommissionAvatarGroup({ members, maxVisible = 3 }: CommissionAva
                 <TooltipTrigger asChild>
                     <div className="flex -space-x-2 hover:space-x-1 transition-all duration-200 cursor-pointer p-1 rounded-md hover:bg-muted/50">
                         {visibleMembers.map((member, i) => (
-                            <Avatar key={member.id} className={cn("h-8 w-8 border-2 border-background", member.role === "Главный ревизор" ? "ring-2 ring-blue-400 z-10" : "z-0")}>
+                            <Avatar key={member.id} className={cn("h-8 w-8 border-2 border-background", member.role === "Председатель комиссии" ? "ring-2 ring-blue-400 z-10" : "z-0")}>
                                 {/* Placeholder for image URL if available in future */}
                                 <AvatarImage src="" />
-                                <AvatarFallback className={cn("text-xs", member.role === "Главный ревизор" ? "bg-blue-100 text-blue-700 font-bold" : "bg-slate-100 text-slate-700")}>
+                                <AvatarFallback className={cn("text-xs", member.role === "Председатель комиссии" ? "bg-blue-100 text-blue-700 font-bold" : "bg-slate-100 text-slate-700")}>
                                     {getPersonnelInitials(member.name)}
                                 </AvatarFallback>
                             </Avatar>
@@ -66,15 +66,15 @@ export function CommissionAvatarGroup({ members, maxVisible = 3 }: CommissionAva
                     </div>
                 </TooltipTrigger>
                 <TooltipContent className="p-0 overflow-hidden border shadow-lg animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
-                    <div className="bg-popover p-3 min-w-[280px]">
+                    <div className="bg-popover p-3 min-w-70">
                         <div className="text-sm font-semibold mb-2 pb-2 border-b">
                             Назначенные ревизоры ({members.length} чел.)
                         </div>
-                        <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                        <div className="space-y-3 max-h-75 overflow-y-auto">
                             {sortedMembers.map((member) => (
                                 <div key={member.id} className="flex items-start gap-3 text-sm">
                                     <Avatar className="h-8 w-8 shrink-0">
-                                        <AvatarFallback className={cn("text-xs", member.role === "Главный ревизор" ? "bg-blue-100 text-blue-700" : "")}>
+                                        <AvatarFallback className={cn("text-xs", member.role === "Председатель комиссии" ? "bg-blue-100 text-blue-700" : "")}>
                                             {getPersonnelInitials(member.name)}
                                         </AvatarFallback>
                                     </Avatar>

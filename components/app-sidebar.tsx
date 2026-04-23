@@ -400,8 +400,11 @@ export function AppSidebar({ user }: { user: User | null }) {
       if (savedModules) {
         const parsed = JSON.parse(savedModules)
         // Ensure core modules are visible
-        const requiredModules = ["reference", "analytics-main", "dashboard-v2", "receivables", "audits", "personnel", "violations", "admin"]
+        const requiredModules = ["dashboard", "planning", "reference", "analytics-main", "dashboard-v2", "receivables", "audits", "personnel", "violations", "admin", "kpi", "reports"]
         let moduleUpdated = false
+        parsed.forEach((mod: string) => {
+          // No-op, just keep existing
+        })
         requiredModules.forEach(mod => {
           if (!parsed.includes(mod)) {
             parsed.push(mod)
@@ -420,7 +423,12 @@ export function AppSidebar({ user }: { user: User | null }) {
       if (savedSubmodules) {
         const parsed = JSON.parse(savedSubmodules)
         // Ensure important submodules are visible
-        const requiredSubmodules = ["receivables", "personnel-units", "personnel-list", "personnel-personnel", "financial-violations", "assets", "financial-audits", "law-enforcement", "service-investigations", "metrology", "database-schema"]
+        const requiredSubmodules = [
+          "annual-plan", "orders", "receivables", "personnel-units", 
+          "personnel-list", "personnel-personnel", "financial-violations", 
+          "assets", "financial-audits", "law-enforcement", "service-investigations", 
+          "metrology", "database-schema", "kpi-management", "report-generation"
+        ]
         let subUpdated = false
         requiredSubmodules.forEach(sub => {
           if (!parsed.includes(sub)) {
@@ -481,7 +489,7 @@ export function AppSidebar({ user }: { user: User | null }) {
         } as React.CSSProperties
       }
     >
-      <SidebarHeader className="border-b border-white/10 p-4 bg-gradient-to-b from-[hsl(207,50%,35%)] to-[hsl(207,50%,30%)]">
+      <SidebarHeader className="border-b border-white/10 p-4 bg-linear-to-b from-[hsl(207,50%,35%)] to-[hsl(207,50%,30%)]">
         <div className="flex items-center gap-3">
           <div className="p-1">
             <img src="/logo.svg" width={40} height={40} alt="" />
@@ -516,7 +524,7 @@ export function AppSidebar({ user }: { user: User | null }) {
                   onClick={() => startTour("welcome")}
                   className="group px-3 py-2 rounded-md transition-all duration-200 hover:bg-white/5 cursor-pointer"
                 >
-                  <div className="p-2 rounded-lg transition-all duration-300 bg-cyan-500/20 group-hover:bg-gradient-to-br group-hover:from-cyan-400 group-hover:to-blue-500 group-hover:shadow-lg group-hover:shadow-cyan-400/70 group-hover:scale-110">
+                  <div className="p-2 rounded-lg transition-all duration-300 bg-cyan-500/20 group-hover:bg-linear-to-br group-hover:from-cyan-400 group-hover:to-blue-500 group-hover:shadow-lg group-hover:shadow-cyan-400/70 group-hover:scale-110">
                     <HelpCircle className="h-5 w-5 text-white" />
                   </div>
                   <span className="font-medium text-sm text-cyan-50 group-hover:text-white group-hover:font-semibold transition-all">
@@ -531,10 +539,10 @@ export function AppSidebar({ user }: { user: User | null }) {
 
       <SidebarSeparator className="bg-white/10" />
 
-      <SidebarFooter className="p-4 bg-gradient-to-b from-[hsl(207,50%,30%)] to-[hsl(207,50%,25%)] border-t border-white/10">
+      <SidebarFooter className="p-4 bg-linear-to-b from-[hsl(207,50%,30%)] to-[hsl(207,50%,25%)] border-t border-white/10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0 flex-1">
-            <div className="w-10 h-10 rounded-lg bg-cyan-500/30 shadow-md shadow-cyan-400/40 flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-cyan-500/30 shadow-md shadow-cyan-400/40 flex items-center justify-center shrink-0">
               <Icons.User className="h-5 w-5 text-cyan-200" />
             </div>
             <div className="text-xs min-w-0">
@@ -549,7 +557,7 @@ export function AppSidebar({ user }: { user: User | null }) {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex items-center gap-1 shrink-0">
             <Link href="/help">
               <Button
                 variant="ghost"

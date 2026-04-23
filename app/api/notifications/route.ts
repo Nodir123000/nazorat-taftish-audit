@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { notificationService } from "@/lib/services/notification-service";
@@ -17,12 +18,21 @@ export async function GET(req: NextRequest) {
         const unreadCount = await notificationService.getUnreadCount(user.user_id);
         
         return NextResponse.json({ 
-            notifications,
-            unreadCount
+            success: true,
+            data: {
+                notifications,
+                unreadCount
+            }
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error("[API Notifications GET]", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        return NextResponse.json({ 
+            error: {
+                code: "INTERNAL_SERVER_ERROR",
+                message: error.message,
+                details: process.env.NODE_ENV === "development" ? error.stack : undefined
+            }
+        }, { status: 500 });
     }
 }
 
@@ -50,3 +60,4 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
+

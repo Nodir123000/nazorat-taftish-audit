@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { withAuth, AuthContext } from '@/lib/security/rbac-guardian';
 import { unplannedAuditsService } from '@/lib/services/unplanned-audits-service';
 import { NextResponse } from 'next/server';
@@ -33,3 +34,4 @@ export const POST = withAuth(async (req: Request, ctx: AuthContext) => {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 }, 'PS-3', 'CREATE');
+

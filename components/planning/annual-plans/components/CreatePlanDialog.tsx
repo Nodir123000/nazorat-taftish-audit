@@ -23,8 +23,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandGroup, CommandItem, CommandInput, CommandList, CommandEmpty } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/i18n/hooks"
-import { getLocalizedAuthorityName, toSafeString, Locale } from "@/lib/utils/localization"
-import { militaryUnits, controlAuthorities, controlDirections } from "@/lib/data/military-data"
+import { getLocalizedAuthorityName, getLocalizedDistrictName, toSafeString, Locale } from "@/lib/utils/localization"
+import { militaryUnits, militaryDistricts, controlAuthorities, controlDirections } from "@/lib/data/military-data"
 
 interface CreatePlanDialogProps {
     open: boolean
@@ -57,6 +57,7 @@ export function CreatePlanDialog({
         incomingNumber: "",
         unit: "",
         unitLocation: "",
+        unitDistrict: "",
         controlAuthority: "",
         inspectionDirection: "",
         inspectionType: "2301", // Default value
@@ -71,6 +72,7 @@ export function CreatePlanDialog({
 
     const [newSubordinateUnit, setNewSubordinateUnit] = useState({ unitCode: "", unitName: "", allowanceType: "full" })
     const [openAuthoritySelect, setOpenAuthoritySelect] = useState(false)
+    const [openDistrictSelect, setOpenDistrictSelect] = useState(false)
     const [openAllowanceTypeSelect, setOpenAllowanceTypeSelect] = useState(false)
 
     useEffect(() => {
@@ -132,7 +134,7 @@ export function CreatePlanDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-175 max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>
                         {isEditing
@@ -171,10 +173,25 @@ export function CreatePlanDialog({
                             <UnitSelect
                                 value={formData.unit}
                                 onUnitChange={(unit) => {
+                                    // Robust check: if unit object is incomplete, find it in our data
+                                    let fullUnit = unit;
+                                    if (!unit.district || !unit.location) {
+                                        const searchName = typeof unit.name === 'object' ? unit.name.ru : unit.name;
+                                        const found = militaryUnits.find(u => 
+                                            u.name === searchName || 
+                                            u.stateNumber === searchName || 
+                                            u.id?.toString() === unit.id?.toString()
+                                        );
+                                        if (found) fullUnit = { ...unit, ...found };
+                                    }
+
+                                    const unitName = typeof fullUnit.name === 'object' ? fullUnit.name.ru : fullUnit.name;
+
                                     setFormData({
                                         ...formData,
-                                        unit: unit.name,
-                                        unitLocation: unit.location || formData.unitLocation
+                                        unit: unitName,
+                                        unitLocation: fullUnit.location || formData.unitLocation,
+                                        unitDistrict: fullUnit.district || formData.unitDistrict
                                     });
                                 }}
                                 onValueChange={(value) => {
@@ -196,6 +213,43 @@ export function CreatePlanDialog({
                         </div>
                     </div>
 
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                            <Label>{t("common.district")}</Label>
+                            <Popover open={openDistrictSelect} onOpenChange={setOpenDistrictSelect}>
+                                <PopoverTrigger asChild>
+                                    <Button variant="outline" className="w-full justify-between h-10 font-normal">
+                                        {formData.unitDistrict ? getLocalizedDistrictName(formData.unitDistrict, locale, true) : t("common.select")}
+                                        <Icons.ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-75 p-0">
+                                    <Command>
+                                        <CommandInput placeholder={t("common.search")} />
+                                        <CommandList>
+                                            <CommandEmpty>{t("common.noResults")}</CommandEmpty>
+                                            <CommandGroup>
+                                                {militaryDistricts.map((district) => (
+                                                    <CommandItem
+                                                        key={district.id}
+                                                        value={district.name}
+                                                        onSelect={(val) => {
+                                                            setFormData({ ...formData, unitDistrict: val })
+                                                            setOpenDistrictSelect(false)
+                                                        }}
+                                                    >
+                                                        <Icons.Check className={cn("mr-2 h-4 w-4", formData.unitDistrict === district.name ? "opacity-100" : "opacity-0")} />
+                                                        {toSafeString(locale === "uzLatn" ? district.name_uz_latn : locale === "uzCyrl" ? district.name_uz_cyrl : district.name, locale as any)}
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                    </div>
+
                     <div className="grid gap-2">
                         <Label>{t("annual.approved.controlAuthority")}</Label>
                         <Popover open={openAuthoritySelect} onOpenChange={setOpenAuthoritySelect}>
@@ -205,10 +259,10 @@ export function CreatePlanDialog({
                                     <Icons.ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-[500px] p-0" align="start">
+                            <PopoverContent className="w-125 p-0" align="start">
                                 <Command>
                                     <CommandInput placeholder={t("common.search")} />
-                                    <CommandList className="max-h-[300px]">
+                                    <CommandList className="max-h-75">
                                         <CommandEmpty>{t("common.noResults")}</CommandEmpty>
                                         <CommandGroup heading={locale === "ru" ? "Справочник БД" : "MB ma'lumotnomasi"}>
                                             {supplyDepartments.map((dept) => (
@@ -398,7 +452,7 @@ export function CreatePlanDialog({
                                             <Icons.ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-[200px] p-0">
+                                    <PopoverContent className="w-50 p-0">
                                         <Command>
                                             <CommandGroup>
                                                 <CommandItem onSelect={() => { setNewSubordinateUnit({ ...newSubordinateUnit, allowanceType: "full" }); setOpenAllowanceTypeSelect(false); }}>

@@ -20,7 +20,7 @@ export function UnitCard({ unit }: UnitCardProps) {
     return (
         <div className="flex flex-col gap-6">
             {/* Top Header Card */}
-            <Card className="border-none shadow-md bg-gradient-to-r from-blue-700 to-indigo-800 text-white overflow-hidden relative">
+            <Card className="border-none shadow-md bg-linear-to-r from-blue-700 to-indigo-800 text-white overflow-hidden relative">
                 <div className="absolute top-0 right-0 p-8 opacity-10">
                     <Icons.Home className="h-32 w-32" />
                 </div>
@@ -40,7 +40,7 @@ export function UnitCard({ unit }: UnitCardProps) {
                             <h1 className="text-3xl font-bold mb-2 drop-shadow-md">{unit.name}</h1>
                             <p className="text-blue-100 text-lg opacity-90 max-w-2xl">{unit.fullName}</p>
                         </div>
-                        <div className="flex flex-col gap-3 min-w-[200px]">
+                        <div className="flex flex-col gap-3 min-w-50">
                             <Button
                                 variant="outline"
                                 className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30 backdrop-blur-sm transition-all shadow-lg"
@@ -108,7 +108,7 @@ export function UnitCard({ unit }: UnitCardProps) {
                 </div>
 
                 {/* Main Content Area */}
-                <div className="md:col-span-9 bg-white rounded-xl shadow-md border border-slate-100 p-6 min-h-[500px]">
+                <div className="md:col-span-9 bg-white rounded-xl shadow-md border border-slate-100 p-6 min-h-125">
                     <UnitSectionContent section={activeSection} unit={unit} />
                 </div>
             </div>

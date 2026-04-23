@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db/prisma"
 import { getCurrentUser } from "@/lib/auth"
@@ -180,3 +181,4 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Ошибка удаления" }, { status: 500 })
   }
 }
+

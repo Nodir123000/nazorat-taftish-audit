@@ -84,7 +84,7 @@ export function InspectorPhotoCard({ inspector }: InspectorPhotoCardProps) {
                 <div className="flex flex-col items-center">
                     {/* Avatar with Precision Border */}
                     <div className="relative mb-6 group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                        <div className="absolute -inset-2 bg-gradient-to-tr from-primary/20 to-transparent rounded-2xl blur-sm opacity-50" />
+                        <div className="absolute -inset-2 bg-linear-to-tr from-primary/20 to-transparent rounded-2xl blur-sm opacity-50" />
                         <Avatar className="h-64 w-64 rounded-xl border-[3px] border-primary/40 shadow-2xl transition-all duration-500 group-hover:scale-[1.02] group-hover:border-primary">
                             <AvatarImage src={localPhoto || "/placeholder.svg"} alt={inspector.fullName} className="object-cover" />
                             <AvatarFallback className="text-7xl rounded-xl bg-primary/5 text-primary font-black tracking-tighter">
@@ -104,7 +104,7 @@ export function InspectorPhotoCard({ inspector }: InspectorPhotoCardProps) {
 
                         {/* Rank Insignia Style Badge */}
                         <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-primary px-4 py-1 rounded-sm shadow-xl border border-white/20">
-                            <span className="text-[10px] font-black text-white tracking-[0.2em] uppercase whitespace-nowrap">
+                            <span className="text-tiny font-black text-white tracking-[0.2em] uppercase whitespace-nowrap">
                                 {inspector.militaryRank}
                             </span>
                         </div>
@@ -112,7 +112,7 @@ export function InspectorPhotoCard({ inspector }: InspectorPhotoCardProps) {
 
                     {/* Personal Identification Section */}
                     <div className="w-full text-center mb-6 pt-2">
-                        <div className="text-[10px] font-mono text-muted-foreground tracking-[0.3em] uppercase mb-1">Служебный ранг</div>
+                        <div className="text-tiny font-mono text-muted-foreground tracking-[0.3em] uppercase mb-1">Служебный ранг</div>
                         <Badge variant="outline" className={`rounded-sm border-2 font-bold px-3 py-1 ${getInspectorCategoryColor(inspector.inspectorCategory)}`}>
                             {inspector.inspectorCategory.toUpperCase()}
                         </Badge>
@@ -122,7 +122,7 @@ export function InspectorPhotoCard({ inspector }: InspectorPhotoCardProps) {
                     <div className="w-full bg-muted/40 border-y border-border/60 py-4 px-2 mb-6">
                         <div className="flex justify-between items-end mb-3">
                             <div className="space-y-1">
-                                <span className="text-[9px] font-bold text-muted-foreground tracking-widest uppercase">Эффективность (KPI)</span>
+                                <span className="text-mini font-bold text-muted-foreground tracking-widest uppercase">Эффективность (KPI)</span>
                                 <div className={`text-sm font-black tracking-tight ${getKpiRatingColor(inspector.kpiRating)}`}>
                                     {getKpiRatingText(inspector.kpiRating).toUpperCase()}
                                 </div>
@@ -150,7 +150,7 @@ export function InspectorPhotoCard({ inspector }: InspectorPhotoCardProps) {
                             { label: "В РАБОТЕ", value: inspector.auditsInProgress, color: "text-emerald-500" }
                         ].map((stat, i) => (
                             <div key={i} className="bg-card p-4 flex flex-col items-center justify-center transition-colors hover:bg-muted/30">
-                                <span className="text-[9px] font-bold text-muted-foreground tracking-widest uppercase mb-1">{stat.label}</span>
+                                <span className="text-mini font-bold text-muted-foreground tracking-widest uppercase mb-1">{stat.label}</span>
                                 <span className={`text-2xl font-mono font-black ${stat.color}`}>{stat.value}</span>
                             </div>
                         ))}
@@ -161,9 +161,9 @@ export function InspectorPhotoCard({ inspector }: InspectorPhotoCardProps) {
                         <div className="flex justify-between items-center relative z-10">
                             <div className="flex items-center gap-2">
                                 <Icons.ShieldCheck className="h-3.5 w-3.5 text-primary" />
-                                <span className="text-[9px] font-bold text-muted-foreground tracking-widest uppercase">Контракт до:</span>
+                                <span className="text-mini font-bold text-muted-foreground tracking-widest uppercase">Контракт до:</span>
                             </div>
-                            <span className="font-mono text-[11px] font-bold text-primary">
+                            <span className="font-mono text-tiny font-bold text-primary">
                                 {new Date(inspector.contractEndDate).toLocaleDateString("ru-RU")}
                             </span>
                         </div>

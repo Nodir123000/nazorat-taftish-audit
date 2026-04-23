@@ -2,12 +2,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// generator dbml {
-//   provider   = "prisma-dbml-generator"
-//   output     = "../../chartdb-main/chartdb-main/public"
-//   outputName = "live-schema.dbml"
-// }
-
 datasource db {
   provider = "postgresql"
 }
@@ -79,20 +73,20 @@ model briefings {
 }
 
 model commission_members {
-  id             Int       @id @default(autoincrement())
+  id             Int        @id @default(autoincrement())
   audit_id       Int?
   order_id       Int
   user_id        Int?
+  role           String     @db.VarChar(50)
+  is_responsible Boolean?   @default(false)
+  assigned_from  DateTime?  @db.Date
+  assigned_to    DateTime?  @db.Date
   personnel_id   Int?
-  role           String    @db.VarChar(50)
-  is_responsible Boolean?  @default(false)
-  assigned_from  DateTime? @db.Date
-  assigned_to    DateTime? @db.Date
-  created_at     DateTime? @default(now())
-  audits         audits?   @relation(fields: [audit_id], references: [id])
-  orders         orders    @relation(fields: [order_id], references: [id])
-  users          users?    @relation(fields: [user_id], references: [user_id])
+  created_at     DateTime?  @default(now())
+  audits         audits?    @relation(fields: [audit_id], references: [id])
+  orders         orders     @relation(fields: [order_id], references: [id])
   personnel      personnel? @relation(fields: [personnel_id], references: [id])
+  users          users?     @relation(fields: [user_id], references: [user_id])
 }
 
 model decisions {
@@ -140,9 +134,9 @@ model documents {
   file_size    Int?
   description  String?
   uploaded_at  DateTime? @default(now())
-  created_at   DateTime? @default(now())
   entity_type  String?   @db.VarChar(50)
   entity_id    Int?
+  created_at   DateTime? @default(now())
 }
 
 model financial_audits {
@@ -190,10 +184,10 @@ model financial_violations {
   amount               Decimal?               @default(0) @db.Decimal(18, 2)
   recovered            Decimal?               @default(0) @db.Decimal(18, 2)
   count                Int?                   @default(0)
-  recovered_count      Int?                   @default(0)
   responsible          String?                @db.VarChar(255)
   created_at           DateTime?              @default(now())
   updated_at           DateTime?              @default(now())
+  recovered_count      Int?                   @default(0)
   financial_repayments financial_repayments[]
   financial_audits     financial_audits       @relation(fields: [audit_id], references: [id], onDelete: Cascade)
 }
@@ -260,32 +254,32 @@ model orders {
 }
 
 model personnel {
-  id                   Int                  @id @default(autoincrement())
-  physical_person_id   Int
-  service_number       String?              @unique @db.VarChar(50)
-  pnr                  String?              @unique @db.VarChar(50)
-  rank_id              Int?
-  unit_id              Int?
-  position_id          Int?
-  vus_id               Int?
-  category_id          Int?
-  status               String?              @default("active") @db.VarChar(50)
-  service_start_date   DateTime?            @db.Date
-  service_end_date     DateTime?            @db.Date
-  clearance_level      String?              @db.VarChar(50)
-  emergency_contact    String?              @db.VarChar(255)
-  emergency_phone      String?              @db.VarChar(50)
-  full_name            String?
-  created_at           DateTime?            @default(now())
-  updated_at           DateTime?            @default(now())
-  financial_audits     financial_audits[]
-  ref_physical_persons ref_physical_persons @relation(fields: [physical_person_id], references: [id])
-  ref_positions        ref_positions?       @relation(fields: [position_id], references: [id])
-  ref_ranks            ref_ranks?           @relation(fields: [rank_id], references: [rank_id])
-  ref_units            ref_units?           @relation(fields: [unit_id], references: [unit_id])
-  ref_vus_list         ref_vus_list?        @relation(fields: [vus_id], references: [id])
-  commission_members  commission_members[]
+  id                      Int                       @id @default(autoincrement())
+  physical_person_id      Int
+  service_number          String?                   @unique @db.VarChar(50)
+  pnr                     String?                   @unique @db.VarChar(50)
+  rank_id                 Int?
+  unit_id                 Int?
+  position_id             Int?
+  vus_id                  Int?
+  category_id             Int?
+  status                  String?                   @default("active") @db.VarChar(50)
+  service_start_date      DateTime?                 @db.Date
+  service_end_date        DateTime?                 @db.Date
+  clearance_level         String?                   @db.VarChar(50)
+  emergency_contact       String?                   @db.VarChar(255)
+  emergency_phone         String?                   @db.VarChar(50)
+  full_name               String?
+  created_at              DateTime?                 @default(now())
+  updated_at              DateTime?                 @default(now())
+  commission_members      commission_members[]
+  financial_audits        financial_audits[]
   internal_investigations internal_investigations[]
+  ref_physical_persons    ref_physical_persons      @relation(fields: [physical_person_id], references: [id])
+  ref_positions           ref_positions?            @relation(fields: [position_id], references: [id])
+  ref_ranks               ref_ranks?                @relation(fields: [rank_id], references: [rank_id])
+  ref_units               ref_units?                @relation(fields: [unit_id], references: [unit_id])
+  ref_vus_list            ref_vus_list?             @relation(fields: [vus_id], references: [id])
 }
 
 model plan_change_log {
@@ -649,6 +643,7 @@ model ref_units {
   area_id                Int?
   audits                 audits[]
   findings               findings[]
+  inspector_rotations    inspector_rotations[]
   orders                 orders[]
   personnel              personnel[]
   ref_areas              ref_areas?              @relation(fields: [area_id], references: [id])
@@ -656,9 +651,8 @@ model ref_units {
   ref_specializations    ref_specializations?    @relation(fields: [specialization_id], references: [id])
   ref_unit_types         ref_unit_types?         @relation(fields: [unit_type_id], references: [id])
   rev_plan_year          rev_plan_year[]
-  violations             violations[]
   unplanned_audits       unplanned_audits[]
-  inspector_rotations    inspector_rotations[]
+  violations             violations[]
 }
 
 model ref_violation_reasons {
@@ -715,7 +709,7 @@ model regulatory_documents {
   status     String   @default("active") @db.VarChar(50)
   content    String?
   created_at DateTime @default(now())
-  updated_at DateTime
+  updated_at DateTime @updatedAt
   tags       String[]
   version    Int      @default(1)
 }
@@ -775,127 +769,35 @@ model ui_translations {
 }
 
 model users {
-  user_id                                           Int                  @id @default(autoincrement())
-  username                                          String               @unique @db.VarChar(100)
-  password_hash                                     String               @db.VarChar(255)
-  fullname                                          String               @db.VarChar(255)
-  rank                                              String?              @db.VarChar(100)
-  position                                          String?              @db.VarChar(255)
-  role                                              String               @default("inspector") @db.VarChar(50)
-  email                                             String?              @db.VarChar(255)
-  phone                                             String?              @db.VarChar(50)
+  user_id                                           Int                       @id @default(autoincrement())
+  username                                          String                    @unique @db.VarChar(100)
+  password_hash                                     String                    @db.VarChar(255)
+  fullname                                          String                    @db.VarChar(255)
+  rank                                              String?                   @db.VarChar(100)
+  position                                          String?                   @db.VarChar(255)
+  role                                              String                    @default("inspector") @db.VarChar(50)
+  email                                             String?                   @db.VarChar(255)
+  phone                                             String?                   @db.VarChar(50)
   unit_id                                           Int?
-  is_active                                         Boolean?             @default(true)
-  created_at                                        DateTime?            @default(now())
-  updated_at                                        DateTime?            @default(now())
-  specialization                                    String?              @db.VarChar(255)
-  has_completed_welcome_tour                        Boolean?             @default(false)
+  is_active                                         Boolean?                  @default(true)
+  created_at                                        DateTime?                 @default(now())
+  updated_at                                        DateTime?                 @default(now())
+  specialization                                    String?                   @db.VarChar(255)
+  has_completed_welcome_tour                        Boolean?                  @default(false)
   audit_log                                         audit_log[]
   audits                                            audits[]
   briefings                                         briefings[]
   commission_members                                commission_members[]
   doc_view_logs                                     doc_view_logs[]
+  inspector_profiles                                inspector_profiles?
+  internal_investigations                           internal_investigations[]
+  notifications                                     notifications[]
   orders                                            orders[]
   prescriptions                                     prescriptions[]
-  rev_plan_year_rev_plan_year_approved_by_idTousers rev_plan_year[]      @relation("rev_plan_year_approved_by_idTousers")
-  rev_plan_year_rev_plan_year_responsible_idTousers rev_plan_year[]      @relation("rev_plan_year_responsible_idTousers")
-  inspector_profiles                                inspector_profiles?
+  rev_plan_year_rev_plan_year_approved_by_idTousers rev_plan_year[]           @relation("rev_plan_year_approved_by_idTousers")
+  rev_plan_year_rev_plan_year_responsible_idTousers rev_plan_year[]           @relation("rev_plan_year_responsible_idTousers")
   unplanned_audits                                  unplanned_audits[]
-  internal_investigations                           internal_investigations[]
   user_kpi_scores                                   user_kpi_scores[]
-  notifications                                     notifications[]
-}
-
-// ==========================================
-//   ERP (Upgrade v2)
-// ==========================================
-
-// -3:   (  )
-model unplanned_audits {
-  id              Int       @id @default(autoincrement())
-  request_number  String    @unique @db.VarChar(50)
-  source_agency   String    @db.VarChar(100) // ,   ..
-  description     String?
-  unit_id         Int
-  assigned_to     Int?
-  status          String    @default("pending")
-  document_s3_key String?   @db.VarChar(500) //   MinIO/S3
-  created_at      DateTime  @default(now())
-  ref_units       ref_units @relation(fields: [unit_id], references: [unit_id])
-  users           users?    @relation(fields: [assigned_to], references: [user_id])
-}
-
-model internal_investigations {
-  id              Int       @id @default(autoincrement())
-  incident_date   DateTime  @db.Date
-  incident_type   String    @db.VarChar(100)
-  subject_id      Int       //   personnel
-  inspector_id    Int?
-  conclusion      String?
-  status          String    @default("active")
-  created_at      DateTime  @default(now())
-  personnel       personnel @relation(fields: [subject_id], references: [id])
-  users           users?    @relation(fields: [inspector_id], references: [user_id])
-}
-
-// -2:   (KPI)
-model kpi_metrics {
-  id              Int       @id @default(autoincrement())
-  code            String    @unique @db.VarChar(50)
-  name            Json
-  weight          Decimal   @db.Decimal(5, 2)
-  formula         String?   @db.Text
-  scores          user_kpi_scores[]
-}
-
-model user_kpi_scores {
-  id              Int       @id @default(autoincrement())
-  user_id         Int
-  metric_id       Int
-  score           Decimal   @db.Decimal(10, 2)
-  period_start    DateTime  @db.Date
-  period_end      DateTime  @db.Date
-  users           users     @relation(fields: [user_id], references: [user_id])
-  kpi_metrics     kpi_metrics @relation(fields: [metric_id], references: [id])
-}
-
-// -5:  - ()
-model inspector_profiles {
-  id              Int       @id @default(autoincrement())
-  user_id         Int       @unique
-  specialization  String?   @db.VarChar(255)
-  clearance_level String?   @db.VarChar(50)
-  total_audits    Int       @default(0)
-  users           users     @relation(fields: [user_id], references: [user_id])
-  rotations       inspector_rotations[]
-}
-
-model inspector_rotations {
-  id              Int       @id @default(autoincrement())
-  profile_id      Int
-  unit_id         Int
-  position        String    @db.VarChar(255)
-  start_date      DateTime  @db.Date
-  end_date        DateTime? @db.Date
-  order_number    String?   @db.VarChar(100)
-  inspector_profiles inspector_profiles @relation(fields: [profile_id], references: [id])
-  ref_units       ref_units @relation(fields: [unit_id], references: [unit_id])
-}
-
-// -9:   
-model i18n_keys {
-  id              Int       @id @default(autoincrement())
-  key             String    @unique @db.VarChar(255)
-  module          String?   @db.VarChar(50)
-  values          i18n_values[]
-}
-
-model i18n_values {
-  id              Int       @id @default(autoincrement())
-  key_id          Int
-  locale          String    @db.VarChar(10) // ru, uzLatn, uzCyrl
-  value           String    @db.Text
-  i18n_keys       i18n_keys @relation(fields: [key_id], references: [id])
 }
 
 model violations {
@@ -916,17 +818,99 @@ model violations {
   ref_units          ref_units?  @relation(fields: [unit_id], references: [unit_id])
 }
 
-// PS-10: Notifications and Alerts
 model notifications {
-  id          Int      @id @default(autoincrement())
-  user_id     Int
-  title       String   @db.VarChar(255)
-  message     String   @db.Text
-  type        String   @db.VarChar(50) // 'info', 'warning', 'error', 'success'
-  category    String?  @db.VarChar(50) // 'audit', 'deadline', 'system'
-  link        String?  @db.VarChar(255) // Reference link
-  is_read     Boolean  @default(false)
-  created_at  DateTime @default(now())
-  
-  users       users    @relation(fields: [user_id], references: [user_id])
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  title      String   @db.VarChar(255)
+  message    String
+  type       String   @db.VarChar(50)
+  category   String?  @db.VarChar(50)
+  link       String?  @db.VarChar(255)
+  is_read    Boolean  @default(false)
+  created_at DateTime @default(now())
+  users      users    @relation(fields: [user_id], references: [user_id])
+}
+
+model i18n_keys {
+  id          Int           @id @default(autoincrement())
+  key         String        @unique @db.VarChar(255)
+  module      String?       @db.VarChar(50)
+  i18n_values i18n_values[]
+}
+
+model i18n_values {
+  id        Int       @id @default(autoincrement())
+  key_id    Int
+  locale    String    @db.VarChar(10)
+  value     String
+  i18n_keys i18n_keys @relation(fields: [key_id], references: [id])
+}
+
+model inspector_profiles {
+  id                  Int                   @id @default(autoincrement())
+  user_id             Int                   @unique
+  specialization      String?               @db.VarChar(255)
+  clearance_level     String?               @db.VarChar(50)
+  total_audits        Int                   @default(0)
+  users               users                 @relation(fields: [user_id], references: [user_id])
+  inspector_rotations inspector_rotations[]
+}
+
+model inspector_rotations {
+  id                 Int                @id @default(autoincrement())
+  profile_id         Int
+  unit_id            Int
+  position           String             @db.VarChar(255)
+  start_date         DateTime           @db.Date
+  end_date           DateTime?          @db.Date
+  order_number       String?            @db.VarChar(100)
+  inspector_profiles inspector_profiles @relation(fields: [profile_id], references: [id])
+  ref_units          ref_units          @relation(fields: [unit_id], references: [unit_id])
+}
+
+model internal_investigations {
+  id            Int       @id @default(autoincrement())
+  incident_date DateTime  @db.Date
+  incident_type String    @db.VarChar(100)
+  subject_id    Int
+  inspector_id  Int?
+  conclusion    String?
+  status        String    @default("active")
+  created_at    DateTime  @default(now())
+  users         users?    @relation(fields: [inspector_id], references: [user_id])
+  personnel     personnel @relation(fields: [subject_id], references: [id])
+}
+
+model kpi_metrics {
+  id              Int               @id @default(autoincrement())
+  code            String            @unique @db.VarChar(50)
+  name            Json
+  weight          Decimal           @db.Decimal(5, 2)
+  formula         String?
+  user_kpi_scores user_kpi_scores[]
+}
+
+model unplanned_audits {
+  id              Int       @id @default(autoincrement())
+  request_number  String    @unique @db.VarChar(50)
+  source_agency   String    @db.VarChar(100)
+  description     String?
+  unit_id         Int
+  assigned_to     Int?
+  status          String    @default("pending")
+  document_s3_key String?   @db.VarChar(500)
+  created_at      DateTime  @default(now())
+  users           users?    @relation(fields: [assigned_to], references: [user_id])
+  ref_units       ref_units @relation(fields: [unit_id], references: [unit_id])
+}
+
+model user_kpi_scores {
+  id           Int         @id @default(autoincrement())
+  user_id      Int
+  metric_id    Int
+  score        Decimal     @db.Decimal(10, 2)
+  period_start DateTime    @db.Date
+  period_end   DateTime    @db.Date
+  kpi_metrics  kpi_metrics @relation(fields: [metric_id], references: [id])
+  users        users       @relation(fields: [user_id], references: [user_id])
 }

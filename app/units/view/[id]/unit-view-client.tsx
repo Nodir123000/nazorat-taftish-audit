@@ -77,7 +77,7 @@ export default function UnitsViewClient({ id, unitData }: UnitsViewClientProps) 
     if (!unitData || unitData.error || !unit) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 py-20 px-4 text-center">
-                <div className="w-24 h-24 bg-rose-50 rounded-[32px] flex items-center justify-center mb-6 shadow-xl shadow-rose-100/50 border border-rose-100">
+                <div className="w-24 h-24 bg-rose-50 rounded-3xl flex items-center justify-center mb-6 shadow-xl shadow-rose-100/50 border border-rose-100">
                     <Icons.AlertCircle className="h-12 w-12 text-rose-500" />
                 </div>
                 <h1 className="text-2xl font-black text-slate-900 mb-2 uppercase tracking-tight">Воинская часть не найдена</h1>
@@ -150,7 +150,7 @@ export default function UnitsViewClient({ id, unitData }: UnitsViewClientProps) 
                         </TabsList>
                     </div>
 
-                    <div className="p-6 bg-white min-h-[400px]">
+                    <div className="p-6 bg-white min-h-100">
                         <LazyTabContent value="general" activeTab={activeTab}>
                             <GeneralTab unit={unit} />
                         </LazyTabContent>

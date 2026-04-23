@@ -28,7 +28,7 @@ export const unplannedAuditsService = {
    * Получение списка проверок с автоматическим применением RLS.
    */
   async getUnplannedAudits(ctx: { user_id: number; unit_id: number }) {
-    return await prisma.$withRLS(ctx, async (tx) => {
+    return await (prisma as any).$withRLS(ctx, async (tx: any) => {
       return await tx.unplanned_audits.findMany({
         include: {
           ref_units: true,
@@ -45,7 +45,7 @@ export const unplannedAuditsService = {
    * Создание записи в рамках RLS-контекста.
    */
   async createUnplannedAudit(ctx: { user_id: number; unit_id: number }, data: UnplannedAuditPayload) {
-    return await prisma.$withRLS(ctx, async (tx) => {
+    return await (prisma as any).$withRLS(ctx, async (tx: any) => {
       return await tx.unplanned_audits.create({
         data: {
           ...data,

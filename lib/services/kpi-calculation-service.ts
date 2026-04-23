@@ -53,7 +53,7 @@ export const kpiCalculationService = {
   /**
    * Сбор агрегированных данных по пользователю для подстановки в формулу.
    */
-  private async buildCalculationScope(tx: any, userId: number, period: any) {
+  async buildCalculationScope(tx: any, userId: number, period: any) {
     const startDate = new Date(period.start);
     const endDate = new Date(period.end);
 

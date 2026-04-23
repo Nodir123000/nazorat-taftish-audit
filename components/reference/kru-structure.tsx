@@ -89,7 +89,7 @@ export function KruStructure() {
         const hasSubDepts = dept.subDepartments && dept.subDepartments.length > 0;
 
         return (
-            <div className={cn("flex flex-col items-center", isRoot ? "w-full" : "min-w-[400px]")}>
+            <div className={cn("flex flex-col items-center", isRoot ? "w-full" : "min-w-100")}>
                 {/* Department Node */}
                 <Card className={cn(
                     "relative w-full transition-all duration-300 hover:shadow-2xl border-none shadow-xl z-10 rounded-[28px] overflow-hidden",
@@ -179,7 +179,7 @@ export function KruStructure() {
                                             </TableCell>
                                             <TableCell className="py-3">
                                                 <div className="flex items-center gap-2">
-                                                    <span className={cn("text-sm font-semibold truncate max-w-[180px]", pos.personName ? "text-slate-900" : "text-muted-foreground/50 italic")}>
+                                                    <span className={cn("text-sm font-semibold truncate max-w-45", pos.personName ? "text-slate-900" : "text-muted-foreground/50 italic")}>
                                                         {pos.personName || "Вакансия"}
                                                     </span>
                                                     {!pos.personName && <Badge variant="outline" className="h-5 px-1.5 text-[9px] font-black uppercase tracking-tighter bg-amber-50 text-amber-600 border-amber-200">Открыто</Badge>}
@@ -210,7 +210,7 @@ export function KruStructure() {
                                     {/* Horizontal Line segment above child */}
                                     {arr.length > 1 && (
                                         <div className={cn(
-                                            "absolute -top-0 h-0.5 bg-slate-300/50",
+                                            "absolute top-0 h-0.5 bg-slate-300/50",
                                             idx === 0 ? "left-1/2 w-1/2" :
                                                 idx === arr.length - 1 ? "right-1/2 w-1/2" :
                                                     "left-0 w-full"
@@ -268,7 +268,7 @@ export function KruStructure() {
             </CardContent>
 
             <Dialog open={photoDialogOpen} onOpenChange={setPhotoDialogOpen}>
-                <DialogContent className="max-w-xl border-none shadow-2xl bg-white/95 backdrop-blur-xl rounded-[28px] overflow-hidden p-0">
+                <DialogContent className="max-w-xl border-none shadow-2xl bg-white/95 backdrop-blur-xl rounded-3xl overflow-hidden p-0">
                     <DialogHeader className="p-8 pb-0">
                         <div className="flex items-center gap-4">
                             <div className="p-3.5 rounded-2xl bg-indigo-600 text-white shadow-xl shadow-indigo-600/20">
@@ -334,14 +334,14 @@ export function KruStructure() {
                                 </div>
 
                                 {tempPhotoUrl && (
-                                    <div className="flex justify-center p-8 bg-indigo-50/30 rounded-[32px] border-2 border-dashed border-indigo-200">
+                                    <Card className="flex flex-col h-full bg-linear-to-b from-blue-50/50 to-white min-w-100 border-2 border-dashed border-indigo-200">
                                         <div className="relative">
-                                            <img src={tempPhotoUrl} alt="Preview" className="h-32 w-32 object-cover rounded-[24px] shadow-2xl ring-4 ring-white" />
-                                            <div className="absolute -top-2 -right-2 bg-emerald-500 text-white p-1 rounded-full shadow-lg">
+                                            <img src={tempPhotoUrl} alt="Preview" className="h-32 w-32 object-cover rounded-3xl shadow-2xl ring-4 ring-white" />
+                                            <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none group-hover:opacity-20 transition-opacity">
                                                 <Check className="h-4 w-4" />
                                             </div>
                                         </div>
-                                    </div>
+                                    </Card>
                                 )}
                             </div>
                         </div>

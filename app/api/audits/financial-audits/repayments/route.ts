@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db/prisma"
 import { getCurrentUser } from "@/lib/auth"
@@ -41,7 +43,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "repaid_amount must be a positive number" }, { status: 400 })
     }
 
-    const repayment = await prisma.$transaction(async (tx) => {
+    const repayment = await (prisma as any).$transaction(async (tx: any) => {
       const created = await tx.financial_repayments.create({
         data: {
           violation_id: Number(violation_id),
@@ -74,3 +76,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
+

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import type { AuditOrder, User, Employee } from "@/lib/types"
 import { unifiedOrdersService } from "@/lib/services/unified-orders-service"
-import { useI18n } from "@/lib/i18n/context"
+import { useTranslation } from "@/lib/i18n/hooks"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,7 +28,7 @@ interface UnifiedOrdersRegistryProps {
 }
 
 export function UnifiedOrdersRegistry({ user }: UnifiedOrdersRegistryProps) {
-  const { t } = useI18n()
+  const { t } = useTranslation()
   const [orders, setOrders] = useState<AuditOrder[]>([])
   const [employees, setEmployees] = useState<Employee[]>([])
   const [searchQuery, setSearchQuery] = useState("")

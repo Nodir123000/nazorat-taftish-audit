@@ -184,7 +184,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 4, stateId: "00004", stateNumber: "01/004",
         name: "Воинская часть 00004", name_uz_latn: "00004 harbiy qism", name_uz_cyrl: "00004 ҳарбий қисм",
         type: "Отдельный отряд", type_uz_latn: "Alohida otryad", type_uz_cyrl: "Алоҳида отряд",
-        location: "г. Карши", location_uz_latn: "Qarshi sh.", location_uz_cyrl: "Қарши ш.",
+        location: "г. Карши, Кашкадарьинская область", location_uz_latn: "Qarshi sh., Qashqadaryo viloyati", location_uz_cyrl: "Қарши ш., Қашқадарё вилояти",
         district: "ЮЗОВО", district_uz_latn: "JGMHO", district_uz_cyrl: "ЖГМҲО",
         description: "Инженерный отряд", description_uz_latn: "Muhandislik otryadi", description_uz_cyrl: "Муҳандислик отряди",
         specializationId: 1006, status: "active"
@@ -193,7 +193,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 5, stateId: "00005", stateNumber: "01/005",
         name: "Воинская часть 00005", name_uz_latn: "00005 harbiy qism", name_uz_cyrl: "00005 ҳарбий қисм",
         type: "Отдельный батальон", type_uz_latn: "Alohida batalyon", type_uz_cyrl: "Алоҳида батальон",
-        location: "г. Термез", location_uz_latn: "Termiz sh.", location_uz_cyrl: "Термиз ш.",
+        location: "г. Термез, Сурхандарьинская область", location_uz_latn: "Termiz sh., Surxondaryo viloyati", location_uz_cyrl: "Термиз ш., Сурхондарё вилояти",
         district: "ЮЗОВО", district_uz_latn: "JGMHO", district_uz_cyrl: "ЖГМҲО",
         description: "Батальон обеспечения", description_uz_latn: "Ta'minot batalyoni", description_uz_cyrl: "Таъминот батальони",
         specializationId: 1009, status: "active"
@@ -204,7 +204,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 6, stateId: "00006", stateNumber: "01/006",
         name: "Воинская часть 00006", name_uz_latn: "00006 harbiy qism", name_uz_cyrl: "00006 ҳарбий қисм",
         type: "Бригада", type_uz_latn: "Brigada", type_uz_cyrl: "Бригада",
-        location: "г. Фергана", location_uz_latn: "Farg'ona sh.", location_uz_cyrl: "Фарғона ш.",
+        location: "г. Фергана, Ферганская область", location_uz_latn: "Farg'ona sh., Farg'ona viloyati", location_uz_cyrl: "Фарғона ш., Фарғона вилояти",
         district: "ВВО", district_uz_latn: "ShHO", district_uz_cyrl: "ШҲО",
         description: "Десантно-штурмовая бригада", description_uz_latn: "Desant-shturm brigadasi", description_uz_cyrl: "Десант-штурм бригадаси",
         specializationId: 1004, status: "active"
@@ -213,7 +213,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 7, stateId: "00007", stateNumber: "01/007",
         name: "Воинская часть 00007", name_uz_latn: "00007 harbiy qism", name_uz_cyrl: "00007 ҳарбий қисм",
         type: "Бригада", type_uz_latn: "Brigada", type_uz_cyrl: "Бригада",
-        location: "г. Андижан", location_uz_latn: "Andijon sh.", location_uz_cyrl: "Андижон ш.",
+        location: "г. Андижан, Андижанская область", location_uz_latn: "Andijon sh., Andijon viloyati", location_uz_cyrl: "Андижон ш., Андижон вилояти",
         district: "ВВО", district_uz_latn: "ShHO", district_uz_cyrl: "ШҲО",
         description: "Мотострелковая бригада", description_uz_latn: "Motootqich brigada", description_uz_cyrl: "Мотоотқич бригада",
         specializationId: 1001, status: "active"
@@ -222,7 +222,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 8, stateId: "00008", stateNumber: "01/008",
         name: "Воинская часть 00008", name_uz_latn: "00008 harbiy qism", name_uz_cyrl: "00008 ҳарбий қисм",
         type: "Отдельный батальон", type_uz_latn: "Alohida batalyon", type_uz_cyrl: "Алоҳида батальон",
-        location: "г. Наманган", location_uz_latn: "Namangan sh.", location_uz_cyrl: "Наманган ш.",
+        location: "г. Наманган, Наманганская область", location_uz_latn: "Namangan sh., Namangan viloyati", location_uz_cyrl: "Наманган ш., Наманган вилояти",
         district: "ВВО", district_uz_latn: "ShHO", district_uz_cyrl: "ШҲО",
         description: "Артиллерийский батальон", description_uz_latn: "Artilleriya batalyoni", description_uz_cyrl: "Артиллерия батальони",
         specializationId: 1003, status: "active"
@@ -231,7 +231,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 9, stateId: "00009", stateNumber: "01/009",
         name: "Воинская часть 00009", name_uz_latn: "00009 harbiy qism", name_uz_cyrl: "00009 ҳарбий қисм",
         type: "Отдельный отряд", type_uz_latn: "Alohida otryad", type_uz_cyrl: "Алоҳида отряд",
-        location: "г. Фергана", location_uz_latn: "Farg'ona sh.", location_uz_cyrl: "Фарғона ш.",
+        location: "г. Фергана, Ферганская область", location_uz_latn: "Farg'ona sh., Farg'ona viloyati", location_uz_cyrl: "Фарғона ш., Фарғона вилояти",
         district: "ВВО", district_uz_latn: "ShHO", district_uz_cyrl: "ШҲО",
         description: "Зенитно-ракетный отряд", description_uz_latn: "Zenit-raketa otryadi", description_uz_cyrl: "Зенит-ракета отряди",
         specializationId: 1003, status: "active"
@@ -240,7 +240,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 10, stateId: "00010", stateNumber: "01/010",
         name: "Воинская часть 00010", name_uz_latn: "00010 harbiy qism", name_uz_cyrl: "00010 ҳарбий қисм",
         type: "Отдельный батальон", type_uz_latn: "Alohida batalyon", type_uz_cyrl: "Алоҳида батальон",
-        location: "г. Андижан", location_uz_latn: "Andijon sh.", location_uz_cyrl: "Андижон ш.",
+        location: "г. Андижан, Андижанская область", location_uz_latn: "Andijon sh., Andijon viloyati", location_uz_cyrl: "Андижон ш., Андижон вилояти",
         district: "ВВО", district_uz_latn: "ShHO", district_uz_cyrl: "ШҲО",
         description: "Батальон связи", description_uz_latn: "Aloqa batalyoni", description_uz_cyrl: "Алоқа батальони",
         specializationId: 1005, status: "active"
@@ -251,7 +251,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 11, stateId: "00011", stateNumber: "01/011",
         name: "Воинская часть 00011", name_uz_latn: "00011 harbiy qism", name_uz_cyrl: "00011 ҳарбий қисм",
         type: "Бригада", type_uz_latn: "Brigada", type_uz_cyrl: "Бригада",
-        location: "г. Ташкент", location_uz_latn: "Toshkent sh.", location_uz_cyrl: "Тошкент ш.",
+        location: "г. Ташкент, г. Ташкент", location_uz_latn: "Toshkent sh., Toshkent sh.", location_uz_cyrl: "Тошкент ш., Тошкент ш.",
         district: "ТВО", district_uz_latn: "THO", district_uz_cyrl: "ТҲО",
         description: "Мотострелковая бригада (Гвардейская)", description_uz_latn: "Motootqich brigada (Gvardiyachi)", description_uz_cyrl: "Мотоотқич бригада (Гвардиячи)",
         specializationId: 1001, status: "active"
@@ -260,7 +260,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 12, stateId: "00012", stateNumber: "01/012",
         name: "Воинская часть 00012", name_uz_latn: "00012 harbiy qism", name_uz_cyrl: "00012 ҳарбий қисм",
         type: "Бригада", type_uz_latn: "Brigada", type_uz_cyrl: "Бригада",
-        location: "г. Чирчик", location_uz_latn: "Chirchiq sh.", location_uz_cyrl: "Чирчиқ ш.",
+        location: "г. Чирчик, Ташкентская область", location_uz_latn: "Chirchiq sh., Toshkent viloyati", location_uz_cyrl: "Чирчиқ ш., Тошкент вилояти",
         district: "ТВО", district_uz_latn: "THO", district_uz_cyrl: "ТҲО",
         description: "Воздушно-десантная бригада", description_uz_latn: "Havo-desant brigadasi", description_uz_cyrl: "Ҳаво-десант бригадаси",
         specializationId: 1004, status: "active"
@@ -269,7 +269,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 13, stateId: "00013", stateNumber: "01/013",
         name: "Воинская часть 00013", name_uz_latn: "00013 harbiy qism", name_uz_cyrl: "00013 ҳарбий қисм",
         type: "Отдельный батальон", type_uz_latn: "Alohida batalyon", type_uz_cyrl: "Алоҳида батальон",
-        location: "г. Гулистан", location_uz_latn: "Guliston sh.", location_uz_cyrl: "Гулистон ш.",
+        location: "г. Гулистан, Сырдарьинская область", location_uz_latn: "Guliston sh., Sirdaryo viloyati", location_uz_cyrl: "Гулистон ш., Сирдарё вилояти",
         district: "ТВО", district_uz_latn: "THO", district_uz_cyrl: "ТҲО",
         description: "Батальон связи", description_uz_latn: "Aloqa batalyoni", description_uz_cyrl: "Алоқа батальони",
         specializationId: 1005, status: "active"
@@ -278,7 +278,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 14, stateId: "00014", stateNumber: "01/014",
         name: "Воинская часть 00014", name_uz_latn: "00014 harbiy qism", name_uz_cyrl: "00014 ҳарбий қисм",
         type: "Отдельный отряд", type_uz_latn: "Alohida otryad", type_uz_cyrl: "Алоҳида отряд",
-        location: "г. Ангрен", location_uz_latn: "Angren sh.", location_uz_cyrl: "Ангрен ш.",
+        location: "г. Ангрен, Ташкентская область", location_uz_latn: "Angren sh., Toshkent viloyati", location_uz_cyrl: "Ангрен ш., Тошкент вилояти",
         district: "ТВО", district_uz_latn: "THO", district_uz_cyrl: "ТҲО",
         description: "Горнострелковый отряд", description_uz_latn: "Tog'li o'qchi otryadi", description_uz_cyrl: "Тоғли ўқчи отряди",
         specializationId: 1001, status: "active"
@@ -287,7 +287,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 15, stateId: "00015", stateNumber: "01/015",
         name: "Воинская часть 00015", name_uz_latn: "00015 harbiy qism", name_uz_cyrl: "00015 ҳарбий қисм",
         type: "Отдельный батальон", type_uz_latn: "Alohida batalyon", type_uz_cyrl: "Алоҳида батальон",
-        location: "г. Ташкент", location_uz_latn: "Toshkent sh.", location_uz_cyrl: "Тошкент ш.",
+        location: "г. Ташкент, г. Ташкент", location_uz_latn: "Toshkent sh., Toshkent sh.", location_uz_cyrl: "Тошкент ш., Тошкент ш.",
         district: "ТВО", district_uz_latn: "THO", district_uz_cyrl: "ТҲО",
         description: "Учебный батальон", description_uz_latn: "O'quv batalyoni", description_uz_cyrl: "Ўқув батальони",
         specializationId: 1009, status: "active"
@@ -298,7 +298,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 16, stateId: "00016", stateNumber: "01/016",
         name: "Воинская часть 00016", name_uz_latn: "00016 harbiy qism", name_uz_cyrl: "00016 ҳарбий қисм",
         type: "Бригада", type_uz_latn: "Brigada", type_uz_cyrl: "Бригада",
-        location: "г. Самарканд", location_uz_latn: "Samarqand sh.", location_uz_cyrl: "Самарқанд ш.",
+        location: "г. Самарканд, Самаркандская область", location_uz_latn: "Samarqand sh., Samarqand viloyati", location_uz_cyrl: "Самарқанд ш., Самарқанд вилояти",
         district: "ЦВО", district_uz_latn: "MHO", district_uz_cyrl: "МҲО",
         description: "Мотострелковая бригада", description_uz_latn: "Motootqich brigada", description_uz_cyrl: "Мотоотқич бригада",
         specializationId: 1001, status: "active"
@@ -307,7 +307,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 17, stateId: "00017", stateNumber: "01/017",
         name: "Воинская часть 00017", name_uz_latn: "00017 harbiy qism", name_uz_cyrl: "00017 ҳарбий қисм",
         type: "Бригада", type_uz_latn: "Brigada", type_uz_cyrl: "Бригада",
-        location: "г. Джизак", location_uz_latn: "Jizzax sh.", location_uz_cyrl: "Жиззах ш.",
+        location: "г. Джизак, Джизакская область", location_uz_latn: "Jizzax sh., Jizzax viloyati", location_uz_cyrl: "Жиззах ш., Жиззах вилояти",
         district: "ЦВО", district_uz_latn: "MHO", district_uz_cyrl: "МҲО",
         description: "Танковая бригада", description_uz_latn: "Tank brigadasi", description_uz_cyrl: "Танк бригадаси",
         specializationId: 1002, status: "active"
@@ -316,7 +316,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 18, stateId: "00018", stateNumber: "01/018",
         name: "Воинская часть 00018", name_uz_latn: "00018 harbiy qism", name_uz_cyrl: "00018 ҳарбий қисм",
         type: "Отдельный батальон", type_uz_latn: "Alohida batalyon", type_uz_cyrl: "Алоҳида батальон",
-        location: "г. Самарканд", location_uz_latn: "Samarqand sh.", location_uz_cyrl: "Самарқанд ш.",
+        location: "г. Самарканд, Самаркандская область", location_uz_latn: "Samarqand sh., Samarqand viloyati", location_uz_cyrl: "Самарқанд ш., Самарқанд вилояти",
         district: "ЦВО", district_uz_latn: "MHO", district_uz_cyrl: "МҲО",
         description: "Саперный батальон", description_uz_latn: "Sapyorlar batalyoni", description_uz_cyrl: "Сапёрлар батальони",
         specializationId: 1006, status: "active"
@@ -325,7 +325,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 19, stateId: "00019", stateNumber: "01/019",
         name: "Воинская часть 00019", name_uz_latn: "00019 harbiy qism", name_uz_cyrl: "00019 ҳарбий қисм",
         type: "Отдельный отряд", type_uz_latn: "Alohida otryad", type_uz_cyrl: "Алоҳида отряд",
-        location: "г. Каттакурган", location_uz_latn: "Kattaqo'rg'on sh.", location_uz_cyrl: "Каттақўрғон ш.",
+        location: "г. Каттакурган, Самаркандская область", location_uz_latn: "Kattaqo'rg'on sh., Samarqand viloyati", location_uz_cyrl: "Каттақўрғон ш., Самарқанд вилояти",
         district: "ЦВО", district_uz_latn: "MHO", district_uz_cyrl: "МҲО",
         description: "Разведывательный отряд", description_uz_latn: "Razvedka otryadi", description_uz_cyrl: "Разведка отряди",
         specializationId: 1008, status: "active"
@@ -334,7 +334,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 20, stateId: "00020", stateNumber: "01/020",
         name: "Воинская часть 00020", name_uz_latn: "00020 harbiy qism", name_uz_cyrl: "00020 ҳарбий қисм",
         type: "Отдельный батальон", type_uz_latn: "Alohida batalyon", type_uz_cyrl: "Алоҳида батальон",
-        location: "г. Джизак", location_uz_latn: "Jizzax sh.", location_uz_cyrl: "Жиззах ш.",
+        location: "г. Джизак, Джизакская область", location_uz_latn: "Jizzax sh., Jizzax viloyati", location_uz_cyrl: "Жиззах ш., Жиззах вилояти",
         district: "ЦВО", district_uz_latn: "MHO", district_uz_cyrl: "МҲО",
         description: "Рота спецназначения", description_uz_latn: "Maxsus vazifador rota", description_uz_cyrl: "Махсус вазифадор рота",
         specializationId: 1004, status: "active"
@@ -345,7 +345,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 21, stateId: "00021", stateNumber: "01/021",
         name: "Воинская часть 00021", name_uz_latn: "00021 harbiy qism", name_uz_cyrl: "00021 ҳарбий қисм",
         type: "Бригада", type_uz_latn: "Brigada", type_uz_cyrl: "Бригада",
-        location: "г. Нукус", location_uz_latn: "Nukus sh.", location_uz_cyrl: "Нукус ш.",
+        location: "г. Нукус, Республика Каракалпакстан", location_uz_latn: "Nukus sh., Qoraqalpog'iston Respublikasi", location_uz_cyrl: "Нукус ш., Қорақалпоғистон Республикаси",
         district: "СЗВО", district_uz_latn: "ShGMHO", district_uz_cyrl: "ШГМҲО",
         description: "Мотострелковая бригада", description_uz_latn: "Motootqich brigada", description_uz_cyrl: "Мотоотқич бригада",
         specializationId: 1001, status: "active"
@@ -354,7 +354,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 22, stateId: "00022", stateNumber: "01/022",
         name: "Воинская часть 00022", name_uz_latn: "00022 harbiy qism", name_uz_cyrl: "00022 ҳарбий қисм",
         type: "Отдельный батальон", type_uz_latn: "Alohida batalyon", type_uz_cyrl: "Алоҳида батальон",
-        location: "г. Ургенч", location_uz_latn: "Urganch sh.", location_uz_cyrl: "Урганч ш.",
+        location: "г. Ургенч, Хорезмская область", location_uz_latn: "Urganch sh., Xorazm viloyati", location_uz_cyrl: "Урганч ш., Хоразм вилояти",
         district: "СЗВО", district_uz_latn: "ShGMHO", district_uz_cyrl: "ШГМҲО",
         description: "Береговой батальон", description_uz_latn: "Sohil batalyoni", description_uz_cyrl: "Соҳил батальони",
         specializationId: 1001, status: "active"
@@ -363,7 +363,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 23, stateId: "00023", stateNumber: "01/023",
         name: "Воинская часть 00023", name_uz_latn: "00023 harbiy qism", name_uz_cyrl: "00023 ҳарбий қисм",
         type: "Отдельный отряд", type_uz_latn: "Alohida otryad", type_uz_cyrl: "Алоҳида отряд",
-        location: "г. Нукус", location_uz_latn: "Nukus sh.", location_uz_cyrl: "Нукус ш.",
+        location: "г. Нукус, Республика Каракалпакстан", location_uz_latn: "Nukus sh., Qoraqalpog'iston Respublikasi", location_uz_cyrl: "Нукус ш., Қорақалпоғистон Республикаси",
         district: "СЗВО", district_uz_latn: "ShGMHO", district_uz_cyrl: "ШГМҲО",
         description: "Зенитный отряд", description_uz_latn: "Zenit otryadi", description_uz_cyrl: "Зенит отряди",
         specializationId: 1003, status: "active"
@@ -372,7 +372,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 24, stateId: "00024", stateNumber: "01/024",
         name: "Воинская часть 00024", name_uz_latn: "00024 harbiy qism", name_uz_cyrl: "00024 ҳарбий қисм",
         type: "Отдельный батальон", type_uz_latn: "Alohida batalyon", type_uz_cyrl: "Алоҳида батальон",
-        location: "г. Муйнак", location_uz_latn: "Mo'ynoq sh.", location_uz_cyrl: "Мўйноқ ш.",
+        location: "г. Муйнак, Республика Каракалпакстан", location_uz_latn: "Mo'ynoq sh., Qoraqalpog'iston Respublikasi", location_uz_cyrl: "Мўйноқ ш., Қорақалпоғистон Республикаси",
         district: "СЗВО", district_uz_latn: "ShGMHO", district_uz_cyrl: "ШГМҲО",
         description: "Пограничный батальон", description_uz_latn: "Chegara batalyoni", description_uz_cyrl: "Чегара батальони",
         specializationId: 1001, status: "active"
@@ -381,7 +381,7 @@ export const militaryUnits: MilitaryUnit[] = [
         id: 25, stateId: "00025", stateNumber: "01/025",
         name: "Воинская часть 00025", name_uz_latn: "00025 harbiy qism", name_uz_cyrl: "00025 ҳарбий қисм",
         type: "Отдельный батальон", type_uz_latn: "Alohida batalyon", type_uz_cyrl: "Алоҳида батальон",
-        location: "г. Ургенч", location_uz_latn: "Urganch sh.", location_uz_cyrl: "Урганч ш.",
+        location: "г. Ургенч, Хорезмская область", location_uz_latn: "Urganch sh., Xorazm viloyati", location_uz_cyrl: "Урганч ш., Хоразм вилояти",
         district: "СЗВО", district_uz_latn: "ShGMHO", district_uz_cyrl: "ШГМҲО",
         description: "Инженерный батальон", description_uz_latn: "Muhandislik batalyoni", description_uz_cyrl: "Муҳандислик батальони",
         specializationId: 1006, status: "active"

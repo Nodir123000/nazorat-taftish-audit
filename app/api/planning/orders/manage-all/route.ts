@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { NextRequest, NextResponse } from "next/server"
 import { planningService } from "../../../../../lib/services/planning-service"
 import { getCurrentUser } from "../../../../../lib/auth"
@@ -119,3 +120,4 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 })
     }
 }
+

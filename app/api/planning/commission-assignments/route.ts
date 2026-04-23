@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db/prisma"
 
@@ -142,3 +143,4 @@ export async function GET(request: NextRequest) {
         }, { status: 500 })
     }
 }
+

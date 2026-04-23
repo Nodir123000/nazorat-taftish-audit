@@ -65,7 +65,7 @@ export function ClassifierSelect({
 
     // Найти выбранное имя
     const selectedName = React.useMemo(() => {
-        const found = options.find((opt) => {
+        const found = options.find((opt: any) => {
             const optId = opt.id?.toString()
             const valStr = value?.toString()
             if (optId && valStr && optId === valStr) return true
@@ -79,7 +79,7 @@ export function ClassifierSelect({
     const filteredOptions = React.useMemo(() => {
         if (!searchQuery) return options
         const query = searchQuery.toLowerCase()
-        return options.filter((opt) => {
+        return options.filter((opt: any) => {
             const name = getLocalizedName(opt).toLowerCase()
             return name.includes(query) || (opt.id && opt.id.toString().includes(query))
         })
@@ -105,17 +105,17 @@ export function ClassifierSelect({
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-full min-w-[300px] p-0" align="start">
+            <PopoverContent className="w-full min-w-75 p-0" align="start">
                 <Command shouldFilter={false}>
                     <CommandInput
                         placeholder="Поиск..."
                         value={searchQuery}
                         onValueChange={setSearchQuery}
                     />
-                    <CommandList className="max-h-[300px]">
+                    <CommandList className="max-h-75">
                         <CommandEmpty>{loading ? "Загрузка данных..." : "Ничего не найдено"}</CommandEmpty>
                         <CommandGroup>
-                            {filteredOptions.map((opt) => {
+                            {filteredOptions.map((opt: any) => {
                                 const name = getLocalizedName(opt)
                                 return (
                                     <CommandItem

@@ -8,14 +8,15 @@ import { notificationService } from "@/lib/services/notification-service";
  */
 export async function PATCH(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
     const user = await getCurrentUser();
     if (!user) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const notificationId = parseInt(params.id);
+    const notificationId = parseInt(id);
     if (isNaN(notificationId)) {
         return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
@@ -41,14 +42,15 @@ export async function PATCH(
  */
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
     const user = await getCurrentUser();
     if (!user) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const notificationId = parseInt(params.id);
+    const notificationId = parseInt(id);
     if (isNaN(notificationId)) {
         return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }

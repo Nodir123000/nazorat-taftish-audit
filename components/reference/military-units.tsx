@@ -77,8 +77,11 @@ const militaryUnitSchema = z.object({
   location_uz_cyrl: z.string().optional(),
 })
 
+import { useUITranslations } from "@/lib/hooks/use-ui-translations"
+
 export function MilitaryUnits() {
   const { locale } = useI18n()
+  const { t: ui } = useUITranslations()
   const fetcher = (url: string) => fetch(url).then(res => res.json())
   const swrConfig = { dedupingInterval: 600000, revalidateOnFocus: false }
 
@@ -293,28 +296,24 @@ export function MilitaryUnits() {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-1">
         <div className="space-y-1.5">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2.5 rounded-2xl bg-indigo-600 text-white shadow-xl shadow-indigo-600/20">
-              <Building2 className="h-6 w-6" />
-            </div>
-            <h2 className="text-3xl font-black tracking-tight text-slate-900">
-              {t("Воинские части", "Harbiy qismlar", "Ҳарбий қисмлар")}
-            </h2>
-          </div>
-          <p className="text-lg font-medium text-muted-foreground/80 leading-relaxed pl-1">
-            {unitsText}
-          </p>
+          <h2 className="text-3xl font-black tracking-tight text-slate-900">
+            {ui("ref.units.title", "Воинские части")}
+          </h2>
         </div>
+        <p className="text-lg font-medium text-muted-foreground/80 leading-relaxed pl-1">
+          {ui("ref.units.description", "Справочник дислокации подразделений")} (Всего: {totalCount})
+        </p>
+      </div>
 
         <div className="flex items-center gap-4">
           <TechnicalNameBadge name="RefUnit" />
           <div className="relative group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-indigo-600 transition-colors" />
             <Input
-              placeholder={t("Поиск по ИД, названию...", "ID yoki nom bo'yicha qidirish...", "ID ёки ном бўйича қидириш...")}
+              placeholder={ui("common.search_placeholder", "Поиск...")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-11 h-12 w-full md:w-[350px] rounded-2xl bg-white border-none shadow-xl shadow-slate-200/50 focus:ring-4 focus:ring-indigo-500/10 transition-all font-bold text-sm"
+              className="pl-11 h-12 w-full md:w-88 rounded-2xl bg-white border-none shadow-xl shadow-slate-200/50 focus:ring-4 focus:ring-indigo-500/10 transition-all font-bold text-sm"
             />
           </div>
           <Button
@@ -322,28 +321,27 @@ export function MilitaryUnits() {
             className="h-12 rounded-2xl px-6 bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-600/20 font-black uppercase tracking-widest text-[11px] text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <Plus className="h-4 w-4 mr-2" />
-            {t("Добавить", "Qo'shish", "Қўшиш")}
+            {ui("common.add", "Добавить")}
           </Button>
         </div>
-      </div>
 
 
 
-      <Card className="border-none shadow-2xl shadow-slate-200/50 bg-white/80 backdrop-blur-xl rounded-[32px] overflow-hidden">
+      <Card className="border-none shadow-2xl shadow-primary/5 bg-white/60 backdrop-blur-xl rounded-4xl overflow-hidden">
         <CardContent className="p-0">
-          <div className="overflow-x-auto min-w-[1000px]">
+          <div className="overflow-x-auto min-w-250">
             <div className="flex flex-col">
                   <Table>
                     <TableHeader>
                       <TableRow className="hover:bg-transparent border-b border-slate-100 h-20 bg-slate-50/50">
-                        <TableHead className="w-[80px] px-8 font-black text-[10px] uppercase tracking-widest text-slate-400 text-center">ID</TableHead>
-                        <TableHead className="w-[120px] px-6 font-black text-[10px] uppercase tracking-widest text-slate-400">{t("Штат ID", "Shtat ID", "Штат ID")}</TableHead>
-                        <TableHead className="px-6 font-black text-[10px] uppercase tracking-widest text-slate-400">{t("Наименование", "Nomlanishi", "Номи")}</TableHead>
-                        <TableHead className="w-[180px] px-6 font-black text-[10px] uppercase tracking-widest text-slate-400">{t("Область", "Viloyat", "Вилоят")}</TableHead>
-                        <TableHead className="w-[180px] px-6 font-black text-[10px] uppercase tracking-widest text-slate-400">{t("Район", "Tuman", "Туман")}</TableHead>
-                        <TableHead className="w-[150px] px-6 font-black text-[10px] uppercase tracking-widest text-slate-400">{t("Округ", "Okrug", "Округ")}</TableHead>
-                        <TableHead className="w-[120px] px-6 font-black text-[10px] uppercase tracking-widest text-slate-400 text-center">{t("Статус", "Holati", "Ҳолати")}</TableHead>
-                        <TableHead className="w-[150px] px-8 font-black text-[10px] uppercase tracking-widest text-slate-400 text-right">{t("Действия", "Harakatlar", "Ҳаракатлар")}</TableHead>
+                        <TableHead className="w-20 px-8 font-black text-[10px] uppercase tracking-widest text-slate-400 text-center">ID</TableHead>
+                        <TableHead className="w-30 px-6 font-black text-[10px] uppercase tracking-widest text-slate-400">{ui("ref.units.field.state_id", "Штат ID")}</TableHead>
+                        <TableHead className="px-6 font-black text-[10px] uppercase tracking-widest text-slate-400">{ui("ref.units.field.name", "Наименование")}</TableHead>
+                        <TableHead className="w-45 px-6 font-black text-[10px] uppercase tracking-widest text-slate-400">{ui("ref.units.field.region", "Область")}</TableHead>
+                        <TableHead className="w-45 px-6 font-black text-[10px] uppercase tracking-widest text-slate-400">{ui("ref.units.field.district", "Район")}</TableHead>
+                        <TableHead className="w-40 px-6 font-black text-[10px] uppercase tracking-widest text-slate-400">{ui("ref.units.field.military_district", "Округ")}</TableHead>
+                        <TableHead className="w-30 px-6 font-black text-[10px] uppercase tracking-widest text-slate-400 text-center">{ui("ref.units.field.status", "Статус")}</TableHead>
+                        <TableHead className="w-40 px-8 font-black text-[10px] uppercase tracking-widest text-slate-400 text-right">{ui("common.actions", "Действия")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -617,7 +615,7 @@ export function MilitaryUnits() {
                           <ChevronsUpDown className="h-4 w-4 opacity-50" />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-[200px] p-0 rounded-2xl border-none shadow-2xl z-[10000]">
+                      <PopoverContent className="w-50 p-0 rounded-2xl border-none shadow-2xl z-10000">
                         <Command>
                           <CommandList>
                             <CommandGroup>
@@ -654,7 +652,7 @@ export function MilitaryUnits() {
                           <ChevronsUpDown className="h-4 w-4 opacity-50" />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-[200px] p-0 rounded-2xl border-none shadow-2xl z-[10000]">
+                      <PopoverContent className="w-50 p-0 rounded-2xl border-none shadow-2xl z-10000">
                         <Command>
                           <CommandInput placeholder="Поиск..." />
                           <CommandList>
@@ -682,7 +680,7 @@ export function MilitaryUnits() {
                           <ChevronsUpDown className="h-4 w-4 opacity-50" />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-[200px] p-0 rounded-2xl border-none shadow-2xl z-[10000]">
+                      <PopoverContent className="w-50 p-0 rounded-2xl border-none shadow-2xl z-10000">
                         <Command>
                           <CommandInput placeholder="Поиск..." />
                           <CommandList>
@@ -717,7 +715,7 @@ export function MilitaryUnits() {
                         <ChevronsUpDown className="h-4 w-4 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[250px] p-0 rounded-2xl border-none shadow-2xl z-[10000]">
+                    <PopoverContent className="w-64 p-0 rounded-2xl border-none shadow-2xl z-10000">
                       <Command>
                         <CommandList>
                           <CommandGroup>

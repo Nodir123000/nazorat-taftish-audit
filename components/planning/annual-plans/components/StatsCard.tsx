@@ -151,20 +151,21 @@ export const StatsCard = ({
         <Card
             onClick={onClick}
             className={cn(
-                `relative overflow-hidden bg-gradient-to-br ${classes.bg} ${classes.border} transition-all duration-300`,
-                onClick && "cursor-pointer hover:shadow-lg hover:scale-[1.02] active:scale-95",
-                isActive ? `ring-2 ${classes.iconRing} shadow-md border-opacity-100` : "border-opacity-50"
+                `group relative overflow-hidden bg-gradient-to-br ${classes.bg} ${classes.border} backdrop-blur-sm transition-all duration-300`,
+                onClick && "cursor-pointer hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]",
+                isActive ? `ring-2 ${classes.iconRing} shadow-lg border-opacity-100 scale-[1.02]` : "border-opacity-40"
             )}
         >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className={`text-sm font-medium ${classes.title}`}>{title}</CardTitle>
-                <div className={`rounded-full ${classes.iconBg} p-2 ring-2 ${classes.iconRing}`}>
+            <div className="absolute top-0 right-0 -mr-8 -mt-8 h-32 w-32 rounded-full bg-white/10 blur-3xl transition-opacity group-hover:opacity-100" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                <CardTitle className={`text-sm font-medium ${classes.title} opacity-80 group-hover:opacity-100`}>{title}</CardTitle>
+                <div className={`rounded-full ${classes.iconBg} p-2 ring-2 ${classes.iconRing} shadow-sm transition-transform group-hover:scale-110`}>
                     <Icon className={`h-4 w-4 ${classes.icon}`} />
                 </div>
             </CardHeader>
-            <CardContent>
-                <div className={`text-3xl font-bold ${classes.value}`}>{value}</div>
-                <p className={`text-xs font-medium ${classes.subtitle}`}>{subtitle}</p>
+            <CardContent className="relative z-10">
+                <div className={`text-3xl font-bold tracking-tight ${classes.value}`}>{value}</div>
+                <p className={`text-xs font-medium ${classes.subtitle} opacity-70 mt-1`}>{subtitle}</p>
             </CardContent>
         </Card>
     )

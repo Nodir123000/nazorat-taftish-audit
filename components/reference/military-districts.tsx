@@ -62,8 +62,11 @@ const districtSchema = z.object({
   name_uz_cyrl: z.string().optional(),
 })
 
+import { useUITranslations } from "@/lib/hooks/use-ui-translations"
+
 export function MilitaryDistricts() {
   const { locale } = useI18n()
+  const { t: ui } = useUITranslations()
   const [searchTerm, setSearchTerm] = useState("")
   const [districtsList, setDistrictsList] = useState<MilitaryDistrict[]>([])
   const [loading, setLoading] = useState(true)
@@ -108,6 +111,14 @@ export function MilitaryDistricts() {
 
   const getLocalizedName = (item: any) => {
     if (!item) return ""
+    const nameObj = item.nameObj || (typeof item.name === 'object' ? item.name : null);
+    
+    if (nameObj) {
+      if (locale === "uzLatn") return nameObj.uz || nameObj.ru || ""
+      if (locale === "uzCyrl") return nameObj.uzk || nameObj.ru || ""
+      return nameObj.ru || ""
+    }
+    
     if (locale === "uzLatn") return item.name_uz_latn || item.name || ""
     if (locale === "uzCyrl") return item.name_uz_cyrl || item.name || ""
     return item.name || ""
@@ -123,9 +134,11 @@ export function MilitaryDistricts() {
   }
 
   const filteredDistricts = districtsList.filter(
-    (district) =>
-      (district.code?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
-      (district.name?.toLowerCase() || "").includes(searchTerm.toLowerCase())
+    (district) => {
+      const name = getLocalizedName(district);
+      return (district.code?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+             (name?.toLowerCase() || "").includes(searchTerm.toLowerCase())
+    }
   )
 
   const handleAddClick = () => {
@@ -219,11 +232,11 @@ export function MilitaryDistricts() {
                   <Map className="h-6 w-6" />
                 </div>
                 <CardTitle className="text-3xl font-extrabold tracking-tight">
-                  {t("Военные округа", "Harbiy okruglar", "Ҳарбий округлар")}
+                  {ui("ref.districts.title", "Военные округа")}
                 </CardTitle>
               </div>
               <CardDescription className="text-lg font-medium text-muted-foreground/80 max-w-2xl leading-relaxed pl-1">
-                {t("Справочник военных округов", "Harbiy okruglar ma'lumotnomasi", "Ҳарбий округлар маълумотномаси")}
+                {ui("ref.districts.description", "Справочник военных округов")}
               </CardDescription>
             </div>
             <div className="flex flex-wrap items-center gap-4">
@@ -231,7 +244,7 @@ export function MilitaryDistricts() {
               <div className="relative group w-full md:w-64">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                 <Input
-                  placeholder={t("Поиск по коду, названию...", "Kod yoki nom bo'yicha qidirish...", "Код ёки ном бўйича қидириш...")}
+                  placeholder={ui("common.search_placeholder", "Поиск по коду, названию...")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 h-11 bg-white/50 border-border/40 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all font-medium placeholder:text-muted-foreground/50 shadow-sm text-sm"
@@ -239,7 +252,7 @@ export function MilitaryDistricts() {
               </div>
               <Button onClick={handleAddClick} className="rounded-xl h-11 px-6 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all font-bold">
                 <Plus className="h-4 w-4 mr-2" />
-                {t("Добавить округ", "Okrug qo'shish", "Округ қўшиш")}
+                {ui("ref.districts.add", "Добавить округ")}
               </Button>
             </div>
           </div>
@@ -249,13 +262,13 @@ export function MilitaryDistricts() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-b border-border/50 h-16 bg-muted/20">
-                  <TableHead className="w-[80px] px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">ID</TableHead>
-                  <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{t("Код", "Kod", "Код")}</TableHead>
-                  <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{t("Наименование", "Nomlanishi", "Номланиши")}</TableHead>
-                  <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{t("Краткое", "Qisqa", "Қисқа")}</TableHead>
-                  <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{t("Штаб", "Shtab", "Штаб")}</TableHead>
-                  <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{t("Статус", "Status", "Статус")}</TableHead>
-                  <TableHead className="text-right px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{t("Действия", "Harakatlar", "Ҳаракатлар")}</TableHead>
+                  <TableHead className="w-20 px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">ID</TableHead>
+                  <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{ui("ref.districts.field.code", "Код")}</TableHead>
+                  <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{ui("ref.districts.field.name", "Наименование")}</TableHead>
+                  <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{ui("ref.districts.field.short", "Краткое")}</TableHead>
+                  <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{ui("ref.districts.field.headquarters", "Штаб")}</TableHead>
+                  <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{ui("ref.districts.field.status", "Статус")}</TableHead>
+                  <TableHead className="text-right px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{ui("common.actions", "Действия")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -435,7 +448,7 @@ export function MilitaryDistricts() {
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[200px] p-0 rounded-2xl border-none shadow-2xl" align="start">
+                  <PopoverContent className="w-50 p-0 rounded-2xl border-none shadow-2xl" align="start">
                     <Command>
                       <CommandList>
                         <CommandGroup>

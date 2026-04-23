@@ -112,15 +112,15 @@ export async function getRegionalKPIMetrics(year: number): Promise<RegionalKPI[]
         }
     });
 
-    return districts.map(district => {
+    return districts.map((district: any) => {
       let totalR2 = 0;
       let criticalCount = 0;
       let auditCount = 0;
 
-      district.ref_units.forEach(unit => {
-        unit.audits.forEach(audit => {
+      district.ref_units.forEach((unit: any) => {
+        unit.audits.forEach((audit: any) => {
           auditCount++;
-          audit.violations.forEach(v => {
+          audit.violations.forEach((v: any) => {
             totalR2 += Number(v.amount || 0);
             if (['CRITICAL', 'HIGH'].includes(v.severity)) criticalCount++;
           });

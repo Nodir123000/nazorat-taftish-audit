@@ -3,8 +3,17 @@ import { prisma } from '../db/prisma';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-// Инициализация Redis для работы с сессиями
-const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+let redisInstance: Redis | null = null;
+
+function getRedis() {
+  if (!redisInstance) {
+    redisInstance = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
+      maxRetriesPerRequest: 0,
+      connectTimeout: 5000,
+    });
+  }
+  return redisInstance;
+}
 
 export type AuthContext = {
   user_id: number;
@@ -29,7 +38,7 @@ export function withAuth(handler: Function, subsystem: string, action: 'VIEW' | 
         return NextResponse.json({ error: 'AUTH_REQUIRED' }, { status: 401 });
       }
 
-      const sessionData = await redis.get(`session:${sessionId}`);
+      const sessionData = await getRedis().get(`session:${sessionId}`);
       if (!sessionData) {
         return NextResponse.json({ error: 'SESSION_EXPIRED' }, { status: 401 });
       }

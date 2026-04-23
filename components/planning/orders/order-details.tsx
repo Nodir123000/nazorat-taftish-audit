@@ -45,7 +45,7 @@ export function OrderDetails({ order }: OrderDetailsProps) {
     return (
         <div className="p-4 bg-muted/30 rounded-lg border shadow-inner">
             <Tabs defaultValue="commission" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 max-w-[600px]">
+                <TabsList className="grid w-full grid-cols-4 max-w-150">
                     <TabsTrigger value="commission">Ревизоры ({commissionMembers.length})</TabsTrigger>
                     <TabsTrigger value="checklist">Чек-лист</TabsTrigger>
                     <TabsTrigger value="prescriptions">Предписания ({prescriptions.length})</TabsTrigger>
@@ -63,7 +63,7 @@ export function OrderDetails({ order }: OrderDetailsProps) {
                                     {commissionMembers.map(member => (
                                         <div key={member.id} className="flex items-center space-x-3 rounded-md border p-2 bg-card">
                                             <Avatar className="h-8 w-8">
-                                                <AvatarFallback className={member.role === "Главный ревизор" ? "bg-blue-100 text-blue-700" : ""}>
+                                                <AvatarFallback className={member.role === "Председатель комиссии" ? "bg-blue-100 text-blue-700" : ""}>
                                                     {getPersonnelName(member.name).split(' ').map((n, i) => i < 2 ? n[0] : '').join('')}
                                                 </AvatarFallback>
                                             </Avatar>
@@ -71,7 +71,7 @@ export function OrderDetails({ order }: OrderDetailsProps) {
                                                 <p className="text-sm font-medium leading-none truncate">{getPersonnelName(member.name)}</p>
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-xs text-muted-foreground truncate">{member.position}</span>
-                                                    {member.role === "Главный ревизор" && <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 border-blue-200 text-blue-700 bg-blue-50">Главный ревизор</Badge>}
+                                                    {member.role === "Председатель комиссии" && <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 border-blue-200 text-blue-700 bg-blue-50">Председатель комиссии</Badge>}
                                                 </div>
                                             </div>
                                         </div>
@@ -137,17 +137,17 @@ export function OrderDetails({ order }: OrderDetailsProps) {
                             <CardTitle className="text-base">Хронология изменений</CardTitle>
                         </CardHeader>
                         <CardContent className="py-2">
-                            <ScrollArea className="h-[150px]">
+                            <ScrollArea className="h-37.5">
                                 <ol className="relative border-l border-muted-foreground/20 ml-3">
                                     <li className="mb-4 ml-4">
-                                        <div className="absolute w-2 h-2 bg-blue-500 rounded-full -left-[21px] mt-1.5 border border-white"></div>
+                                        <div className="absolute w-2 h-2 bg-blue-500 rounded-full -left-5.25 mt-1.5 border border-white"></div>
                                         <time className="mb-1 text-xs font-normal text-muted-foreground">{order.date}</time>
                                         <h3 className="text-sm font-semibold">Приказ создан</h3>
                                         <p className="text-xs text-muted-foreground">Инициатор: Командование</p>
                                     </li>
                                     {order.status === "Действует" && (
                                         <li className="mb-4 ml-4">
-                                            <div className="absolute w-2 h-2 bg-green-500 rounded-full -left-[21px] mt-1.5 border border-white"></div>
+                                            <div className="absolute w-2 h-2 bg-green-500 rounded-full -left-5.25 mt-1.5 border border-white"></div>
                                             <time className="mb-1 text-xs font-normal text-muted-foreground">Вчера</time>
                                             <h3 className="text-sm font-semibold">Статус изменен на "Действует"</h3>
                                         </li>

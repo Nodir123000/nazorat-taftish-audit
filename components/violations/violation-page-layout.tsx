@@ -94,7 +94,7 @@ export function ViolationPageLayout({
     return (
         <div className="flex flex-col h-full">
             {/* Banner Header */}
-            <div className={cn("bg-gradient-to-r text-white p-6 pb-8 shadow-lg", colors.banner)}>
+            <div className={cn("bg-linear-to-r text-white p-6 pb-8 shadow-lg", colors.banner)}>
                 <div className="flex items-start justify-between">
                     <div className="flex items-center gap-4">
                         <div className={cn("h-14 w-14 rounded-2xl flex items-center justify-center shadow-xl border border-white/10", colors.icon)}>
@@ -138,13 +138,13 @@ export function ViolationPageLayout({
                         <div
                             key={i}
                             className={cn(
-                                "rounded-xl p-3 border bg-gradient-to-br hover:scale-105 transition-all",
+                                "rounded-xl p-3 border bg-linear-to-br hover:scale-105 transition-all",
                                 statColorClasses[stat.color ?? "blue"]
                             )}
                         >
                             <div className="text-xl font-black">{stat.value}</div>
-                            <div className="text-[10px] font-bold uppercase tracking-wider mt-0.5 opacity-80">{stat.label}</div>
-                            {stat.sub && <div className="text-[10px] opacity-60 mt-0.5">{stat.sub}</div>}
+                            <div className="text-tiny font-bold uppercase tracking-wider mt-0.5 opacity-80">{stat.label}</div>
+                            {stat.sub && <div className="text-tiny opacity-60 mt-0.5">{stat.sub}</div>}
                         </div>
                     ))}
                 </div>
@@ -152,7 +152,7 @@ export function ViolationPageLayout({
 
             {/* Main Content */}
             <div className="flex-1 overflow-auto p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6 h-full min-h-0">
+                <div className="grid grid-cols-1 lg:grid-cols-[var(--spacing-55)_1fr] gap-6 h-full min-h-0">
                     {/* Left Navigation */}
                     <div className="h-fit">
                         <Card className={cn("border overflow-hidden", colors.nav)}>

@@ -71,8 +71,20 @@ export const planningService = {
         include: {
           ref_units: {
             include: {
-              ref_areas: true,
-              ref_military_districts: true,
+              ref_areas: {
+                include: {
+                  ref_regions: true
+                }
+              },
+              ref_military_districts: {
+                include: {
+                  ref_areas: {
+                    include: {
+                      ref_regions: true
+                    }
+                  }
+                }
+              },
             }
           },
           users_rev_plan_year_responsible_idTousers: true,
@@ -97,12 +109,12 @@ export const planningService = {
         unitId: p.unit_id,
         responsibleId: p.responsible_id,
         controlAuthority: p.ref_control_authorities?.code || "",
-        inspectionDirection: p.ref_control_directions?.name?.ru || p.ref_control_directions?.name || p.ref_control_directions?.code || "",
-        inspectionType: p.ref_inspection_types?.name?.ru || p.ref_inspection_types?.name || p.ref_inspection_types?.code || "2301",
+        inspectionDirection: p.ref_control_directions?.name?.ru || (typeof p.ref_control_directions?.name === 'string' ? p.ref_control_directions.name : "") || p.ref_control_directions?.code || "",
+        inspectionType: p.ref_inspection_types?.name?.ru || (typeof p.ref_inspection_types?.name === 'string' ? p.ref_inspection_types.name : "") || p.ref_inspection_types?.code || "2301",
         periodConducted: p.period_covered_start ? getQuarter(p.period_covered_start) : "",
         periodCoveredStart: p.period_covered_start,
         periodCoveredEnd: p.period_covered_end,
-        controlObject: p.ref_units?.name?.ru || p.ref_units?.name || "",
+        controlObject: p.ref_units?.name?.ru || (typeof p.ref_units?.name === 'string' ? p.ref_units.name : "") || "",
         unit: p.ref_units,
         responsible: p.users_rev_plan_year_responsible_idTousers,
         approvedBy: p.users_rev_plan_year_approved_by_idTousers,
@@ -118,7 +130,20 @@ export const planningService = {
       include: {
         ref_units: {
           include: {
-            ref_military_districts: true
+            ref_areas: {
+              include: {
+                ref_regions: true
+              }
+            },
+            ref_military_districts: {
+              include: {
+                ref_areas: {
+                  include: {
+                    ref_regions: true
+                  }
+                }
+              }
+            }
           }
         },
         users_rev_plan_year_responsible_idTousers: true,
@@ -138,9 +163,12 @@ export const planningService = {
       planNumber: p.plan_number,
       startDate: p.start_date,
       endDate: p.end_date,
-      inspectionDirection: p.ref_control_directions?.name?.ru || p.ref_control_directions?.name || p.ref_control_directions?.code || "",
-      inspectionType: p.ref_inspection_types?.name?.ru || p.ref_inspection_types?.name || p.ref_inspection_types?.code || "",
-      controlObject: p.ref_units?.name?.ru || p.ref_units?.name || "",
+      inspectionDirection: p.ref_control_directions?.name?.ru || (typeof p.ref_control_directions?.name === 'string' ? p.ref_control_directions.name : "") || p.ref_control_directions?.code || "",
+      inspectionType: p.ref_inspection_types?.name?.ru || (typeof p.ref_inspection_types?.name === 'string' ? p.ref_inspection_types.name : "") || p.ref_inspection_types?.code || "",
+      inspectionDirectionId: p.inspection_direction_id,
+      inspectionTypeId: p.inspection_type_id,
+      status: p.status,
+      controlObject: p.ref_units?.name?.ru || (typeof p.ref_units?.name === 'string' ? p.ref_units.name : "") || "",
       periodConducted: p.period_covered_start ? getQuarter(p.period_covered_start) : "",
       periodCoveredStart: p.period_covered_start,
       periodCoveredEnd: p.period_covered_end,
@@ -182,12 +210,12 @@ export const planningService = {
       unitId: (p as any).unit_id,
       responsibleId: (p as any).responsible_id,
       controlAuthority: (p as any).ref_control_authorities?.code || "",
-      inspectionDirection: (p as any).ref_control_directions?.name?.ru || (p as any).ref_control_directions?.name || (p as any).ref_control_directions?.code || "",
-      inspectionType: (p as any).ref_inspection_types?.name?.ru || (p as any).ref_inspection_types?.name || (p as any).ref_inspection_types?.code || "2301",
+      inspectionDirection: (p as any).ref_control_directions?.name?.ru || (typeof (p as any).ref_control_directions?.name === 'string' ? (p as any).ref_control_directions.name : "") || (p as any).ref_control_directions?.code || "",
+      inspectionType: (p as any).ref_inspection_types?.name?.ru || (typeof (p as any).ref_inspection_types?.name === 'string' ? (p as any).ref_inspection_types.name : "") || (p as any).ref_inspection_types?.code || "2301",
       periodConducted: (p as any).period_covered_start ? getQuarter((p as any).period_covered_start) : "",
       periodCoveredStart: (p as any).period_covered_start,
       periodCoveredEnd: (p as any).period_covered_end,
-      controlObject: (p as any).ref_units?.name?.ru || (p as any).ref_units?.name || "",
+      controlObject: (p as any).ref_units?.name?.ru || (typeof (p as any).ref_units?.name === 'string' ? (p as any).ref_units.name : "") || "",
       unit: (p as any).ref_units,
       responsible: (p as any).users_rev_plan_year_responsible_idTousers,
       approvedBy: (p as any).users_rev_plan_year_approved_by_idTousers,
@@ -195,66 +223,141 @@ export const planningService = {
   },
 
   async createAnnualPlan(data: any) {
-    let control_authority_id: number | undefined
+    console.log("[planning-service] createAnnualPlan input data:", JSON.stringify(data, null, 2));
+    
+    // 0. Поиск органа (по коду)
+    let authId = null;
     if (data.controlAuthority) {
-      const auth = await (prisma as any).ref_control_authorities.findUnique({ where: { code: data.controlAuthority } });
-      control_authority_id = auth?.authority_id;
+        try {
+            const auth = await (prisma as any).ref_control_authorities.findUnique({
+                where: { code: String(data.controlAuthority) }
+            });
+            if (auth) authId = auth.authority_id;
+        } catch (e) {
+            console.warn("[planning-service] Failed to lookup authority:", e);
+        }
     }
 
-    let inspection_direction_id: number | undefined
+    // 1. Поиск направления (по коду или по ID, если передано число)
+    let directionId = null;
     if (data.inspectionDirection) {
-      const dir = await (prisma as any).ref_control_directions.findUnique({ where: { code: data.inspectionDirection } });
-      inspection_direction_id = dir?.direction_id;
+        try {
+            const dir = await (prisma as any).ref_control_directions.findFirst({
+                where: {
+                    OR: [
+                        { code: String(data.inspectionDirection) },
+                        { name: String(data.inspectionDirection) }
+                    ]
+                }
+            });
+            if (dir) directionId = dir.direction_id;
+        } catch (e) {
+            console.warn("[planning-service] Failed to lookup direction:", e);
+        }
     }
-
-    let inspection_type_id: number | undefined
+    // 2. Поиск типа (по коду или по ID)
+    let typeId = null;
     if (data.inspectionType) {
-      const type = await (prisma as any).ref_inspection_types.findUnique({ where: { code: String(data.inspectionType) } });
-      inspection_type_id = type?.id;
+        try {
+            const type = await (prisma as any).ref_inspection_types.findFirst({
+                where: {
+                    OR: [
+                        { code: String(data.inspectionType) },
+                        { name: String(data.inspectionType) }
+                    ]
+                }
+            });
+            if (type) typeId = type.id;
+            else if (!isNaN(Number(data.inspectionType))) {
+                typeId = Number(data.inspectionType);
+            }
+        } catch (e) {
+            console.warn("[planning-service] Failed to lookup inspection type:", e);
+        }
     }
 
-    const created = await prisma.rev_plan_year.create({
-      data: {
-        year: Number(data.year),
-        status: data.status || "draft",
-        start_date: data.startDate ? new Date(data.startDate) : new Date(),
-        end_date: data.endDate ? new Date(data.endDate) : new Date(),
-        unit_id: data.unit ? Number.parseInt(data.unit) : undefined,
-        responsible_id: data.responsible ? Number.parseInt(data.responsible) : undefined,
-        plan_number: data.planNumber,
-        incoming_number: data.incomingNumber,
-        incoming_date: data.incomingDate ? new Date(data.incomingDate) : null,
-        objects_total: Number(data.objectsTotal) || 0,
-        objects_fs: Number(data.objectsFs) || 0,
-        objects_os: Number(data.objectsOs) || 0,
-        expense_classification: data.expenseClassification,
-        supply_department: data.supplyDepartment,
-        control_authority_id,
-        inspection_direction_id,
-        inspection_type_id,
-        period_covered_start: data.periodCoveredStart ? new Date(data.periodCoveredStart) : null,
-        period_covered_end: data.periodCoveredEnd ? new Date(data.periodCoveredEnd) : null,
-        subordinate_units_on_allowance: data.subordinateUnitsOnAllowance,
-      } as any
-    })
+    // 2.5. Derive start_date and end_date from periodConducted if not provided
+    let startDate = data.startDate ? new Date(data.startDate) : null;
+    let endDate = data.endDate ? new Date(data.endDate) : null;
 
-    return { ...created, planId: (created as any).plan_id, id: (created as any).plan_id }
+    if ((!startDate || !endDate) && data.periodConducted) {
+        try {
+            const parts = data.periodConducted.split('-');
+            if (parts.length >= 1) {
+                const roman = parts[0].trim();
+                const yearMatch = data.periodConducted.match(/\d{4}/);
+                const year = yearMatch ? parseInt(yearMatch[0]) : Number(data.year);
+                
+                const qMap: Record<string, number> = { "I": 1, "II": 2, "III": 3, "IV": 4 };
+                const q = qMap[roman];
+                
+                if (q && year) {
+                    startDate = new Date(year, (q - 1) * 3, 1);
+                    endDate = new Date(year, q * 3, 0); // Last day of quarter
+                }
+            }
+        } catch (e) {
+            console.warn("[planning-service] Failed to parse periodConducted:", e);
+        }
+    }
+
+    // Fallback to start/end of year if still null
+    if (!startDate) startDate = new Date(Number(data.year), 0, 1);
+    if (!endDate) endDate = new Date(Number(data.year), 11, 31);
+
+        // 3. Создание записи годового плана
+        const created = await (prisma as any).rev_plan_year.create({
+            data: {
+                plan_number: data.planNumber,
+                year: Number(data.year),
+                start_date: startDate,
+                end_date: endDate,
+                ref_units: data.unitId || data.unit ? {
+                    connect: { unit_id: data.unitId ? Number(data.unitId) : Number.parseInt(data.unit) }
+                } : undefined,
+                ref_control_authorities: authId ? {
+                    connect: { authority_id: authId }
+                } : undefined,
+                ref_control_directions: directionId ? {
+                    connect: { direction_id: directionId }
+                } : undefined,
+                ref_inspection_types: typeId ? {
+                    connect: { id: typeId }
+                } : undefined,
+                period_covered_start: data.periodCoveredStart ? new Date(data.periodCoveredStart) : null,
+                period_covered_end: data.periodCoveredEnd ? new Date(data.periodCoveredEnd) : null,
+                status: data.status ? String(data.status) : "draft",
+                objects_total: data.objectsTotal ? Number(data.objectsTotal) : (data.totalAudits ? Number(data.totalAudits) : null),
+                objects_fs: data.objectsFs ? Number(data.objectsFs) : null,
+                objects_os: data.objectsOs ? Number(data.objectsOs) : null,
+                description: data.description,
+                subordinate_units_on_allowance: data.subordinateUnitsOnAllowance || [],
+            },
+        });
+
+    return { ...created, planId: (created as any).plan_id, id: (created as any).plan_id };
   },
 
   async updateAnnualPlan(id: string | number, data: any) {
     const updateData: any = {}
 
-    if (data.controlAuthority) {
+    if (data.unit !== undefined) {
+      updateData.ref_units = data.unit ? { connect: { unit_id: Number.parseInt(data.unit) } } : { disconnect: true };
+    }
+    if (data.responsible !== undefined) {
+      updateData.users_rev_plan_year_responsible_idTousers = data.responsible ? { connect: { user_id: Number.parseInt(data.responsible) } } : { disconnect: true };
+    }
+    if (data.controlAuthority !== undefined) {
       const auth = await (prisma as any).ref_control_authorities.findUnique({ where: { code: data.controlAuthority } });
-      if (auth) updateData.control_authority_id = auth.authority_id;
+      if (auth) updateData.ref_control_authorities = { connect: { authority_id: auth.authority_id } };
     }
-    if (data.inspectionDirection) {
+    if (data.inspectionDirection !== undefined) {
       const dir = await (prisma as any).ref_control_directions.findUnique({ where: { code: data.inspectionDirection } });
-      if (dir) updateData.inspection_direction_id = dir.direction_id;
+      if (dir) updateData.ref_control_directions = { connect: { direction_id: dir.direction_id } };
     }
-    if (data.inspectionType) {
+    if (data.inspectionType !== undefined) {
       const type = await (prisma as any).ref_inspection_types.findUnique({ where: { code: String(data.inspectionType) } });
-      if (type) updateData.inspection_type_id = type.id;
+      if (type) updateData.ref_inspection_types = { connect: { id: type.id } };
     }
 
     if (data.year !== undefined) updateData.year = Number(data.year)
@@ -265,8 +368,6 @@ export const planningService = {
     if (data.endDate !== undefined) updateData.end_date = new Date(data.endDate)
     if (data.incomingNumber !== undefined) updateData.incoming_number = data.incomingNumber
     if (data.incomingDate !== undefined) updateData.incoming_date = data.incomingDate ? new Date(data.incomingDate) : null
-    if (data.unit !== undefined) updateData.unit_id = data.unit ? Number.parseInt(data.unit) : null
-    if (data.responsible !== undefined) updateData.responsible_id = data.responsible ? Number.parseInt(data.responsible) : null
     if (data.objectsTotal !== undefined) updateData.objects_total = Number(data.objectsTotal)
     if (data.objectsFs !== undefined) updateData.objects_fs = Number(data.objectsFs)
     if (data.objectsOs !== undefined) updateData.objects_os = Number(data.objectsOs)
@@ -406,33 +507,36 @@ export const planningService = {
 
   async createOrder(data: any) {
     let issuerId = Number(data.issuerId);
+    let fallbackUser = await prisma.users.findFirst({ where: { is_active: true } });
+    
     if (isNaN(issuerId) || !data.issuerId) {
-      const fallback = await prisma.users.findFirst({ where: { is_active: true } });
-      if (!fallback) throw new Error("Не найден ни один активный пользователь для создания приказа");
-      issuerId = fallback.user_id;
+      if (!fallbackUser) throw new Error("Не найден ни один активный пользователь для создания приказа");
+      issuerId = fallbackUser.user_id;
     } else {
       const userExists = await prisma.users.findUnique({ where: { user_id: issuerId } });
       if (!userExists) {
-        const fallback = await prisma.users.findFirst({ where: { is_active: true } });
-        if (!fallback) throw new Error(`Пользователь id=${issuerId} не найден и нет активных пользователей`);
-        console.warn(`[createOrder] user_id=${issuerId} не найден, используем id=${fallback.user_id}`);
-        issuerId = fallback.user_id;
+        if (!fallbackUser) throw new Error(`Пользователь id=${issuerId} не найден и нет активных пользователей`);
+        console.warn(`[createOrder] user_id=${issuerId} не найден, используем id=${fallbackUser.user_id}`);
+        issuerId = fallbackUser.user_id;
       }
     }
 
-    return await prisma.orders.create({
-      data: {
+      const orderData = {
         order_number: data.orderNumber || `П-${Date.now()}`,
-        order_date: new Date(data.orderDate || new Date()),
+        order_date: data.orderDate ? new Date(data.orderDate) : new Date(),
+        order_type: data.orderType || "revision",
+        status: data.status || "draft",
+        order_text: data.orderText,
         issuer_id: issuerId,
         plan_id: data.planId ? Number(data.planId) : null,
         unit_id: data.unitId ? Number(data.unitId) : null,
-        template_id: data.templateId,
-        order_type: data.orderType,
-        status: data.status || "issued",
-        order_text: data.orderText,
-      } as any
-    })
+      };
+
+      console.log("[planning-service] Creating order with data:", JSON.stringify(orderData, null, 2));
+
+      return await prisma.orders.create({
+        data: orderData,
+      });
   },
 
   async updateOrder(id: string | number, data: any) {
@@ -498,14 +602,19 @@ export const planningService = {
             select: { order_number: true }
           })
           
-          await notificationService.create({
-            userId: userId,
-            title: "Новое назначение",
-            message: `Вы назначены в контрольную группу по приказу №${order?.order_number || "---"}. Роль: ${data.role}`,
-            type: "info",
-            category: "audit",
-            link: `/personnel/view/${personnelId || userId}?mode=personnel` // Placeholder link
-          })
+          // Wrap notification in try-catch to prevent blocking the main operation
+          try {
+              await notificationService.create({
+                  userId: userId,
+                  title: "Новое назначение",
+                  message: `Вы назначены ${data.role === 'head' ? 'председателем' : 'членом'} комиссии для проведения проверки по приказу №${order?.order_number || "---"}.`,
+                  type: "info",
+                  category: "audit",
+                  link: `/personnel/view/${personnelId || userId}?mode=personnel` 
+              });
+          } catch (notifErr) {
+              console.error("[planning-service] Failed to create notification for commission member:", notifErr);
+          }
         } catch (authErr) {
           console.error("[addCommissionMember] Failed to send notification:", authErr)
         }
@@ -708,6 +817,65 @@ export const planningService = {
     } catch (error) {
       console.error("Error in findLastControlPeriod:", error);
       return null;
+    }
+  },
+
+  async checkPlanCollision(unitId: number, year: number, excludePlanId?: number) {
+    try {
+      const existingPlans = await prisma.rev_plan_year.findMany({
+        where: {
+          unit_id: unitId,
+          year: year,
+          plan_id: excludePlanId ? { not: excludePlanId } : undefined
+        },
+        include: {
+          ref_control_authorities: true,
+          ref_inspection_types: true
+        }
+      });
+
+      if (existingPlans.length > 0) {
+        return {
+          hasCollision: true,
+          plans: existingPlans.map((p: any) => ({
+            planId: p.plan_id,
+            authority: (p as any).ref_control_authorities?.name || (p as any).ref_control_authorities?.code || null,
+            type: (p as any).ref_inspection_types?.name || (p as any).ref_inspection_types?.code || null,
+            startDate: p.start_date,
+            endDate: p.end_date
+          }))
+        };
+      }
+
+      return { hasCollision: false };
+    } catch (error) {
+      console.error("Error checking plan collision:", error);
+      return { hasCollision: false };
+    }
+  },
+
+  async bulkCreateAnnualPlans(plans: any[]) {
+    try {
+      const results = await prisma.$transaction(
+        plans.map(p => prisma.rev_plan_year.create({
+          data: {
+            year: p.year,
+            unit_id: p.unitId,
+            control_authority_id: p.controlAuthorityId,
+            control_direction_id: p.controlDirectionId,
+            inspection_type_id: p.inspectionTypeId,
+            start_date: p.startDate ? new Date(p.startDate) : null,
+            end_date: p.endDate ? new Date(p.endDate) : null,
+            period_conducted: p.periodConducted,
+            status: p.status,
+            plan_number: p.planNumber,
+          }
+        }))
+      );
+      return { success: true, count: results.length };
+    } catch (error) {
+      console.error("Bulk create failed:", error);
+      throw error;
     }
   }
 }

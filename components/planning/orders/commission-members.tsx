@@ -57,7 +57,7 @@ export function CommissionMembersRegistry() {
     const [selectedMember, setSelectedMember] = useState<CommissionMember | null>(null)
     const [newMember, setNewMember] = useState<Partial<CommissionMember>>({
         name: "",
-        role: "Ревизор",
+        role: "Член комиссии",
         rank: "",
         position: "",
         unit: "",
@@ -71,8 +71,8 @@ export function CommissionMembersRegistry() {
 
             const matchesRole =
                 !filters.role ||
-                (filters.role === "chairman" && member.role === "Главный ревизор") ||
-                (filters.role === "member" && member.role === "Ревизор")
+                (filters.role === "chairman" && member.role === "Председатель комиссии") ||
+                (filters.role === "member" && member.role === "Член комиссии")
 
             const matchesOrderNum =
                 !filters.orderNum || member.orderNum.toLowerCase().includes(filters.orderNum.toLowerCase())
@@ -215,7 +215,7 @@ export function CommissionMembersRegistry() {
                                     <TableCell className="font-medium">{member.id}</TableCell>
                                     <TableCell>{member.orderNum}</TableCell>
                                     <TableCell>
-                                        <Badge variant={member.role === "Главный ревизор" ? "default" : "outline"}>
+                                        <Badge variant={member.role === "Председатель комиссии" ? "default" : "outline"}>
                                             {member.role}
                                         </Badge>
                                     </TableCell>
@@ -352,7 +352,7 @@ export function CommissionMembersRegistry() {
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Роль</p>
-                                    <Badge variant={selectedMember.role === "Главный ревизор" ? "default" : "outline"}>
+                                    <Badge variant={selectedMember.role === "Председатель комиссии" ? "default" : "outline"}>
                                         {selectedMember.role}
                                     </Badge>
                                 </div>
@@ -393,13 +393,13 @@ export function CommissionMembersRegistry() {
                             </div>
                             <div className="grid gap-2">
                                 <Label>Роль</Label>
-                                <Select defaultValue={selectedMember.role === "Главный ревизор" ? "chairman" : "member"}>
+                                <Select defaultValue={selectedMember.role === "Председатель комиссии" ? "chairman" : "member"}>
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="chairman">Главный ревизор</SelectItem>
-                                        <SelectItem value="member">Ревизор</SelectItem>
+                                        <SelectItem value="chairman">Председатель комиссии</SelectItem>
+                                        <SelectItem value="member">Член комиссии</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

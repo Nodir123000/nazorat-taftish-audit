@@ -13,6 +13,8 @@ export interface UITranslationData {
     status: string
 }
 
+import { translations as staticTranslations } from '@/lib/i18n/translations'
+
 export function useUITranslations() {
     const { locale } = useI18n()
 
@@ -29,19 +31,21 @@ export function useUITranslations() {
     )
 
     const t = useCallback((key: string, fallback?: string): string => {
-        if (!data?.ok || !data.data) return fallback || key
+        // 1. Try to find in DB-sourced data
+        if (data?.ok && data.data) {
+            const item = data.data.find(i => i.key === key)
+            if (item && item.name) {
+                if (item.name[dbLocale]) return item.name[dbLocale]
+                if (item.name['ru']) return item.name['ru']
+            }
+        }
 
-        const item = data.data.find(i => i.key === key)
-        if (!item || !item.name) return fallback || key
-
-        // Get translation for current locale
-        if (item.name[dbLocale]) return item.name[dbLocale]
-
-        // Fallback chain: ru
-        if (item.name['ru']) return item.name['ru']
+        // 2. Fallback to static translations
+        const staticVal = staticTranslations[locale]?.[key]
+        if (staticVal) return staticVal
 
         return fallback || key
-    }, [data, dbLocale])
+    }, [data, dbLocale, locale])
 
     const refreshUI = () => mutate()
 

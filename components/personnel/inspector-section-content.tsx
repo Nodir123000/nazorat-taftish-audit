@@ -183,7 +183,7 @@ function AbbreviatedText({ text }: { text: string | undefined | null }) {
                 <TooltipTrigger asChild>
                     <span className="cursor-help border-b border-dotted border-muted-foreground/40 uppercase font-bold">{display}</span>
                 </TooltipTrigger>
-                <TooltipContent className="bg-slate-900 text-white border-none text-[10px] py-1 px-2 font-bold max-w-[300px]">
+                <TooltipContent className="bg-slate-900 text-white border-none text-[10px] py-1 px-2 font-bold max-w-75">
                     {text.toUpperCase()}
                 </TooltipContent>
             </Tooltip>
@@ -195,7 +195,7 @@ function AbbreviatedText({ text }: { text: string | undefined | null }) {
 function RegistryRow({ label, value, subValue, isLast = false, className }: { label: string; value: React.ReactNode; subValue?: string; isLast?: boolean; className?: string }) {
     return (
         <TableRow className={cn(isLast ? "border-b-0 hover:bg-muted/30" : "hover:bg-muted/30", className)}>
-            <TableCell className="py-2 px-4 text-xs font-medium text-muted-foreground w-[300px] border-r">
+            <TableCell className="py-2 px-4 text-xs font-medium text-muted-foreground w-75 border-r">
                 {label}
             </TableCell>
             <TableCell className="py-2 px-4">
@@ -391,7 +391,7 @@ function MainInformationSection({ inspector }: { inspector: Inspector }) {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 bg-white/50">
                         <LegendaryInfoRow label="СЛУЖЕБНЫЙ ТЕЛЕФОН" value={inspector.workPhone} delay={0.3} />
-                        <LegendaryInfoRow label="ЛИЧНЫЙ ТЕЛЕФОН" value={inspector.personalPhone || inspector.mobilePhone} delay={0.35} />
+                        <LegendaryInfoRow label="ЛИЧНЫЙ ТЕЛЕФОН" value={inspector.personalPhone || (inspector as any).contactPhone} delay={0.35} />
                         <LegendaryInfoRow label="E-MAIL АДРЕС" value={inspector.email} delay={0.4} />
                     </div>
                 </div>
@@ -863,21 +863,21 @@ function ResultsSection({ inspector }: { inspector: Inspector }) {
                         <span className="text-[10px] font-bold text-muted-foreground uppercase">АКТОВ</span>
                     </div>
                 </div>
-                <div className="bg-card p-4 rounded-xl border-2 border-destructive/30 flex flex-col justify-between shadow-sm bg-destructive/[0.02]">
+                <div className="p-4 rounded-xl border-2 border-destructive/30 flex flex-col justify-between shadow-sm bg-destructive/2">
                     <span className="text-[10px] font-black text-destructive uppercase tracking-widest">ВЫЯВЛЕНО УЩЕРБА</span>
                     <div className="mt-2">
                         <span className="text-2xl font-black text-destructive tabular-nums">{formatCurrency(totalDetected)}</span>
                         <span className="text-[9px] font-bold text-muted-foreground uppercase ml-1">СУМ</span>
                     </div>
                 </div>
-                <div className="bg-card p-4 rounded-xl border-2 border-emerald-500/30 flex flex-col justify-between shadow-sm bg-emerald-500/[0.02]">
+                <div className="p-4 rounded-xl border-2 border-emerald-500/30 flex flex-col justify-between shadow-sm bg-emerald-500/2">
                     <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">ВОЗМЕЩЕНО</span>
                     <div className="mt-2">
                         <span className="text-2xl font-black text-emerald-600 tabular-nums">{formatCurrency(totalRecovered)}</span>
                         <span className="text-[9px] font-bold text-muted-foreground uppercase ml-1">СУМ</span>
                     </div>
                 </div>
-                <div className="bg-card p-4 rounded-xl border-2 border-amber-500/30 flex flex-col justify-between shadow-sm bg-amber-500/[0.02]">
+                <div className="p-4 rounded-xl border-2 border-amber-500/30 flex flex-col justify-between shadow-sm bg-amber-500/2">
                     <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">ОСТАТОК</span>
                     <div className="mt-2">
                         <span className="text-2xl font-black text-amber-600 tabular-nums">{formatCurrency(totalRemainder)}</span>
@@ -891,7 +891,7 @@ function ResultsSection({ inspector }: { inspector: Inspector }) {
                     <Table>
                         <TableHeader className="bg-muted/10">
                             <TableRow className="hover:bg-transparent border-b-2 border-border/40">
-                                <TableHead className="w-[40px]"></TableHead>
+                                <TableHead className="w-10"></TableHead>
                                 <TableHead className="text-[10px] font-black tracking-widest uppercase py-4 pl-4">№ АКТА / ДАТА</TableHead>
                                 <TableHead className="text-[10px] font-black tracking-widest uppercase py-4">ОБЪЕКТ КОНТРОЛЯ</TableHead>
                                 <TableHead className="text-[10px] font-black tracking-widest uppercase py-4 text-center">ТИП</TableHead>
@@ -906,7 +906,7 @@ function ResultsSection({ inspector }: { inspector: Inspector }) {
                                 <React.Fragment key={result.id}>
                                     <TableRow className={cn(
                                         "hover:bg-primary/5 transition-colors group border-b border-border/40",
-                                        expandedRows[result.id] && "bg-primary/[0.02]"
+                                        expandedRows[result.id] && "bg-primary/2"
                                     )}>
                                         <TableCell className="pl-4">
                                             <button
@@ -983,7 +983,7 @@ function ResultsSection({ inspector }: { inspector: Inspector }) {
                                                                 <Table>
                                                                     <TableHeader className="bg-muted/30">
                                                                         <TableRow className="hover:bg-transparent border-b-2 border-border/40">
-                                                                            <TableHead className="text-[9px] font-black uppercase text-center w-[40px]">№</TableHead>
+                                                                            <TableHead className="text-[9px] font-black uppercase text-center w-10">№</TableHead>
                                                                             <TableHead className="text-[9px] font-black uppercase">ВИД / ТИП НАРУШЕНИЯ</TableHead>
                                                                             <TableHead className="text-[9px] font-black uppercase text-right">СУММА</TableHead>
                                                                             <TableHead className="text-[9px] font-black uppercase text-right">ВОЗМЕЩЕНО</TableHead>
@@ -1010,7 +1010,7 @@ function ResultsSection({ inspector }: { inspector: Inspector }) {
                                                                                         {renderQuantityStats(violation.quantityStats)}
                                                                                     </TableCell>
                                                                                     <TableCell className="py-3">
-                                                                                        <div className="text-[10px] font-medium leading-tight max-w-[200px] truncate uppercase" title={violation.responsiblePerson}>
+                                                                                        <div className="text-[10px] font-medium leading-tight max-w-50 truncate uppercase" title={violation.responsiblePerson}>
                                                                                             {violation.responsiblePerson}
                                                                                         </div>
                                                                                     </TableCell>
@@ -1107,21 +1107,21 @@ function FinancialViolationsSection({ inspector }: { inspector: Inspector }) {
                         <span className="text-[10px] font-bold text-muted-foreground uppercase">СЛУЧАЕВ</span>
                     </div>
                 </div>
-                <div className="bg-card p-4 rounded-xl border-2 border-destructive/30 flex flex-col justify-between shadow-sm bg-destructive/[0.02]">
+                <div className="p-4 rounded-xl border-2 border-destructive/30 flex flex-col justify-between shadow-sm bg-destructive/2">
                     <span className="text-[10px] font-black text-destructive uppercase tracking-widest">СУММА УЩЕРБА</span>
                     <div className="mt-2">
                         <span className="text-2xl font-black text-destructive tabular-nums">{formatCurrency(totalDetected)}</span>
                         <span className="text-[9px] font-bold text-muted-foreground uppercase ml-1">СУМ</span>
                     </div>
                 </div>
-                <div className="bg-card p-4 rounded-xl border-2 border-emerald-500/30 flex flex-col justify-between shadow-sm bg-emerald-500/[0.02]">
+                <div className="p-4 rounded-xl border-2 border-emerald-500/30 flex flex-col justify-between shadow-sm bg-emerald-500/2">
                     <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">ВОЗМЕЩЕНО</span>
                     <div className="mt-2">
                         <span className="text-2xl font-black text-emerald-600 tabular-nums">{formatCurrency(totalRecovered)}</span>
                         <span className="text-[9px] font-bold text-muted-foreground uppercase ml-1">СУМ</span>
                     </div>
                 </div>
-                <div className="bg-card p-4 rounded-xl border-2 border-amber-500/30 flex flex-col justify-between shadow-sm bg-amber-500/[0.02]">
+                <div className="p-4 rounded-xl border-2 border-amber-500/30 flex flex-col justify-between shadow-sm bg-amber-500/2">
                     <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">ОСТАТОК</span>
                     <div className="mt-2">
                         <span className="text-2xl font-black text-amber-600 tabular-nums">{formatCurrency(totalDetected - totalRecovered)}</span>
@@ -1286,21 +1286,21 @@ function AssetViolationsSection({ inspector }: { inspector: Inspector }) {
                         <span className="text-[10px] font-bold text-muted-foreground uppercase">СЛУЧАЕВ</span>
                     </div>
                 </div>
-                <div className="bg-card p-4 rounded-xl border-2 border-destructive/30 flex flex-col justify-between shadow-sm bg-destructive/[0.02]">
+                <div className="p-4 rounded-xl border-2 border-destructive/30 flex flex-col justify-between shadow-sm bg-destructive/2">
                     <span className="text-[10px] font-black text-destructive uppercase tracking-widest">СУММА НЕДОСТАЧИ</span>
                     <div className="mt-2">
                         <span className="text-2xl font-black text-destructive tabular-nums">{formatCurrency(totalDetected)}</span>
                         <span className="text-[9px] font-bold text-muted-foreground uppercase ml-1">СУМ</span>
                     </div>
                 </div>
-                <div className="bg-card p-4 rounded-xl border-2 border-emerald-500/30 flex flex-col justify-between shadow-sm bg-emerald-500/[0.02]">
+                <div className="p-4 rounded-xl border-2 border-emerald-500/30 flex flex-col justify-between shadow-sm bg-emerald-500/2">
                     <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">ПОГАШЕНО</span>
                     <div className="mt-2">
                         <span className="text-2xl font-black text-emerald-600 tabular-nums">{formatCurrency(totalCompensated)}</span>
                         <span className="text-[9px] font-bold text-muted-foreground uppercase ml-1">СУМ</span>
                     </div>
                 </div>
-                <div className="bg-card p-4 rounded-xl border-2 border-amber-500/30 flex flex-col justify-between shadow-sm bg-amber-500/[0.02]">
+                <div className="p-4 rounded-xl border-2 border-amber-500/30 flex flex-col justify-between shadow-sm bg-amber-500/2">
                     <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">К ВОЗМЕЩЕНИЮ</span>
                     <div className="mt-2">
                         <span className="text-2xl font-black text-amber-600 tabular-nums">{formatCurrency(totalRemainder)}</span>
@@ -1418,7 +1418,7 @@ function KpiSection({ inspector }: { inspector: Inspector }) {
 
             {/* Main KPI Dashboard */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-1 bg-card rounded-xl border-2 border-primary/30 overflow-hidden shadow-lg flex flex-col items-center justify-center p-8 bg-gradient-to-br from-primary/[0.02] to-primary/[0.05]">
+                <div className="lg:col-span-1 bg-card rounded-xl border-2 border-primary/30 overflow-hidden shadow-lg flex flex-col items-center justify-center p-8 bg-linear-to-br from-primary/2 to-primary/5">
                     <div className="text-[10px] font-black text-primary tracking-[0.3em] uppercase mb-4">ОБЩИЙ РЕЙТИНГ</div>
                     <div className="relative">
                         <div className="text-7xl font-black text-primary tracking-tighter tabular-nums">{inspector.kpiScore}%</div>

@@ -375,8 +375,8 @@ export function PhysicalPersons() {
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="hover:bg-transparent border-b border-border/50 h-16 bg-muted/20">
-                                            <TableHead className="w-[80px] px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">ID</TableHead>
-                                            <TableHead className="w-[180px] px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 border-l border-border/5">
+                                            <TableHead className="w-20 px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">ID</TableHead>
+                                            <TableHead className="w-45 px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 border-l border-border/5">
                                                 <div className="flex items-center gap-1.5 font-bold">
                                                     <Fingerprint className="h-3.5 w-3.5 text-blue-500/70" />
                                                     ПИНФЛ / Паспорт
@@ -394,7 +394,7 @@ export function PhysicalPersons() {
                                                     {t("Адрес проживания", "Yashash manzili", "Яшаш манзили")}
                                                 </div>
                                             </TableHead>
-                                            <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 border-l border-border/5 w-[140px]">{t("Статус", "Holati", "Ҳолати")}</TableHead>
+                                            <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 border-l border-border/5 w-35">{t("Статус", "Holati", "Ҳолати")}</TableHead>
                                             <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 border-l border-border/5 text-right">{t("Действия", "Harakatlar", "Ҳаракатлар")}</TableHead>
                                         </TableRow>
                                     </TableHeader>
@@ -640,7 +640,7 @@ export function PhysicalPersons() {
                                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-[150px] p-0 z-[10000]" align="start">
+                                        <PopoverContent className="w-40 p-0 z-10000" align="start">
                                             <Command>
                                                 <CommandList>
                                                     <CommandGroup>
@@ -719,7 +719,7 @@ export function PhysicalPersons() {
                                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-[300px] p-0 rounded-xl" align="start">
+                                        <PopoverContent className="w-75 p-0 rounded-xl" align="start">
                                             <Command>
                                                 <CommandInput placeholder={t("Поиск области...", "Viloyatni qidirish...", "Вилоятни қидириш...")} />
                                                 <CommandList>
@@ -769,7 +769,7 @@ export function PhysicalPersons() {
                                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-[300px] p-0 rounded-xl" align="start">
+                                        <PopoverContent className="w-75 p-0 rounded-xl" align="start">
                                             <Command>
                                                 <CommandInput placeholder={t("Поиск района...", "Tumanni qidirish...", "Туманни қидириш...")} />
                                                 <CommandList>
@@ -857,7 +857,7 @@ export function PhysicalPersons() {
                                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                     </Button>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-[200px] p-0 z-[10000]" align="start">
+                                <PopoverContent className="w-50 p-0 z-10000" align="start">
                                     <Command>
                                         <CommandList>
                                             <CommandGroup>

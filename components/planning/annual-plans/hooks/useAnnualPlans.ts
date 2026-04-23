@@ -86,11 +86,16 @@ export function useAnnualPlans({ initialPlans = [], locale }: UseAnnualPlansProp
         try {
             const res = await createAnnualPlan(data)
             if (res.success) {
-                toast.success(locale === "ru" ? "План успешно создан" : "Reja muvaffaqiyatli yaratildi")
+                toast.success(
+                    locale === "ru" ? "План успешно создан" : "Reja muvaffaqiyatli yaratildi",
+                    { description: locale === "ru" ? `Запись №${data.planNumber || "---"} добавлена в реестр` : `Yozuv №${data.planNumber || "---"} reyestrga qo'shildi` }
+                )
                 router.refresh()
                 return { success: true }
             } else {
-                toast.error(res.error || (locale === "ru" ? "Ошибка при создании" : "Yaratishda xatolik"))
+                toast.error(locale === "ru" ? "Ошибка при создании" : "Yaratishda xatolik", {
+                    description: res.error
+                })
                 return { success: false, error: res.error }
             }
         } catch (error) {
@@ -106,11 +111,16 @@ export function useAnnualPlans({ initialPlans = [], locale }: UseAnnualPlansProp
         try {
             const res = await updateAnnualPlan(Number(id), data)
             if (res.success) {
-                toast.success(locale === "ru" ? "План обновлен" : "Reja yangilandi")
+                toast.success(
+                    locale === "ru" ? "План обновлен" : "Reja yangilandi",
+                    { description: locale === "ru" ? "Изменения успешно сохранены" : "O'zgarishlar saqlandi" }
+                )
                 router.refresh()
                 return { success: true }
             } else {
-                toast.error(res.error || (locale === "ru" ? "Ошибка обновления" : "Yangilashda xatolik"))
+                toast.error(locale === "ru" ? "Ошибка обновления" : "Yangilashda xatolik", {
+                    description: res.error
+                })
                 return { success: false, error: res.error }
             }
         } catch (error) {
@@ -126,11 +136,42 @@ export function useAnnualPlans({ initialPlans = [], locale }: UseAnnualPlansProp
         try {
             const res = await deleteAnnualPlan(Number(id))
             if (res.success) {
-                toast.success(locale === "ru" ? "План удален" : "Reja o'chirildi")
+                toast.success(
+                    locale === "ru" ? "План удален" : "Reja o'chirildi",
+                    { description: locale === "ru" ? "Запись успешно исключена из реестра" : "Yozuv reyestrdan o'chirildi" }
+                )
                 router.refresh()
                 return { success: true }
             } else {
-                toast.error(res.error || (locale === "ru" ? "Ошибка удаления" : "O'chirishda xatolik"))
+                toast.error(locale === "ru" ? "Ошибка удаления" : "O'chirishda xatolik", {
+                    description: res.error
+                })
+                return { success: false, error: res.error }
+            }
+        } catch (error) {
+            toast.error(locale === "ru" ? "Произошла ошибка" : "Xatolik yuz berdi")
+            return { success: false, error }
+        } finally {
+            setIsSubmitting(false)
+        }
+    }, [router, locale])
+
+    const handleBulkCreatePlans = useCallback(async (plans: any[]) => {
+        setIsSubmitting(true)
+        try {
+            const { bulkCreateAnnualPlans } = await import("@/lib/actions/planning-actions")
+            const res = await bulkCreateAnnualPlans(plans)
+            if (res.success) {
+                toast.success(
+                    locale === "ru" ? "Массовое создание завершено" : "Ommaviy yaratish yakunlandi",
+                    { description: locale === "ru" ? `Успешно сформировано ${res.count} планов` : `${res.count} ta reja yaratildi` }
+                )
+                router.refresh()
+                return { success: true }
+            } else {
+                toast.error(locale === "ru" ? "Ошибка массового создания" : "Ommaviy yaratishda xatolik", {
+                    description: res.error
+                })
                 return { success: false, error: res.error }
             }
         } catch (error) {
@@ -168,5 +209,6 @@ export function useAnnualPlans({ initialPlans = [], locale }: UseAnnualPlansProp
         handleCreatePlan,
         handleUpdatePlan,
         handleDeletePlan,
+        handleBulkCreatePlans,
     }
 }

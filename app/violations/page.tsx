@@ -293,7 +293,7 @@ function DecisionsContent() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-4">
-                <Card className="relative overflow-hidden border-2 border-cyan-200 bg-gradient-to-br from-cyan-50 to-cyan-100 hover:shadow-lg transition-all hover:scale-105">
+                <Card className="relative overflow-hidden border-2 border-cyan-200 bg-linear-to-br from-cyan-50 to-cyan-100 hover:shadow-lg transition-all hover:scale-105">
                     <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
                         <CardTitle className="text-sm font-medium text-cyan-900">Всего недоплат</CardTitle>
                         <div className="rounded-full bg-cyan-200 p-2 ring-2 ring-cyan-300">
@@ -306,7 +306,7 @@ function DecisionsContent() {
                     </CardContent>
                 </Card>
 
-                <Card className="relative overflow-hidden border-2 border-sky-200 bg-gradient-to-br from-sky-50 to-sky-100 hover:shadow-lg transition-all hover:scale-105">
+                <Card className="relative overflow-hidden border-2 border-sky-200 bg-linear-to-br from-sky-50 to-sky-100 hover:shadow-lg transition-all hover:scale-105">
                     <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
                         <CardTitle className="text-sm font-medium text-sky-900">Общая сумма</CardTitle>
                         <div className="rounded-full bg-sky-200 p-2 ring-2 ring-sky-300">
@@ -321,7 +321,7 @@ function DecisionsContent() {
                     </CardContent>
                 </Card>
 
-                <Card className="relative overflow-hidden border-2 border-lime-200 bg-gradient-to-br from-lime-50 to-lime-100 hover:shadow-lg transition-all hover:scale-105">
+                <Card className="relative overflow-hidden border-2 border-lime-200 bg-linear-to-br from-lime-50 to-lime-100 hover:shadow-lg transition-all hover:scale-105">
                     <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
                         <CardTitle className="text-sm font-medium text-lime-900">Возвращено</CardTitle>
                         <div className="rounded-full bg-lime-200 p-2 ring-2 ring-lime-300">
@@ -336,7 +336,7 @@ function DecisionsContent() {
                     </CardContent>
                 </Card>
 
-                <Card className="relative overflow-hidden border-2 border-red-200 bg-gradient-to-br from-red-50 to-red-100 hover:shadow-lg transition-all hover:scale-105">
+                <Card className="relative overflow-hidden border-2 border-red-200 bg-linear-to-br from-red-50 to-red-100 hover:shadow-lg transition-all hover:scale-105">
                     <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
                         <CardTitle className="text-sm font-medium text-red-900">В процессе</CardTitle>
                         <div className="rounded-full bg-red-200 p-2 ring-2 ring-red-300">
@@ -453,26 +453,26 @@ function DecisionsContent() {
                                                 <TableCell>{underpayment.detectionDate}</TableCell>
                                                 <TableCell className="align-top">
                                                     <div className="flex flex-col gap-1">
-                                                        <div className="text-[15px] font-semibold" style={{ color: "#222" }}>
+                                                        <div className="text-sm font-semibold" style={{ color: "#222" }}>
                                                             {underpayment.unit}
                                                         </div>
-                                                        <div className="text-[13px]" style={{ color: "#777" }}>
+                                                        <div className="text-xs" style={{ color: "#777" }}>
                                                             {underpayment.unitDistrict}
                                                         </div>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="align-top">
                                                     <div className="flex flex-col gap-1">
-                                                        <div className="text-[15px] font-semibold" style={{ color: "#222" }}>
+                                                        <div className="text-sm font-semibold" style={{ color: "#222" }}>
                                                             {underpayment.responsible}
                                                         </div>
-                                                        <div className="text-[13px]" style={{ color: "#777" }}>
+                                                        <div className="text-xs" style={{ color: "#777" }}>
                                                             {underpayment.responsiblePosition}
                                                         </div>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="font-medium">{underpayment.paymentName}</TableCell>
-                                                <TableCell className="flex flex-col text-[13px] font-semibold text-red-500">
+                                                <TableCell className="flex flex-col text-xs font-semibold text-red-500">
                                                     {underpayment.underpaymentType.split(" ").map((word: string, index: number) => {
                                                         if (word.length > 20) {
                                                             const mid = Math.ceil(word.length / 2)
@@ -530,7 +530,7 @@ function DecisionsContent() {
                                                             <Icons.Plus className="h-4 w-4 mr-1" />
                                                         </Button>
                                                         <Select>
-                                                            <SelectTrigger className="w-[50px] h-8">
+                                                            <SelectTrigger className="w-12.5 h-8">
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 <SelectItem value="edit">

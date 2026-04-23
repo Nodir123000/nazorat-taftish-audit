@@ -282,18 +282,18 @@ export function FinancialAuditRegistry({
         <Table>
             <TableHeader>
                 <TableRow>
-                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center w-20">ИД ПЛАНА</TableHead>
-                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center whitespace-nowrap">№ АКТА / ДАТА</TableHead>
-                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center">ОБЪЕКТ КОНТРОЛЯ</TableHead>
-                    {!hideControlBody && <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center">ОРГАН КОНТРОЛЯ</TableHead>}
-                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center">НАПРАВЛЕНИЕ</TableHead>
-                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center">ТИП</TableHead>
-                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center">СУММА НАРУШЕНИЯ</TableHead>
-                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center">ВОЗМЕЩЕНО</TableHead>
-                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center whitespace-nowrap">ЛИЦ</TableHead>
-                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center">ОТВЕТСТВЕННЫЙ</TableHead>
-                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center">СТАТУС</TableHead>
-                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-slate-700 text-center">ДЕЙСТВИЯ</TableHead>
+                    <TableHead className="text-tiny font-black tracking-widest uppercase text-slate-700 text-center w-20">ИД ПЛАНА</TableHead>
+                    <TableHead className="text-tiny font-black tracking-widest uppercase text-slate-700 text-center whitespace-nowrap">№ АКТА / ДАТА</TableHead>
+                    <TableHead className="text-tiny font-black tracking-widest uppercase text-slate-700 text-center">ОБЪЕКТ КОНТРОЛЯ</TableHead>
+                    {!hideControlBody && <TableHead className="text-tiny font-black tracking-widest uppercase text-slate-700 text-center">ОРГАН КОНТРОЛЯ</TableHead>}
+                    <TableHead className="text-tiny font-black tracking-widest uppercase text-slate-700 text-center">НАПРАВЛЕНИЕ</TableHead>
+                    <TableHead className="text-tiny font-black tracking-widest uppercase text-slate-700 text-center">ТИП</TableHead>
+                    <TableHead className="text-tiny font-black tracking-widest uppercase text-slate-700 text-center">СУММА НАРУШЕНИЯ</TableHead>
+                    <TableHead className="text-tiny font-black tracking-widest uppercase text-slate-700 text-center">ВОЗМЕЩЕНО</TableHead>
+                    <TableHead className="text-tiny font-black tracking-widest uppercase text-slate-700 text-center whitespace-nowrap">ЛИЦ</TableHead>
+                    <TableHead className="text-tiny font-black tracking-widest uppercase text-slate-700 text-center">ОТВЕТСТВЕННЫЙ</TableHead>
+                    <TableHead className="text-tiny font-black tracking-widest uppercase text-slate-700 text-center">СТАТУС</TableHead>
+                    <TableHead className="text-tiny font-black tracking-widest uppercase text-slate-700 text-center">ДЕЙСТВИЯ</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -320,15 +320,15 @@ export function FinancialAuditRegistry({
                                     <TableCell className="font-mono text-center">{audit.id}</TableCell>
                                     <TableCell className="align-top">
                                         <div className="flex flex-col">
-                                            <span className="text-[11px] font-black text-foreground uppercase tracking-tight">AKT-{audit.id.toString().padStart(3, '0')}</span>
-                                            <span className="text-[9px] font-mono text-muted-foreground uppercase">ОТ {audit.date}</span>
+                                            <span className="text-tiny font-black text-foreground uppercase tracking-tight">AKT-{audit.id.toString().padStart(3, '0')}</span>
+                                            <span className="text-mini font-mono text-muted-foreground uppercase">ОТ {audit.date}</span>
                                         </div>
                                     </TableCell>
                                     <TableCell className="align-top">
                                         <div className="flex flex-col">
-                                            <div className="font-semibold text-foreground uppercase text-[11px]">{audit.unit}</div>
+                                            <div className="font-semibold text-foreground uppercase text-tiny">{audit.unit}</div>
                                             <div 
-                                                className="text-[9px] text-muted-foreground uppercase cursor-help w-fit" 
+                                                className="text-mini text-muted-foreground uppercase cursor-help w-fit" 
                                                 title={audit.unitSubtitle}
                                             >
                                                 {getDistrictAbbr(audit.unitSubtitle)}
@@ -345,14 +345,14 @@ export function FinancialAuditRegistry({
                                     <TableCell>
                                         <div className="flex flex-col">
                                             <div 
-                                                className="font-semibold text-foreground text-[11px] uppercase cursor-help border-b border-dotted border-slate-300 w-fit" 
+                                                className="font-semibold text-foreground text-tiny uppercase cursor-help border-b border-dotted border-slate-300 w-fit" 
                                                 title={audit.inspectionDirection}
                                             >
                                                 {getDirectionAbbr(audit.inspectionDirection)}
                                             </div>
                                             {audit.inspectionDirectionSubtitle && getDirectionAbbr(audit.inspectionDirection) === audit.inspectionDirection && (
                                                 <div 
-                                                    className="text-[9px] text-muted-foreground uppercase cursor-help w-fit" 
+                                                    className="text-mini text-muted-foreground uppercase cursor-help w-fit" 
                                                     title={audit.inspectionDirectionSubtitle}
                                                 >
                                                     {getDirectionAbbr(audit.inspectionDirectionSubtitle)}

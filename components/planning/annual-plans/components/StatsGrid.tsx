@@ -57,8 +57,8 @@ export function StatsGrid({ plans, locale, onStatClick, activeStatus, supplyDepa
                 subtitle={t("annual.stats.plans")}
                 icon={Icons.Check}
                 color="green"
-                onClick={() => onStatClick?.("approved")}
-                isActive={activeStatus === "approved"}
+                onClick={() => onStatClick?.("101")}
+                isActive={activeStatus === "101" || activeStatus === "approved"}
             />
             <StatsCard
                 title={t("annual.stats.completion")}
@@ -66,6 +66,8 @@ export function StatsGrid({ plans, locale, onStatClick, activeStatus, supplyDepa
                 subtitle={t("annual.stats.completionDesc")}
                 icon={Icons.PieChart}
                 color="teal"
+                onClick={() => onStatClick?.("105")}
+                isActive={activeStatus === "105" || activeStatus === "completed"}
             />
             <StatsCard
                 title={t("annual.stats.overdue")}
@@ -73,6 +75,8 @@ export function StatsGrid({ plans, locale, onStatClick, activeStatus, supplyDepa
                 subtitle={t("annual.stats.overdueDesc")}
                 icon={Icons.AlertTriangle}
                 color="red"
+                onClick={() => onStatClick?.("overdue")}
+                isActive={activeStatus === "overdue"}
             />
             <StatsCard
                 title={t("annual.stats.objectsCoverage")}
@@ -80,6 +84,8 @@ export function StatsGrid({ plans, locale, onStatClick, activeStatus, supplyDepa
                 subtitle={t("annual.stats.objectsDesc")}
                 icon={Icons.Building}
                 color="purple"
+                onClick={() => onStatClick?.("coverage")}
+                isActive={activeStatus === "coverage"}
             />
         </div>
     )

@@ -318,7 +318,7 @@ export function PersonnelTable({
                             <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48 rounded-2xl shadow-2xl border-none z-[10000]">
+                    <DropdownMenuContent align="end" className="w-48 rounded-2xl shadow-2xl border-none z-10000">
                         <DropdownMenuItem className="rounded-xl py-2 cursor-pointer focus:bg-primary/5" onClick={() => onMove(row.original)}>
                             <MapPin className="h-4 w-4 mr-2.5 text-emerald-600" />
                             Переместить

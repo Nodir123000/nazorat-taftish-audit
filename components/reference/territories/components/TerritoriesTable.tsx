@@ -46,7 +46,7 @@ export function TerritoriesTable({ data, activeTab, loading, onEdit, onDelete, g
             <Table>
                 <TableHeader>
                     <TableRow className="hover:bg-transparent border-b border-border/50 h-16 bg-muted/20">
-                        <TableHead className="w-[60px] px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">ID</TableHead>
+                        <TableHead className="w-15 px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">ID</TableHead>
                         <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 border-l border-border/5">
                             <div className="flex items-center gap-1.5">
                                 {isRegion ? <Map className="h-3.5 w-3.5 text-blue-500/70" /> : <LocateFixed className="h-3.5 w-3.5 text-indigo-500/70" />}
@@ -54,7 +54,7 @@ export function TerritoriesTable({ data, activeTab, loading, onEdit, onDelete, g
                             </div>
                         </TableHead>
                         {isRegion ? (
-                            <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 border-l border-border/5 w-[140px]">{ui("ref.territories.field.type")}</TableHead>
+                            <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 border-l border-border/5 w-35">{ui("ref.territories.field.type")}</TableHead>
                         ) : (
                             <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 border-l border-border/5">
                                 <div className="flex items-center gap-1.5 ">
@@ -63,7 +63,7 @@ export function TerritoriesTable({ data, activeTab, loading, onEdit, onDelete, g
                                 </div>
                             </TableHead>
                         )}
-                        <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 border-l border-border/5 w-[140px]">
+                        <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 border-l border-border/5 w-35">
                             {isRegion ? (
                                 <div className="flex items-center gap-1.5">
                                     <LayoutList className="h-3.5 w-3.5 text-orange-500/70" />
@@ -71,8 +71,8 @@ export function TerritoriesTable({ data, activeTab, loading, onEdit, onDelete, g
                                 </div>
                             ) : ui("ref.territories.field.type")}
                         </TableHead>
-                        <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 border-l border-border/5 w-[140px]">{ui("ref.territories.field.status")}</TableHead>
-                        <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 border-l border-border/5 text-right w-[100px]">{ui("common.actions")}</TableHead>
+                        <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 border-l border-border/5 w-35">{ui("ref.territories.field.status")}</TableHead>
+                        <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 border-l border-border/5 text-right w-25">{ui("common.actions")}</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>

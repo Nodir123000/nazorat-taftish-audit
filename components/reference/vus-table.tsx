@@ -247,8 +247,8 @@ export function VusTable() {
                         <Table>
                             <TableHeader>
                                 <TableRow className="hover:bg-transparent border-b border-border/50 h-16 bg-muted/20">
-                                    <TableHead className="w-[80px] px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">ID</TableHead>
-                                    <TableHead className="w-[120px] px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{locale === "ru" ? "Код ВУС" : "VUS kodi"}</TableHead>
+                                    <TableHead className="w-20 px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">ID</TableHead>
+                                    <TableHead className="w-30 px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{locale === "ru" ? "Код ВУС" : "VUS kodi"}</TableHead>
                                     <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">
                                         {locale === "ru" ? "Наименование специальности" : "Mutaxassislik nomi"}
                                     </TableHead>
@@ -393,7 +393,7 @@ export function VusTable() {
                                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-[200px] p-0 z-[10000]" align="start">
+                                    <PopoverContent className="w-50 p-0 z-10000" align="start">
                                         <Command>
                                             <CommandList>
                                                 <CommandGroup>

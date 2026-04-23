@@ -8,6 +8,7 @@ export const translations: Translations = {
   ru: {
     // Common
     "common.search": "Поиск",
+    "common.home": "Главная",
     "common.add": "Добавить",
     "common.edit": "Редактировать",
     "common.delete": "Удалить",
@@ -33,7 +34,15 @@ export const translations: Translations = {
     "common.district": "Округ",
     "common.type": "Тип",
     "common.location": "Локация",
+    "common.startDate": "Дата начала",
+    "common.endDate": "Дата окончания",
+    "common.noResults": "Результатов не найдено",
     "language.toggle": "Русский / Ўзбек",
+    "common.manage": "Управление",
+    "common.nothing_found": "Ничего не найдено",
+    "common.search_placeholder": "Поиск...",
+    "common.actions": "Действия",
+    "common.unit_short": "ед.",
 
     // Dashboard
     "dashboard.title": "Главная панель",
@@ -107,6 +116,7 @@ export const translations: Translations = {
     "dashboard.modules.referenceDesc": "Нормативная и справочная база",
     "dashboard.modules.admin": "Администрирование",
     "dashboard.modules.adminDesc": "Управление пользователями и системой",
+    "nav.planning": "Планирование",
     "dashboard.modules.services": "Сервисы",
     "dashboard.modules.servicesDesc": "Дополнительные сервисы и уведомления",
     "dashboard.modules.integration": "Интеграция",
@@ -328,6 +338,48 @@ export const translations: Translations = {
     "sidebar.reference.base": "Справочная база",
     "sidebar.reference.legal": "Нормативная база",
 
+    // Reference - Territories
+    "ref.territories.title": "Справочник территорий",
+    "ref.territories.description": "Управление областями и районами республики",
+    "ref.territories.tab_regions": "Области",
+    "ref.territories.tab_districts": "Районы",
+    "ref.territories.search_placeholder": "Поиск по названию...",
+    "ref.territories.add_region": "Добавить область",
+    "ref.territories.add_district": "Добавить район",
+    "ref.territories.field.name": "Наименование",
+    "ref.territories.field.type": "Тип",
+    "ref.territories.field.region": "Область",
+    "ref.territories.field.status": "Статус",
+    "ref.territories.status.active": "Активен",
+    "ref.territories.status.inactive": "Неактивен",
+    "ref.territories.create_region_title": "Создание региона",
+    "ref.territories.edit_region_title": "Редактирование региона",
+    "ref.territories.create_district_title": "Создание района",
+    "ref.territories.edit_district_title": "Редактирование района",
+
+    // Reference - Military Districts
+    "ref.districts.title": "Военные округа",
+    "ref.districts.description": "Справочник военных округов",
+    "ref.districts.add": "Добавить округ",
+    "ref.districts.field.code": "Код",
+    "ref.districts.field.name": "Наименование",
+    "ref.districts.field.short": "Краткое",
+    "ref.districts.field.headquarters": "Штаб",
+    "ref.districts.field.status": "Статус",
+
+    // Reference - Military Units
+    "ref.units.title": "Воинские части",
+    "ref.units.description": "Справочник дислокации подразделений",
+    "ref.units.add": "Добавить",
+    "ref.units.field.state_id": "Штат ID",
+    "ref.units.field.name": "Наименование",
+    "ref.units.field.region": "Область",
+    "ref.units.field.district": "Район",
+    "ref.units.field.military_district": "Округ",
+    "ref.units.field.status": "Статус",
+    "ref.units.active": "Активна",
+    "ref.units.inactive": "Нофаол",
+
     "sidebar.admin": "Управление",
     "sidebar.admin.users": "Учёт пользователей",
     "sidebar.admin.roles": "Роли и права",
@@ -391,19 +443,7 @@ export const translations: Translations = {
     "orders.create.field.transportRestrictions": "Ограничения на транспорт",
     "orders.create.field.aviationTransport": "Авиатранспорт",
     "orders.create.field.template": "Шаблон документа",
-    // Подсистема
-    "sidebar.kpi": "KPI сотрудников",
-    "sidebar.kpi.employees": "Карточки сотрудников",
-    "sidebar.kpi.management": "Данные и расчёт",
-    "sidebar.kpi.analytics": "Аналитика",
-    // Подсистема
-    "sidebar.audits": "Учет ревизий",
-    // Модуль
     "sidebar.audits.financial": "Акты ревизий",
-    // Модуль
-    "sidebar.audits.law_enforcement": "Правоохранительные органы",
-    // Модуль
-    "sidebar.audits.service_investigations": "Служебные расследования",
     "sidebar.analytics": "Аналитика",
     "sidebar.analytics.receivables": "Дебиторская задолженность",
 
@@ -877,30 +917,28 @@ export const translations: Translations = {
     "violations.assets.illegalWriteoff.dialogs.addDescriptionPlaceholder": "Подробное описание незаконного списания...",
     "violations.assets.illegalWriteoff.dialogs.addSubmit": "Добавить списание",
 
-    "sidebar.violations": "Учёт нарушений", // Подсистема «Централизованный учёт нарушений»
-    "sidebar.violations.financial": "Финансовые нарушения", // Модуль
-    "sidebar.violations.assets": "Имущественные нарушения", // Модуль
+
     "sidebar.personnel": "Мастер-данные", // Подсистема «Управление мастер-данными (Карточки)»
     "sidebar.personnel.personnel": "Личный состав", // Личный состав (субъекты ответственности)
     "sidebar.personnel.list": "Профили инспекторов", // Модуль
     "sidebar.personnel.units": "Воинские части", // Воинский части
     "sidebar.personnel.categories": "Категории",
     "sidebar.personnel.positions": "Должности",
-    "sidebar.reports": "Отчётность", // Подсистема
-    "sidebar.reports.generation": "Формирование отчётов", // Модуль
+    "sidebar.reports.generation_alt": "Формирование отчётов", // Rename to avoid duplicate if needed, or just remove
+
     "sidebar.reports.explanatory": "Пояснительная записка",
-    "sidebar.reports.analytics": "Аналитика и своды",
-    "sidebar.reference": "Справочники", // Подсистема «Нормативно-справочное обеспечение»
+
+
     "sidebar.reference.database": "Справочная база", // Модуль
     "sidebar.reference.regulatory": "Нормативная база", // Модуль
     "sidebar.reference.expense": "Классификация расходов",
-    "sidebar.admin": "Администрирование", // Подсистема «Администрирование и информационная безопасность»
-    "sidebar.admin.users": "Учёт пользователей",
+    "sidebar.admin.users_alt": "Учёт пользователей",
+
     "sidebar.admin.schema": "Архитектура БД",
-    "sidebar.admin.roles": "Роли и права", // Модуль
+
     "sidebar.admin.auditlog": "История изменений", // Модуль
     "sidebar.admin.kpiaudit": "Аудит KPI",
-    "sidebar.admin.archive": "Архив ревизий", // Модуль
+
     "sidebar.admin.metrology": "Метрология и диагностика",
     "sidebar.admin.backup": "Резервные копии",
     "sidebar.security": "Управление доступом",
@@ -1271,21 +1309,6 @@ export const translations: Translations = {
     "control.actions.view": "Просмотр",
     "control.actions.update": "Обновление",
     "control.actions.report": "Отчет",
-
-    // Territories
-    "ref.territories.title": "Справочник территорий",
-    "ref.territories.description": "Управление областями и районами республики",
-    "ref.territories.tab_regions": "Области",
-    "ref.territories.tab_districts": "Районы",
-    "ref.territories.search_placeholder": "Поиск по названию...",
-    "ref.territories.add_region": "Добавить область",
-    "ref.territories.add_district": "Добавить район",
-    "ref.territories.field.name": "Наименование",
-    "ref.territories.field.type": "Тип",
-    "ref.territories.field.region": "Область",
-    "ref.territories.field.status": "Статус",
-    "common.unit_short": "ед.",
-    "common.actions": "Действия",
   },
   uzCyrl: {
     // Common
@@ -1303,12 +1326,15 @@ export const translations: Translations = {
     "common.previous": "Орқага",
     "common.next": "Олдинга",
     "common.copy": "Нусха олиш",
-    "sidebar.kpi.management": "Маълумотлар ва ҳисоблаш", // «Маълумотлар ва ҳисоблаш» модули
-    "sidebar.kpi.analytics": "Визуаллаштириш", // «Ютуқларни визуаллаштириш» модули
-    "sidebar.audits": "Тафтишлар ҳисоби", // «Тафтишлар ҳисоби» қуйи тизими
-    "sidebar.audits.financial": "Тафтиш далолатномалари", // «Тафтиш далолатномалари» модули
-    "sidebar.audits.law_enforcement": "Ҳуқуқни муҳофаза қилиш", // «Ҳуқуқни муҳофаза қилиш органлари» модули
-    "sidebar.audits.service_investigations": "Хизмат текширувлари", // «Хизмат текширувлари» модули
+    "sidebar.kpi": "Мониторинг KPI",
+    "sidebar.kpi.management": "Маълумотлар ва ҳисоблаш",
+    "sidebar.kpi.analytics": "Визуаллаштириш",
+    "sidebar.kpi.employees": "Ходимлар карточкалари",
+    "sidebar.audits": "Тафтишлар ҳисоби",
+    "sidebar.audits.financial": "Тафтиш далолатномалари",
+    "sidebar.audits.law_enforcement": "Ҳуқуқни муҳофаза қилиш",
+    "sidebar.audits.service_investigations": "Хизмат текширувлари",
+    "sidebar.analytics": "Аналитика",
     "orders.create.success": "Буйруқ муваффақиятли сақланди",
     "orders.create.error": "Буйруқни сақлашда хатолик юз берди",
     "orders.create.field.template": "Ҳужжат шаблони",
@@ -1319,6 +1345,9 @@ export const translations: Translations = {
     "common.type": "Тури",
     "common.location": "Жойлашуви",
     "common.loading": "Юкланмоқда...",
+    "common.startDate": "Бошланиш санаси",
+    "common.endDate": "Тугаш санаси",
+    "common.noResults": "Натижалар топилмади",
     "language.toggle": "Русский / Ўзбек",
 
     // Dashboard
@@ -1631,16 +1660,7 @@ export const translations: Translations = {
     "orders.create.field.specialistInvolvement": "Мутахассисларни жалб этиш",
     "orders.create.field.transportRestrictions": "Транспорт чекловлари",
     "orders.create.field.aviationTransport": "Авиатранспорт",
-    "sidebar.kpi": "Мониторинг KPI",
-    "sidebar.kpi.employees": "Ходимлар карточкалари",
-    "sidebar.kpi.management": "Маълумотлар ва ҳисоблаш",
-    "sidebar.kpi.analytics": "Аналитика",
 
-    "sidebar.audits": "Тафтишлар ҳисоби",
-    "sidebar.audits.financial": "МХФ текшириш",
-    "sidebar.audits.law_enforcement": "Ҳуқуқни муҳофаза қилиш",
-    "sidebar.audits.service_investigations": "Хизмат текширувлари",
-    "sidebar.analytics": "Аналитика",
 
     "audits.tab.active": "Фаол",
     "audits.tab.preparation": "Тайёргарлик",
@@ -2124,9 +2144,7 @@ export const translations: Translations = {
       "Qonunsiz mol-mulk hisobdan chiqarilishining batafsil tavsifi...",
     "violations.assets.illegalWriteoff.dialogs.addSubmit": "Hisobdan chiqarish qo'shish",
 
-    "sidebar.violations": "Қонунбузарликлар ҳисоби", // Марказлаштирилган қонунбузарликлар ҳисоби
-    "sidebar.violations.financial": "Молиявий қонунбузарликлар", // Модуль
-    "sidebar.violations.assets": "Мулкий камчиликлар", // Модуль
+
     "sidebar.personnel": "Мастер-маълумотлар", // Мастер-маълумотларни бошқариш (Карточкалар)
     "sidebar.personnel.personnel": "Шахсий таркиб", // Шахсий таркиб (жавобгар шахслар)
     "sidebar.personnel.units": "Ҳарбий қисмлар", // Ҳарбий қисмлар
@@ -2485,6 +2503,9 @@ export const translations: Translations = {
     "common.district": "Okrug",
     "common.type": "Turi",
     "common.location": "Joylashuv",
+    "common.startDate": "Boshlanish sanasi",
+    "common.endDate": "Tugash sanasi",
+    "common.noResults": "Natijalar topilmadi",
     "language.toggle": "Русский / Ўзбек",
 
     // Dashboard
@@ -3260,30 +3281,19 @@ export const translations: Translations = {
       "Qonunsiz mol-mulk hisobdan chiqarilishining batafsil tavsifi...",
     "violations.assets.illegalWriteoff.dialogs.addSubmit": "Hisobdan chiqarish qo'shish",
 
-    "sidebar.violations": "Qonunbuzarliklar hisobi", // Podsistema «Markazlashtirilgan qonunbuzarliklar hisobi»
-    "sidebar.violations.financial": "Moliyaviy qonunbuzarliklar", // Modul
-    "sidebar.violations.assets": "Mulkiy kamchiliklar", // Modul
+
     "sidebar.personnel": "Master-ma'lumotlar", // Podsistema «Master-ma'lumotlarni boshqarish (Kartochkalar)»
     "sidebar.personnel.personnel": "Shaxsiy tarkib", // Modul «Shaxsiy tarkib (javobgar shaxslar)»
     "sidebar.personnel.units": "Harbiy qismlar", // Modul «Harbiy qismlar»
     "sidebar.personnel.list": "Inspektorlar profillari", // Modul «Inspektorlar profillari»
     "sidebar.personnel.categories": "Kategoriyalar",
     "sidebar.personnel.positions": "Lavozimlar",
-    "sidebar.reports": "Hisobot", // Podsistema «Hisobot»
-    "sidebar.reports.generation": "Hisobotlarni shakllantirish", // Modul «Hisobotlarni shakllantirish»
-    "sidebar.reports.explanatory": "Izohli xat",
-    "sidebar.reports.analytics": "Analitika va jamlanmalar",
-    "sidebar.reference": "Ma'lumotnomalar", // Podsistema «Me'yoriy-ma'lumotnoma ta'minoti»
+
+
     "sidebar.reference.database": "Ma'lumotnoma bazasi", // Modul «Ma'lumotnoma bazasi»
     "sidebar.reference.regulatory": "Me'yoriy baza", // Modul «Me'yoriy baza»
     "sidebar.reference.expense": "Xarajatlar tasnifi",
-    "sidebar.admin": "Ma'muriyat", // Podsistema «Ma'muriyat va axborot xavfsizligi»
-    "sidebar.admin.users": "Foydalanuvchilar", // Modul «Foydalanuvchilarni hisobga olish»
-    "sidebar.admin.schema": "MB Arxitekturasi",
-    "sidebar.admin.roles": "Rollar va huquqlar", // Modul «Rollar va huquqlar»
-    "sidebar.admin.auditlog": "O'zgarishlar tarixi", // Modul «O'zgarishlar tarixi»
-    "sidebar.admin.kpiaudit": "KPI auditi",
-    "sidebar.admin.archive": "Taftishlar arxivi", // Modul «Taftishlar arxivi»
+
     "sidebar.admin.metrology": "Metrologiya va diagnostika",
     "sidebar.admin.backup": "Zaxira nusxalar",
     "sidebar.security": "Kirish boshqaruv",

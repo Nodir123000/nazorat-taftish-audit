@@ -1,6 +1,6 @@
 "use client"
 
-import { Box, Grid, Paper, Typography, Card, CardContent } from "@mui/material"
+import { Box, Grid, Paper, Typography, Card, CardContent, Chip } from "@mui/material"
 import { 
   BarChart, 
   Bar, 
@@ -56,7 +56,7 @@ export default function KpiDashboard() {
 
       <Grid container spacing={3}>
         {/* Карточка текущего рейтинга */}
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Card sx={{ 
             bgcolor: "primary.dark", 
             color: "white", 
@@ -79,7 +79,7 @@ export default function KpiDashboard() {
         </Grid>
 
         {/* Столбчатый график распределения */}
-        <Grid item xs={12} md={8}>
+        <Grid size={{ xs: 12, md: 8 }}>
           <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid #e0e0e0' }}>
             <Typography variant="h6" sx={{ mb: 3, display: "flex", alignItems: "center", fontWeight: 700 }}>
               <TrendingUp style={{ marginRight: 12, color: '#1976d2' }} />
@@ -102,7 +102,7 @@ export default function KpiDashboard() {
         </Grid>
 
         {/* Линейный график динамики */}
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid #e0e0e0' }}>
             <Typography variant="h6" sx={{ mb: 3, fontWeight: 700 }}>Динамика личного рейтинга относительно отдела</Typography>
             <Box sx={{ height: 350 }}>

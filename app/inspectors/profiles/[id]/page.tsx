@@ -15,7 +15,7 @@ import {
   TableRow,
   Skeleton
 } from "@mui/material"
-import { User, Award, History, MapPin, Briefcase, Shiro } from "lucide-react"
+import { User, Award, History, Briefcase } from "lucide-react"
 import useSWR from "swr"
 import { useParams } from "next/navigation"
 
@@ -35,7 +35,7 @@ export default function InspectorProfilePage() {
     <Box sx={{ p: 4, bgcolor: '#f8fafc', minHeight: '100vh' }}>
       <Grid container spacing={4}>
         {/* Левая колонка: Визитная карточка */}
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 4, border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
             <Avatar 
               sx={{ 
@@ -97,7 +97,7 @@ export default function InspectorProfilePage() {
         </Grid>
 
         {/* Правая колонка: Аналитика ротаций */}
-        <Grid item xs={12} md={8}>
+        <Grid size={{ xs: 12, md: 8 }}>
           <Paper sx={{ p: 4, borderRadius: 4, border: '1px solid #e2e8f0' }}>
             <Typography variant="h6" sx={{ mb: 4, display: 'flex', alignItems: 'center', fontWeight: 800 }}>
               <History size={24} style={{ marginRight: 12, color: '#1e293b' }} />

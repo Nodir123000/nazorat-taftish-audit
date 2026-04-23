@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge"
 import { useTranslation } from "@/lib/i18n/hooks"
 import { useI18n } from "@/lib/i18n/context"
 import useSWR from "swr"
+import { toSafeString } from "@/lib/utils/localization"
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
@@ -85,21 +86,28 @@ export function UnitSelect({
     const selectedUnit = options.find((unit) => unit.name === value || unit.id?.toString() === value)
 
     const getLocalizedUnitName = (unit: any) => {
-        if (locale === "uzLatn") return unit.name_uz_latn || unit.name
-        if (locale === "uzCyrl") return unit.name_uz_cyrl || unit.name
-        return unit.name
+        if (!unit) return ""
+        let name = unit.name
+        if (locale === "uzLatn" && unit.name_uz_latn) name = unit.name_uz_latn
+        if (locale === "uzCyrl" && unit.name_uz_cyrl) name = unit.name_uz_cyrl
+        
+        return toSafeString(name, locale as any)
     }
 
     const filteredOptions = React.useMemo(() => {
         if (!searchQuery) return options
         const query = searchQuery.toLowerCase()
-        return options.filter((unit) =>
-            unit.name.toLowerCase().includes(query) ||
-            (unit.name_uz_latn && unit.name_uz_latn.toLowerCase().includes(query)) ||
-            (unit.name_uz_cyrl && unit.name_uz_cyrl.toLowerCase().includes(query)) ||
-            unit.id.toString().includes(query) ||
-            (unit.stateNumber && unit.stateNumber.includes(query))
-        )
+        return options.filter((unit) => {
+            const name = toSafeString(unit.name, locale as any).toLowerCase()
+            const nameUzLatn = unit.name_uz_latn ? toSafeString(unit.name_uz_latn, locale as any).toLowerCase() : ""
+            const nameUzCyrl = unit.name_uz_cyrl ? toSafeString(unit.name_uz_cyrl, locale as any).toLowerCase() : ""
+            
+            return name.includes(query) ||
+                nameUzLatn.includes(query) ||
+                nameUzCyrl.includes(query) ||
+                unit.id.toString().includes(query) ||
+                (unit.stateNumber && unit.stateNumber.includes(query))
+        })
     }, [options, searchQuery])
 
     return (
@@ -123,14 +131,14 @@ export function UnitSelect({
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-full min-w-[400px] p-0" align="start">
+            <PopoverContent className="w-full min-w-100 p-0" align="start">
                 <Command shouldFilter={false}>
                     <CommandInput
                         placeholder={t("common.search")}
                         value={searchQuery}
                         onValueChange={setSearchQuery}
                     />
-                    <CommandList className="max-h-[300px]">
+                    <CommandList className="max-h-75">
                         <CommandEmpty>{t("common.noData")}</CommandEmpty>
                         <CommandGroup>
                             {filteredOptions.map((unit) => (
@@ -138,8 +146,17 @@ export function UnitSelect({
                                     key={`${unit.id}-${unit.name}`}
                                     value={unit.name}
                                     onSelect={() => {
-                                        onValueChange(unit.name)
-                                        if (onUnitChange) onUnitChange(unit)
+                                        // Pass the stable Russian name to onValueChange for consistent lookups,
+                                        // or the string name if it's already a string.
+                                        const stableName = typeof unit.name === 'object' ? unit.name.ru : unit.name;
+                                        onValueChange(stableName)
+                                        
+                                        if (onUnitChange) {
+                                            onUnitChange({
+                                                ...unit,
+                                                name: stableName // Dialogs expect a string here for controlObject
+                                            })
+                                        }
                                         setOpen(false)
                                         setSearchQuery("")
                                     }}
@@ -149,7 +166,8 @@ export function UnitSelect({
                                         <Check
                                             className={cn(
                                                 "h-4 w-4 shrink-0",
-                                                value === unit.name || value === unit.id.toString()
+                                                value === (typeof unit.name === 'object' ? unit.name.ru : unit.name) || 
+                                                value === unit.id.toString()
                                                     ? "opacity-100"
                                                     : "opacity-0"
                                             )}
@@ -157,12 +175,12 @@ export function UnitSelect({
                                         <span className="font-semibold truncate">{getLocalizedUnitName(unit)}</span>
                                         {unit.district && (
                                             <Badge variant="outline" className="ml-auto text-[10px] shrink-0">
-                                                {unit.district}
+                                                {toSafeString(unit.district, locale as any)}
                                             </Badge>
                                         )}
                                     </div>
                                     <div className="flex gap-2 text-xs text-muted-foreground pl-6">
-                                        <span>{unit.location}</span>
+                                        <span>{toSafeString(unit.location, locale as any)}</span>
                                         {unit.stateNumber && <span> • №{unit.stateNumber}</span>}
                                     </div>
                                 </CommandItem>

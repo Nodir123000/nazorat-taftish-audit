@@ -212,7 +212,7 @@ export function DocumentTemplates() {
                                 </div>
                             </div>
                             <Textarea
-                                className="font-mono min-h-[450px] text-sm"
+                                className="font-mono min-h-112.5 text-sm"
                                 value={editingTemplate.content}
                                 onChange={(e) => setEditingTemplate({ ...editingTemplate, content: e.target.value })}
                             />
@@ -250,12 +250,12 @@ export function DocumentTemplates() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="w-[100px]">ID</TableHead>
+                                    <TableHead className="w-24">ID</TableHead>
                                     <TableHead>Название</TableHead>
-                                    <TableHead className="w-[120px]">Тип</TableHead>
-                                    <TableHead className="w-[120px]">Язык</TableHead>
-                                    <TableHead className="w-[100px]">Статус</TableHead>
-                                    <TableHead className="w-[120px] text-right">Действия</TableHead>
+                                    <TableHead className="w-30">Тип</TableHead>
+                                    <TableHead className="w-30">Язык</TableHead>
+                                    <TableHead className="w-24">Статус</TableHead>
+                                    <TableHead className="w-30 text-right">Действия</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>

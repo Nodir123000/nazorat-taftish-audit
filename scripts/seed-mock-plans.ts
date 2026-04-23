@@ -1,7 +1,12 @@
 
+import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+import pg from 'pg'
 
-const prisma = new PrismaClient()
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL })
+const adapter = new PrismaPg(pool)
+const prisma = new PrismaClient({ adapter })
 
 // Helper to seed reference data if missing
 async function ensureReferences() {
@@ -122,7 +127,7 @@ async function main() {
     const refs = await ensureReferences();
 
     console.log('Clearing existing plans...')
-    await (prisma as any).revPlanYear.deleteMany({})
+    await (prisma as any).rev_plan_year.deleteMany({})
 
     try {
         await prisma.$executeRawUnsafe(`ALTER SEQUENCE rev_plan_year_plan_id_seq RESTART WITH 1;`)
@@ -143,7 +148,7 @@ async function main() {
             continue;
         }
 
-        await (prisma as any).revPlanYear.create({
+        await (prisma as any).rev_plan_year.create({
             data: {
                 planNumber: plan.planNumber,
                 year: plan.year,

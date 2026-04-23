@@ -91,14 +91,14 @@ export function PersonnelSelect({
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-full min-w-[350px] p-0" align="start">
+            <PopoverContent className="w-full min-w-80 p-0" align="start">
                 <Command shouldFilter={false}>
                     <CommandInput
                         placeholder="Поиск по ФИО, званию или должности..."
                         value={searchQuery}
                         onValueChange={setSearchQuery}
                     />
-                    <CommandList className="max-h-[300px]">
+                    <CommandList className="max-h-75">
                         <CommandEmpty>Сотрудник не найден</CommandEmpty>
                         <CommandGroup>
                             {filteredOptions.map((person) => (

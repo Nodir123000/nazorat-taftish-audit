@@ -252,7 +252,7 @@ export function DocumentTypes() {
               placeholder={t("Поиск документа...", "Hujjatni qidirish...", "Ҳужжатни қидириш...")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-11 h-12 w-full md:w-[300px] rounded-2xl bg-white border-none shadow-xl shadow-slate-200/50 focus:ring-4 focus:ring-blue-500/10 transition-all font-bold text-sm"
+              className="pl-11 h-12 w-full md:w-75 rounded-2xl bg-white border-none shadow-xl shadow-slate-200/50 focus:ring-4 focus:ring-blue-500/10 transition-all font-bold text-sm"
             />
           </div>
           <Button
@@ -265,18 +265,18 @@ export function DocumentTypes() {
         </div>
       </div>
 
-      <Card className="border-none shadow-2xl shadow-slate-200/50 bg-white/80 backdrop-blur-xl rounded-[32px] overflow-hidden">
+      <Card className="border-none shadow-2xl shadow-slate-200/50 bg-white/80 backdrop-blur-xl rounded-4xl overflow-hidden">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-b border-slate-100 h-20 bg-slate-50/50">
-                  <TableHead className="w-[80px] px-8 font-black text-[10px] uppercase tracking-widest text-slate-400 text-center">ID</TableHead>
-                  <TableHead className="w-[120px] px-6 font-black text-[10px] uppercase tracking-widest text-slate-400">{t("Код", "Kod", "Код")}</TableHead>
+                  <TableHead className="w-20 px-8 font-black text-[10px] uppercase tracking-widest text-slate-400 text-center">ID</TableHead>
+                  <TableHead className="w-30 px-6 font-black text-[10px] uppercase tracking-widest text-slate-400">{t("Код", "Kod", "Код")}</TableHead>
                   <TableHead className="px-6 font-black text-[10px] uppercase tracking-widest text-slate-400">{t("Наименование", "Nomlanishi", "Номи")}</TableHead>
                   <TableHead className="px-6 font-black text-[10px] uppercase tracking-widest text-slate-400">{t("Категория", "Toifa", "Тоифа")}</TableHead>
-                  <TableHead className="w-[120px] px-6 font-black text-[10px] uppercase tracking-widest text-slate-400 text-center">{t("Статус", "Holati", "Ҳолати")}</TableHead>
-                  <TableHead className="w-[80px] px-8 font-black text-[10px] uppercase tracking-widest text-slate-400 text-right">{t("Действия", "Harakatlar", "Ҳаракатлар")}</TableHead>
+                  <TableHead className="w-30 px-6 font-black text-[10px] uppercase tracking-widest text-slate-400 text-center">{t("Статус", "Holati", "Ҳолати")}</TableHead>
+                  <TableHead className="w-20 px-8 font-black text-[10px] uppercase tracking-widest text-slate-400 text-right">{t("Действия", "Harakatlar", "Ҳаракатлар")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -435,7 +435,7 @@ export function DocumentTypes() {
                         <ChevronsUpDown className="h-4 w-4 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[300px] p-0 rounded-2xl border-none shadow-2xl overflow-hidden z-[10000]">
+                    <PopoverContent className="w-75 p-0 rounded-2xl border-none shadow-2xl overflow-hidden z-10000">
                       <Command>
                         <CommandInput placeholder={t("Поиск категории...", "Toifani qidirish...", "Тоифани қидириш...")} className="h-11" />
                         <CommandList>
@@ -541,7 +541,7 @@ export function DocumentTypes() {
                         <ChevronsUpDown className="h-4 w-4 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0 rounded-2xl border-none shadow-2xl z-[10000]">
+                    <PopoverContent className="w-50 p-0 rounded-2xl border-none shadow-2xl z-10000">
                       <Command>
                         <CommandList>
                           <CommandGroup>
@@ -574,7 +574,7 @@ export function DocumentTypes() {
                         <ChevronsUpDown className="h-4 w-4 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0 rounded-2xl border-none shadow-2xl z-[10000]">
+                    <PopoverContent className="w-50 p-0 rounded-2xl border-none shadow-2xl z-10000">
                       <Command>
                         <CommandList>
                           <CommandGroup>

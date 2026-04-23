@@ -24,6 +24,7 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
+    DialogFooter,
 } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useTranslation } from "@/lib/i18n/hooks"
@@ -34,10 +35,12 @@ import { useI18n } from "@/lib/i18n/context"
 import { toast } from "sonner"
 import {
     getLocalizedDirectionName,
-    getInspectionTypeLabel
+    getInspectionTypeLabel,
+    getStatusLabel
 } from "@/lib/utils/localization"
 
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { cn } from "@/lib/utils"
 import { Checkbox } from "@/components/ui/checkbox"
 import type { OrdersFilters } from "@/lib/types/orders"
 
@@ -149,6 +152,16 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
         groupSpecialists: [] as string[]
     })
 
+    const [currentStep, setCurrentStep] = useState(1)
+    const totalSteps = 3
+    
+    const nextStep = () => {
+        if (currentStep < totalSteps) setCurrentStep(currentStep + 1)
+    }
+    const prevStep = () => {
+        if (currentStep > 1) setCurrentStep(currentStep - 1)
+    }
+
     const formatDateShort = (dateStr: any): string => {
         if (!dateStr) return "—";
         if (dateStr instanceof Date) {
@@ -184,7 +197,7 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
         const items: UnifiedRegistryItem[] = []
 
         if (initialPlans && initialPlans.length > 0) {
-            initialPlans.forEach((p, index) => {
+            initialPlans.forEach((p: any, index: number) => {
                 const latestOrder = p.orders && p.orders.length > 0 ? p.orders[0] : null;
                 const latestBriefing = p.briefings && p.briefings.length > 0 ? p.briefings[0] : null;
                 const latestPrescription = p.prescriptions && p.prescriptions.length > 0 ? p.prescriptions[0] : null;
@@ -204,15 +217,15 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                         name: p.responsible?.fullname || p.responsible?.full_name || "Не назначен",
                         position: p.responsible?.rank || "—"
                     }),
-                    status: p.status === "approved" ? "Действует" : p.status === "draft" ? "Черновик" : p.status,
-                    statusVariant: p.status === "approved" ? "default" : "secondary",
+                    status: getStatusLabel(p.status, locale as any),
+                    statusVariant: p.status === "approved" || p.status === "101" ? "default" : "secondary",
                     planId: String(p.planId || index + 1),
                     controlObject: p.unit ? getLocalizedName(p.unit, locale) : (p.controlObject || "—"),
                     controlObjectSubtitle: p.unit?.ref_military_districts?.short_name
                         ? (typeof p.unit.ref_military_districts.short_name === 'string' ? p.unit.ref_military_districts.short_name : p.unit.ref_military_districts.short_name.ru)
                         : "",
-                    inspectionDirection: getLocalizedDirectionName(p.inspectionDirection, locale as any),
-                    inspectionDirectionSubtitle: getInspectionTypeLabel(p.inspectionType, locale as any),
+                    inspectionDirection: getLocalizedDirectionName(p.inspectionDirectionId || p.inspectionDirection, locale as any),
+                    inspectionDirectionSubtitle: getInspectionTypeLabel(p.inspectionTypeId || p.inspectionType, locale as any),
                     commissionCount: latestOrder?.commission_members?.length || 0,
                     commissionMembers: latestOrder?.commission_members?.map((m: any) => ({
                         id: m.user_id || m.userId,
@@ -247,9 +260,9 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
     const handleOpenManage = (item: UnifiedRegistryItem) => {
         setManagingItem(item);
 
-        const leader = item.commissionMembers?.find(m => m.role === "Главный ревизор")?.id?.toString() || ""
+        const leader = item.commissionMembers?.find(m => m.role === "Председатель комиссии")?.id?.toString() || ""
         const members = item.commissionMembers
-            ?.filter(m => m.role === "Ревизор")
+            ?.filter(m => m.role === "Член комиссии")
             .map(m => m.id?.toString())
             .filter(Boolean) as string[] || []
         const specialists = item.commissionMembers
@@ -299,8 +312,8 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                 prescriptionNumber: manageFormData.prescriptionNum,
                 prescriptionDate: manageFormData.prescriptionDate,
                 commission: [
-                    ...(manageFormData.groupLeader ? [{ userId: manageFormData.groupLeader, role: "Главный ревизор" }] : []),
-                    ...manageFormData.groupMembers.map(id => ({ userId: id, role: "Ревизор" })),
+                    ...(manageFormData.groupLeader ? [{ userId: manageFormData.groupLeader, role: "Председатель комиссии" }] : []),
+                    ...manageFormData.groupMembers.map(id => ({ userId: id, role: "Член комиссии" })),
                     ...manageFormData.groupSpecialists.map(id => ({ personnelId: id, role: "Привлечённый специалист" }))
                 ]
             };
@@ -336,16 +349,16 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
             return
         }
 
-        const mappedDocs = docs.map(d => ({ type: d.type, content: d.content, title: d.title, label: d.label }))
+        const mappedDocs = docs.map((d: any) => ({ type: d.type, content: d.content, title: d.title, label: d.label }))
         setAvailableDocs(mappedDocs)
         setActiveDocType(mappedDocs[0].type)
         setShowViewDoc(true)
     }
 
     const filteredData = useMemo(() => {
-        return allData.filter(item => {
+        return allData.filter((item: UnifiedRegistryItem) => {
             const searchLower = filters.search.toLowerCase()
-            const matchesCommission = item.commissionMembers?.some(m => 
+            const matchesCommission = item.commissionMembers?.some((m: CommissionMember) => 
                 m.name.toLowerCase().includes(searchLower)
             ) || false
             
@@ -404,17 +417,17 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="w-[50px]">{t("orders.table.id")}</TableHead>
-                                <TableHead className="w-[80px]">ИД плана</TableHead>
-                                <TableHead className="w-[180px]">Объект контроля</TableHead>
-                                <TableHead className="w-[150px]">Направление</TableHead>
-                                <TableHead className="w-[100px]">Тип</TableHead>
-                                <TableHead className="w-[180px]">Состав комиссии</TableHead>
-                                <TableHead className="w-[150px]">Номер и дата приказа</TableHead>
-                                <TableHead className="w-[100px]">Инструктаж</TableHead>
-                                <TableHead className="w-[150px]">Предписание</TableHead>
-                                <TableHead className="w-[100px]">{t("orders.table.status")}</TableHead>
-                                <TableHead className="w-[50px]">{t("orders.table.actions")}</TableHead>
+                                <TableHead className="w-12.5">{t("orders.table.id")}</TableHead>
+                                <TableHead className="w-20">ИД плана</TableHead>
+                                <TableHead className="w-45">Объект контроля</TableHead>
+                                <TableHead className="w-37.5">Направление</TableHead>
+                                <TableHead className="w-25">Тип</TableHead>
+                                <TableHead className="w-45">Состав комиссии</TableHead>
+                                <TableHead className="w-37.5">Номер и дата приказа</TableHead>
+                                <TableHead className="w-25">Инструктаж</TableHead>
+                                <TableHead className="w-37.5">Предписание</TableHead>
+                                <TableHead className="w-25">{t("orders.table.status")}</TableHead>
+                                <TableHead className="w-12.5">{t("orders.table.actions")}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -435,7 +448,7 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="max-w-[200px]">
+                                        <div className="max-w-50">
                                             {item.commissionMembers && item.commissionMembers.length > 0 ? (
                                                 <div className="flex flex-wrap gap-1">
                                                     {item.commissionMembers.slice(0, 3).map((m, i) => (
@@ -496,172 +509,387 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                 </CardContent>
             </Card>
 
-            {/* Unified Management Dialog */}
-            <Dialog open={showManageDialog} onOpenChange={setShowManageDialog}>
-                <DialogContent className="max-w-[700px] max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>Управление данными: {managingItem?.controlObject}</DialogTitle>
-                        <DialogDescription>
-                            Заполните реквизиты документов и назначьте ревизоров
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    <div className="grid gap-6 py-4">
-                        <div className="grid grid-cols-2 gap-4 border-b pb-4">
-                            <div className="space-y-2">
-                                <Label className="text-blue-600 font-bold">Приказ №</Label>
-                                <Input value={manageFormData.orderNum} onChange={e => setManageFormData({ ...manageFormData, orderNum: e.target.value })} />
+            {/* Unified Management Dialog - Stepper Implementation */}
+            <Dialog open={showManageDialog} onOpenChange={(open) => {
+                setShowManageDialog(open)
+                if (open) setCurrentStep(1)
+            }}>
+                <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl flex flex-col max-h-[90vh]">
+                    <DialogHeader className="p-6 bg-linear-to-r from-blue-600/10 to-indigo-600/10 border-b relative overflow-hidden shrink-0">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full -mr-16 -mt-16 blur-3xl" />
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-blue-600 rounded-xl shadow-lg shadow-blue-600/20">
+                                <Icons.Settings className="h-5 w-5 text-white" />
                             </div>
-                            <div className="space-y-2">
-                                <Label className="text-blue-600 font-bold">Дата приказа</Label>
-                                <Input type="date" value={manageFormData.orderDate} onChange={e => setManageFormData({ ...manageFormData, orderDate: e.target.value })} />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4 border-b pb-4">
-                            <div className="space-y-2">
-                                <Label className="text-green-600 font-bold">Инструктаж (дата)</Label>
-                                <Input type="date" value={manageFormData.briefingDate} onChange={e => setManageFormData({ ...manageFormData, briefingDate: e.target.value })} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label className="text-amber-600 font-bold">Предписание №</Label>
-                                <Input value={manageFormData.prescriptionNum} onChange={e => setManageFormData({ ...manageFormData, prescriptionNum: e.target.value })} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label className="text-amber-600 font-bold">Дата предписания</Label>
-                                <Input type="date" value={manageFormData.prescriptionDate} onChange={e => setManageFormData({ ...manageFormData, prescriptionDate: e.target.value })} />
+                            <div>
+                                <DialogTitle className="text-xl font-bold tracking-tight">
+                                    {t("orders.manage.title") || "Управление данными"}
+                                </DialogTitle>
+                                <DialogDescription className="text-blue-600/70 font-medium">
+                                    {managingItem?.controlObject}
+                                </DialogDescription>
                             </div>
                         </div>
 
-                        <div className="space-y-4">
-                            <h3 className="text-sm font-bold text-slate-900 border-b pb-1 uppercase italic">Назначенные ревизоры</h3>
-
-                            <div className="space-y-2">
-                                <Label className="text-xs font-bold text-blue-800">Главный ревизор (сотрудник КРУ)</Label>
-                                <Select value={manageFormData.groupLeader} onValueChange={val => setManageFormData({ ...manageFormData, groupLeader: val })}>
-                                    <SelectTrigger className="bg-white"><SelectValue placeholder="Выберите главного ревизора" /></SelectTrigger>
-                                    <SelectContent>
-                                        {kruStaff.map(s => <SelectItem key={s.user_id} value={s.user_id.toString()}>{s.rank} {s.fullname}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label className="text-xs font-bold text-blue-800">Ревизоры (сотрудники КРУ)</Label>
-                                <ScrollArea className="h-[120px] border rounded-md p-2 bg-slate-50">
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {kruStaff.map(s => (
-                                            <div key={s.user_id} className="flex items-center space-x-2">
-                                                <Checkbox
-                                                    id={`m-${s.user_id}`}
-                                                    checked={manageFormData.groupMembers.includes(s.user_id.toString())}
-                                                    onCheckedChange={checked => {
-                                                        const m = checked ? [...manageFormData.groupMembers, s.user_id.toString()] : manageFormData.groupMembers.filter(id => id !== s.user_id.toString())
-                                                        setManageFormData({ ...manageFormData, groupMembers: m })
-                                                    }}
-                                                />
-                                                <Label htmlFor={`m-${s.user_id}`} className="text-[10px] cursor-pointer">{s.rank} {s.fullname}</Label>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </ScrollArea>
-                            </div>
-
-                            <div className="space-y-2 pt-2 border-t border-dashed">
-                                <Label className="text-xs font-bold text-teal-700">Поиск специалистов (ПИНФЛ/Фамилия)</Label>
-                                <div className="relative">
-                                    <Input placeholder="Поиск..." value={specSearchText} onChange={e => setSpecSearchText(e.target.value)} className="bg-teal-50/20" />
-                                    {isSearchingSpec && <Icons.Loader2 className="absolute right-2 top-2 h-4 w-4 animate-spin text-teal-600" />}
-
-                                    {specSearchResults.length > 0 && (
-                                        <div className="absolute z-50 w-full mt-1 border rounded shadow-lg bg-white max-h-[150px] overflow-auto">
-                                            {specSearchResults.map(p => (
-                                                <div key={p.id} className="p-2 hover:bg-teal-50 cursor-pointer text-xs border-b flex justify-between items-center" onClick={() => {
-                                                    if (!manageFormData.groupSpecialists.includes(p.id.toString())) {
-                                                        setManageFormData({ ...manageFormData, groupSpecialists: [...manageFormData.groupSpecialists, p.id.toString()] })
-                                                    }
-                                                    setSpecSearchText(""); setSpecSearchResults([])
-                                                }}>
-                                                    <span>{p.rank} {p.fullName}</span>
-                                                    <Badge variant="outline" className="text-[9px]">Выбрать</Badge>
-                                                </div>
-                                            ))}
+                        {/* Visual Stepper */}
+                        <div className="flex items-center justify-between gap-2 px-2 pt-2">
+                            {[
+                                { id: 1, label: locale === "ru" ? "Приказ" : "Buyruq", icon: Icons.FileText },
+                                { id: 2, label: locale === "ru" ? "Исполнение" : "Ijro", icon: Icons.Zap },
+                                { id: 3, label: locale === "ru" ? "Комиссия" : "Komissiya", icon: Icons.Users }
+                            ].map((step, idx) => (
+                                <div key={step.id} className="flex items-center flex-1 last:flex-none">
+                                    <div className="flex flex-col items-center gap-1.5 relative z-10">
+                                        <div className={cn(
+                                            "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300",
+                                            currentStep === step.id ? "bg-blue-600 text-white ring-4 ring-blue-600/20 scale-110" :
+                                            currentStep > step.id ? "bg-green-500 text-white" : "bg-muted text-muted-foreground border-2"
+                                        )}>
+                                            {currentStep > step.id ? <Icons.Check className="w-4 h-4" /> : step.id}
                                         </div>
+                                        <span className={cn(
+                                            "text-[9px] uppercase tracking-wider font-bold",
+                                            currentStep === step.id ? "text-blue-600" : "text-muted-foreground"
+                                        )}>
+                                            {step.label}
+                                        </span>
+                                    </div>
+                                    {idx < 2 && (
+                                        <div className={cn(
+                                            "h-0.5 flex-1 mx-2 -mt-4 transition-colors duration-500",
+                                            currentStep > step.id ? "bg-green-500" : "bg-muted"
+                                        )} />
                                     )}
                                 </div>
+                            ))}
+                        </div>
+                    </DialogHeader>
 
-                                {manageFormData.groupSpecialists.length > 0 && (
-                                    <div className="mt-2 flex flex-wrap gap-1">
-                                        {manageFormData.groupSpecialists.map(id => (
-                                            <Badge key={id} variant="secondary" className="text-[9px] bg-teal-50 text-teal-900 border-teal-200">
-                                                ID: {id}
-                                                <Icons.X className="h-2 w-2 ml-1 cursor-pointer" onClick={() => setManageFormData({ ...manageFormData, groupSpecialists: manageFormData.groupSpecialists.filter(i => i !== id) })} />
-                                            </Badge>
-                                        ))}
+                    <div className="flex-1 overflow-y-auto px-8 py-8 bg-background/50 backdrop-blur-sm">
+                        <div className="min-h-75">
+                            {/* Step 1: Official Order */}
+                            {currentStep === 1 && (
+                                <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                                    <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800">
+                                        <Icons.Info className="h-5 w-5 text-blue-600" />
+                                        <p className="text-xs text-blue-800 dark:text-blue-300 font-medium leading-relaxed">
+                                            Укажите номер и дату официального приказа, на основании которого проводится данное мероприятие.
+                                        </p>
                                     </div>
-                                )}
+                                    <div className="grid grid-cols-1 gap-6">
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-bold text-foreground/80">Номер приказа</Label>
+                                            <Input 
+                                                className="h-12 text-lg font-mono border-2 focus-visible:ring-blue-500"
+                                                placeholder="Например: Пр-123"
+                                                value={manageFormData.orderNum} 
+                                                onChange={e => setManageFormData({ ...manageFormData, orderNum: e.target.value })} 
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-bold text-foreground/80">Дата издания приказа</Label>
+                                            <Input 
+                                                type="date" 
+                                                className="h-12 border-2 focus-visible:ring-blue-500"
+                                                value={manageFormData.orderDate} 
+                                                onChange={e => setManageFormData({ ...manageFormData, orderDate: e.target.value })} 
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Step 2: Execution & Basis */}
+                            {currentStep === 2 && (
+                                <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                                    <div className="grid grid-cols-1 gap-6">
+                                        <div className="p-6 bg-green-50/50 dark:bg-green-900/10 rounded-2xl border-2 border-dashed border-green-200 dark:border-green-800 space-y-3">
+                                            <div className="flex items-center gap-2 text-green-700">
+                                                <Icons.ShieldCheck className="h-5 w-5" />
+                                                <Label className="font-bold">Инструктаж по безопасности</Label>
+                                            </div>
+                                            <Input 
+                                                type="date" 
+                                                className="bg-white dark:bg-slate-900 border-green-200 focus-visible:ring-green-500 h-11"
+                                                value={manageFormData.briefingDate} 
+                                                onChange={e => setManageFormData({ ...manageFormData, briefingDate: e.target.value })} 
+                                            />
+                                        </div>
+
+                                        <div className="p-6 bg-amber-50/50 dark:bg-amber-900/10 rounded-2xl border-2 border-dashed border-amber-200 dark:border-amber-800 space-y-4">
+                                            <div className="flex items-center gap-2 text-amber-700">
+                                                <Icons.Lock className="h-5 w-5" />
+                                                <Label className="font-bold">Данные предписания</Label>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label className="text-xs font-bold text-amber-700/70">Номер</Label>
+                                                    <Input 
+                                                        className="bg-white dark:bg-slate-900 border-amber-200 focus-visible:ring-amber-500"
+                                                        placeholder="№..."
+                                                        value={manageFormData.prescriptionNum} 
+                                                        onChange={e => setManageFormData({ ...manageFormData, prescriptionNum: e.target.value })} 
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label className="text-xs font-bold text-amber-700/70">Дата</Label>
+                                                    <Input 
+                                                        type="date" 
+                                                        className="bg-white dark:bg-slate-900 border-amber-200 focus-visible:ring-amber-500"
+                                                        value={manageFormData.prescriptionDate} 
+                                                        onChange={e => setManageFormData({ ...manageFormData, prescriptionDate: e.target.value })} 
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Step 3: Commission members */}
+                            {currentStep === 3 && (
+                                <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-bold text-purple-700 dark:text-purple-400">Главный ревизор</Label>
+                                            <Select value={manageFormData.groupLeader} onValueChange={val => setManageFormData({ ...manageFormData, groupLeader: val })}>
+                                                <SelectTrigger className="h-11 border-2 border-purple-200/50">
+                                                    <SelectValue placeholder="Выберите главного ревизора" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {kruStaff.map((s: any) => (
+                                                        <SelectItem key={s.user_id} value={s.user_id.toString()}>
+                                                            {s.rank} {s.fullname}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-bold text-purple-700 dark:text-purple-400 uppercase tracking-widest text-[10px]">Участники комиссии</Label>
+                                            <ScrollArea className="h-40 border-2 rounded-2xl p-4 bg-background/50 border-purple-100 dark:border-purple-900/50">
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    {kruStaff.map((s: any) => (
+                                                        <div key={s.user_id} className="flex items-center space-x-3 p-2 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-xl transition-colors border border-transparent hover:border-purple-200/50">
+                                                            <Checkbox
+                                                                id={`m-${s.user_id}`}
+                                                                className="h-5 w-5 border-2 border-purple-300 text-purple-600"
+                                                                checked={manageFormData.groupMembers.includes(s.user_id.toString())}
+                                                                onCheckedChange={(checked: boolean) => {
+                                                                    const m = checked ? [...manageFormData.groupMembers, s.user_id.toString()] : manageFormData.groupMembers.filter((id: string) => id !== s.user_id.toString())
+                                                                    setManageFormData({ ...manageFormData, groupMembers: m })
+                                                                }}
+                                                            />
+                                                            <Label htmlFor={`m-${s.user_id}`} className="text-xs cursor-pointer font-medium">
+                                                                {s.rank} {s.fullname}
+                                                            </Label>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </ScrollArea>
+                                        </div>
+
+                                        <div className="pt-2">
+                                            <Label className="text-sm font-bold text-teal-700 dark:text-teal-400">Внешние специалисты</Label>
+                                            <div className="mt-2 relative">
+                                                <Input 
+                                                    placeholder="Поиск по ФИО или ПИНФЛ..." 
+                                                    value={specSearchText} 
+                                                    onChange={e => setSpecSearchText(e.target.value)} 
+                                                    className="h-11 pl-10 border-2 border-teal-100" 
+                                                />
+                                                <Icons.Search className="absolute left-3.5 top-3.5 h-4 w-4 text-teal-500/50" />
+                                                {isSearchingSpec && <Icons.Loader2 className="absolute right-3.5 top-3.5 h-4 w-4 animate-spin text-teal-600" />}
+
+                                                {specSearchResults.length > 0 && (
+                                                    <div className="absolute z-50 w-full mt-2 border rounded-2xl shadow-2xl bg-background max-h-48 overflow-auto animate-in fade-in zoom-in-95 duration-200">
+                                                        {specSearchResults.map((p: any) => (
+                                                            <div key={p.id} className="p-3 hover:bg-teal-50 dark:hover:bg-teal-900/20 cursor-pointer text-xs border-b last:border-0 flex justify-between items-center transition-colors" onClick={() => {
+                                                                if (!manageFormData.groupSpecialists.includes(p.id.toString())) {
+                                                                    setManageFormData({ ...manageFormData, groupSpecialists: [...manageFormData.groupSpecialists, p.id.toString()] })
+                                                                }
+                                                                setSpecSearchText(""); setSpecSearchResults([])
+                                                            }}>
+                                                                <div className="flex flex-col">
+                                                                    <span className="font-bold">{p.rank} {p.fullName}</span>
+                                                                    <span className="text-[10px] text-muted-foreground">{p.pinfl}</span>
+                                                                </div>
+                                                                <Badge variant="outline" className="bg-teal-500 text-white border-none">Выбрать</Badge>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {manageFormData.groupSpecialists.length > 0 && (
+                                                <div className="mt-3 flex flex-wrap gap-2">
+                                                    {manageFormData.groupSpecialists.map(id => (
+                                                        <Badge key={id} className="bg-teal-600/10 text-teal-700 border-teal-200 px-3 py-1.5 rounded-full flex items-center gap-2">
+                                                            ID: {id}
+                                                            <Icons.X className="h-3.5 w-3.5 cursor-pointer hover:text-red-500 transition-colors" onClick={() => setManageFormData({ ...manageFormData, groupSpecialists: manageFormData.groupSpecialists.filter(i => i !== id) })} />
+                                                        </Badge>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <DialogFooter className="p-6 bg-muted/30 border-t flex items-center justify-between gap-3 shrink-0">
+                        <Button variant="ghost" className="font-bold text-xs uppercase tracking-widest px-6" onClick={() => {
+                            if (currentStep === 1) setShowManageDialog(false)
+                            else prevStep()
+                        }}>
+                            {currentStep === 1 ? (t("common.cancel") || "Отмена") : (t("common.back") || "Назад")}
+                        </Button>
+                        
+                        <div className="flex gap-3">
+                            {currentStep < totalSteps ? (
+                                <Button 
+                                    onClick={nextStep} 
+                                    className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 px-8 font-bold text-xs uppercase tracking-widest"
+                                >
+                                    {t("common.next") || "Далее"}
+                                    <Icons.ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            ) : (
+                                <Button 
+                                    onClick={handleSaveManagement} 
+                                    className="bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/20 px-8 font-bold text-xs uppercase tracking-widest"
+                                >
+                                    <Icons.Save className="mr-2 h-4 w-4" />
+                                    {t("common.save") || "Сохранить"}
+                                </Button>
+                            )}
+                        </div>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Document View Dialog - Modernized */}
+            <Dialog open={showViewDoc} onOpenChange={setShowViewDoc}>
+                <DialogContent className="max-w-4xl h-[90vh] p-0 flex flex-col overflow-hidden border-none shadow-2xl">
+                    <DialogHeader className="p-6 bg-slate-900 text-white border-b shrink-0">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-white/10 rounded-lg">
+                                    <Icons.FileText className="h-5 w-5 text-blue-400" />
+                                </div>
+                                <div>
+                                    <DialogTitle className="text-xl font-bold">Просмотр документа</DialogTitle>
+                                    <DialogDescription className="text-slate-400">
+                                        Официальный сформированный документ
+                                    </DialogDescription>
+                                </div>
+                            </div>
+                            {availableDocs.length > 1 && (
+                                <div className="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/10">
+                                    {availableDocs.map(d => (
+                                        <Button 
+                                            key={d.type} 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            onClick={() => setActiveDocType(d.type)}
+                                            className={cn(
+                                                "h-8 text-[10px] uppercase tracking-wider font-bold rounded-lg transition-all",
+                                                activeDocType === d.type ? "bg-white text-slate-900 shadow-lg" : "text-slate-400 hover:text-white"
+                                            )}
+                                        >
+                                            {d.label}
+                                        </Button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </DialogHeader>
+
+                    <div className="flex-1 overflow-y-auto p-12 bg-slate-100 dark:bg-slate-950 flex justify-center">
+                        <div className="w-full max-w-[210mm] bg-white dark:bg-slate-900 shadow-2xl rounded-sm p-[20mm] min-h-full font-serif text-[14pt] leading-relaxed relative border border-slate-200 dark:border-slate-800 animate-in zoom-in-95 duration-500">
+                            <div className="absolute top-0 left-0 w-full h-1.5 bg-blue-600" />
+                            <div className="whitespace-pre-wrap selection:bg-blue-100 dark:selection:bg-blue-900">
+                                {availableDocs.find(d => d.type === activeDocType)?.content || "Текст отсутствует"}
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-4 border-t">
-                        <Button variant="outline" onClick={() => setShowManageDialog(false)}>Отмена</Button>
-                        <Button onClick={handleSaveManagement} className="bg-blue-600 hover:bg-blue-700">Сохранить</Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
-
-            {/* Document View Dialog */}
-            <Dialog open={showViewDoc} onOpenChange={setShowViewDoc}>
-                <DialogContent className="max-w-[1000px] h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>Просмотр документа</DialogTitle>
-                    </DialogHeader>
-                    {availableDocs.length > 1 && (
-                        <div className="flex gap-2 mb-4">
-                            {availableDocs.map(d => (
-                                <Button key={d.type} variant={activeDocType === d.type ? "default" : "outline"} size="sm" onClick={() => setActiveDocType(d.type)}>
-                                    {d.label}
-                                </Button>
-                            ))}
+                    <DialogFooter className="p-4 bg-slate-50 dark:bg-slate-900/50 border-t flex items-center justify-between gap-4 shrink-0">
+                        <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest px-4">
+                            Документ сгенерирован автоматически АИС КРР
                         </div>
-                    )}
-                    <div className="p-8 border rounded-md font-serif text-lg bg-white shadow-inner whitespace-pre-wrap">
-                        {availableDocs.find(d => d.type === activeDocType)?.content || "Текст отсутствует"}
-                    </div>
-                    <div className="mt-4 flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => window.print()}><Icons.Printer className="mr-2 h-4 w-4" />Печать</Button>
-                        <Button onClick={() => setShowViewDoc(false)}>Закрыть</Button>
-                    </div>
+                        <div className="flex gap-3">
+                            <Button variant="outline" className="h-9 px-4 font-bold text-xs uppercase tracking-wider" onClick={() => window.print()}>
+                                <Icons.Printer className="mr-2 h-4 w-4" />
+                                Печать
+                            </Button>
+                            <Button className="h-9 px-6 bg-slate-900 dark:bg-slate-100 dark:text-slate-900 font-bold text-xs uppercase tracking-wider" onClick={() => setShowViewDoc(false)}>
+                                Закрыть
+                            </Button>
+                        </div>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 
-            {/* History Dialog */}
+            {/* History Dialog - Modernized */}
             <Dialog open={showHistory} onOpenChange={setShowHistory}>
-                <DialogContent className="max-w-[600px] max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>История изменений: {selectedItemForHistory?.controlObject}</DialogTitle>
-                    </DialogHeader>
-                    {historyLoading ? (
-                        <div className="flex items-center justify-center py-8 text-slate-500">Загрузка...</div>
-                    ) : historyLogs.length === 0 ? (
-                        <div className="flex items-center justify-center py-8 text-slate-400">Нет записей об изменениях</div>
-                    ) : (
-                        <div className="space-y-2">
-                            {historyLogs.map(log => (
-                                <div key={log.id} className="border rounded-md p-3 text-sm">
-                                    <div className="flex items-center justify-between mb-1">
-                                        <Badge variant="outline">{log.action}</Badge>
-                                        <span className="text-xs text-slate-500">{log.date ? new Date(log.date).toLocaleString("ru-RU") : "—"}</span>
-                                    </div>
-                                    <p className="text-slate-700">{log.details}</p>
-                                </div>
-                            ))}
+                <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl">
+                    <DialogHeader className="p-6 bg-muted/50 border-b">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl border">
+                                <Icons.History className="h-5 w-5 text-slate-600" />
+                            </div>
+                            <div>
+                                <DialogTitle className="text-lg font-bold">История изменений</DialogTitle>
+                                <DialogDescription className="text-xs">
+                                    {selectedItemForHistory?.controlObject}
+                                </DialogDescription>
+                            </div>
                         </div>
-                    )}
-                    <div className="flex justify-end">
-                        <Button variant="outline" onClick={() => setShowHistory(false)}>Закрыть</Button>
+                    </DialogHeader>
+
+                    <div className="max-h-[60vh] overflow-y-auto px-8 py-8">
+                        {historyLoading ? (
+                            <div className="flex flex-col items-center justify-center py-12 gap-4">
+                                <Icons.Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Загрузка данных...</span>
+                            </div>
+                        ) : historyLogs.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-12 gap-2 text-muted-foreground">
+                                <Icons.Inbox className="h-10 w-10 opacity-20" />
+                                <span className="text-sm italic">История изменений пуста</span>
+                            </div>
+                        ) : (
+                            <div className="relative space-y-6 before:absolute before:left-2.75 before:top-2 before:h-[calc(100%-16px)] before:w-0.5 before:bg-muted">
+                                {historyLogs.map((log, idx) => (
+                                    <div key={log.id} className="relative pl-10 group animate-in fade-in slide-in-from-left-4" style={{ animationDelay: `${idx * 100}ms` }}>
+                                        <div className="absolute left-0 top-1.5 h-6 w-6 rounded-full border-4 border-background bg-blue-600 shadow-sm z-10 transition-transform group-hover:scale-110" />
+                                        <div className="p-4 bg-muted/30 hover:bg-muted/50 rounded-2xl border border-transparent hover:border-muted-foreground/10 transition-all">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <Badge variant="outline" className="text-[9px] uppercase tracking-tighter bg-background font-bold text-blue-600">
+                                                    {log.action}
+                                                </Badge>
+                                                <time className="text-[10px] text-muted-foreground font-mono">
+                                                    {log.date ? new Date(log.date).toLocaleString("ru-RU", { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "—"}
+                                                </time>
+                                            </div>
+                                            <p className="text-xs text-foreground/80 leading-relaxed font-medium">
+                                                {log.details}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
+
+                    <DialogFooter className="p-4 bg-muted/30 border-t">
+                        <Button variant="ghost" className="w-full font-bold text-xs uppercase tracking-widest h-10" onClick={() => setShowHistory(false)}>
+                            Закрыть
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>

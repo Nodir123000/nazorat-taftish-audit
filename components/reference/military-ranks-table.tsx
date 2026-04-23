@@ -299,7 +299,7 @@ export function MilitaryRanksTable() {
 
     if (isLoading && !ranksData.length) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
+            <div className="flex items-center justify-center min-h-100">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
             </div>
         )
@@ -353,7 +353,7 @@ export function MilitaryRanksTable() {
                         <Table>
                             <TableHeader>
                                 <TableRow className="hover:bg-transparent border-b border-border/50 h-16 bg-muted/20">
-                                    <TableHead className="w-[80px] px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 text-center">ID</TableHead>
+                                    <TableHead className="w-20 px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 text-center">ID</TableHead>
                                     <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">{t("Состав", "Tarkib", "Таркиб")}</TableHead>
                                     <TableHead className="px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70">
                                         <div className="flex items-center gap-2">
@@ -367,8 +367,8 @@ export function MilitaryRanksTable() {
                                             {t("Корабельное звание", "Kema unvoni", "Кема унвони")}
                                         </div>
                                     </TableHead>
-                                    <TableHead className="w-[120px] px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 text-center">{t("Статус", "Holati", "Ҳолати")}</TableHead>
-                                    <TableHead className="w-[80px] px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 text-right">{t("Действия", "Harakatlar", "Ҳаракатлар")}</TableHead>
+                                    <TableHead className="w-30 px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 text-center">{t("Статус", "Holati", "Ҳолати")}</TableHead>
+                                    <TableHead className="w-20 px-6 font-bold text-[11px] uppercase tracking-wider text-muted-foreground/70 text-right">{t("Действия", "Harakatlar", "Ҳаракатлар")}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -548,7 +548,7 @@ export function MilitaryRanksTable() {
                                                 <ChevronsUpDown className="h-4 w-4 opacity-50" />
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-[300px] p-0 rounded-2xl border-none shadow-2xl overflow-hidden z-[10000]">
+                                        <PopoverContent className="w-75 p-0 rounded-2xl border-none shadow-2xl overflow-hidden z-10000">
                                             <Command>
                                                 <CommandInput placeholder={t("Поиск состава...", "Tarkibni qidirish...", "Таркибни қидириш...")} className="h-11" />
                                                 <CommandList>
@@ -592,7 +592,7 @@ export function MilitaryRanksTable() {
                                                 <ChevronsUpDown className="h-4 w-4 opacity-50" />
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-[200px] p-0 rounded-2xl border-none shadow-2xl z-[10000]">
+                                        <PopoverContent className="w-50 p-0 rounded-2xl border-none shadow-2xl z-10000">
                                             <Command>
                                                 <CommandList>
                                                     <CommandGroup>
@@ -625,7 +625,7 @@ export function MilitaryRanksTable() {
                                                 <ChevronsUpDown className="h-4 w-4 opacity-50" />
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-[200px] p-0 rounded-2xl border-none shadow-2xl z-[10000]">
+                                        <PopoverContent className="w-50 p-0 rounded-2xl border-none shadow-2xl z-10000">
                                             <Command>
                                                 <CommandList>
                                                     <CommandGroup>

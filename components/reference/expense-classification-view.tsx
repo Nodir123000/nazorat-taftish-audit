@@ -44,20 +44,20 @@ export function ExpenseClassificationView() {
     const filteredGroups = useMemo(() => {
         let result = expenseGroups
         if (selectedGroup !== "all") {
-            result = result.filter((g) => g.id === selectedGroup)
+            result = result.filter((g: any) => g.id === selectedGroup)
         }
         if (searchQuery) {
             const query = searchQuery.toLowerCase()
-            result = result.map(group => ({
+            result = result.map((group: any) => ({
                 ...group,
-                categories: group.categories.map(cat => ({
+                categories: group.categories.map((cat: any) => ({
                     ...cat,
-                    articles: cat.articles.filter(art =>
+                    articles: cat.articles.filter((art: any) =>
                         art.code.toLowerCase().includes(query) ||
                         art.name.toLowerCase().includes(query)
                     )
-                })).filter(cat => cat.articles.length > 0)
-            })).filter(group => group.categories.length > 0)
+                })).filter((cat: any) => cat.articles.length > 0)
+            })).filter((group: any) => group.categories.length > 0)
         }
         return result
     }, [selectedGroup, searchQuery])
@@ -83,7 +83,7 @@ export function ExpenseClassificationView() {
                 </div>
 
                 <TabsContent value="classification" className="space-y-6 pt-2 focus-visible:outline-none">
-                    <Card className="border-none shadow-2xl shadow-primary/5 bg-white/60 backdrop-blur-xl rounded-[32px] overflow-hidden">
+                    <Card className="border-none shadow-2xl shadow-primary/5 bg-white/60 backdrop-blur-xl rounded-4xl overflow-hidden">
                         <CardHeader className="bg-white/40 pb-8 border-b border-border/50">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                                 <div className="space-y-1">
@@ -95,7 +95,7 @@ export function ExpenseClassificationView() {
                                 </div>
                                 <div className="flex flex-col sm:flex-row items-center gap-4">
                                     <Select value={selectedGroup} onValueChange={setSelectedGroup}>
-                                        <SelectTrigger className="w-full sm:w-[200px] h-12 rounded-2xl bg-white/80 border-none shadow-sm font-bold focus:ring-4 focus:ring-indigo-500/10 transition-all">
+                                        <SelectTrigger className="w-full sm:w-50 h-12 rounded-2xl bg-white/80 border-none shadow-sm font-bold focus:ring-4 focus:ring-indigo-500/10 transition-all">
                                             <div className="flex items-center gap-2">
                                                 <PieChart className="h-4 w-4 text-indigo-500" />
                                                 <SelectValue placeholder="Все группы" />
@@ -109,7 +109,7 @@ export function ExpenseClassificationView() {
                                             <SelectItem value="IV" className="rounded-xl font-bold">Группа IV</SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <div className="relative w-full sm:w-[300px] group">
+                                    <div className="relative w-full sm:w-75 group">
                                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-indigo-600 transition-colors" />
                                         <Input
                                             placeholder="Поиск по статьям..."
@@ -123,13 +123,13 @@ export function ExpenseClassificationView() {
                         </CardHeader>
                         <CardContent className="p-0">
                             <div className="divide-y divide-border/30">
-                                {filteredGroups.map((group) => (
+                                {filteredGroups.map((group: any) => (
                                     <div key={group.id} className="group-container">
                                         <div className={cn("p-8 text-white flex items-center gap-6 shadow-2xl relative overflow-hidden", group.color)}>
                                             <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                                                 <DollarSign className="h-48 w-48" />
                                             </div>
-                                            <div className="p-4 bg-white/20 rounded-[24px] backdrop-blur-xl relative z-10 shadow-lg border border-white/20">
+                                            <div className="p-4 bg-white/20 rounded-3xl backdrop-blur-xl relative z-10 shadow-lg border border-white/20">
                                                 <Icons.Dollar className="h-8 w-8 text-white drop-shadow-md" />
                                             </div>
                                             <div className="relative z-10">
@@ -141,7 +141,7 @@ export function ExpenseClassificationView() {
                                             </div>
                                         </div>
                                         <div className="p-8 space-y-6 bg-slate-50/20 backdrop-blur-sm">
-                                            {group.categories.map((category) => (
+                                            {group.categories.map((category: any) => (
                                                 <Collapsible
                                                     key={category.code}
                                                     open={expandedCategories.has(category.code)}
@@ -167,7 +167,7 @@ export function ExpenseClassificationView() {
                                                         </Badge>
                                                     </CollapsibleTrigger>
                                                     <CollapsibleContent className="px-6 pb-6 space-y-4 animate-in slide-in-from-top-4 duration-500">
-                                                        {category.articles.map((article) => (
+                                                        {category.articles.map((article: any) => (
                                                             <Collapsible
                                                                 key={article.code}
                                                                 open={expandedArticles.has(article.code)}
@@ -193,7 +193,7 @@ export function ExpenseClassificationView() {
                                                                     {article.elements.length > 0 && (
                                                                         <div className="ml-auto flex items-center gap-2">
                                                                             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">Элементы</span>
-                                                                            <Badge className="h-6 min-w-[24px] flex justify-center text-[10px] font-black border-none bg-indigo-500 text-white rounded-lg shadow-lg shadow-indigo-500/20">
+                                                                            <Badge className="h-6 min-w-6 flex justify-center text-[10px] font-black border-none bg-indigo-500 text-white rounded-lg shadow-lg shadow-indigo-500/20">
                                                                                 {article.elements.length}
                                                                             </Badge>
                                                                         </div>
@@ -201,7 +201,7 @@ export function ExpenseClassificationView() {
                                                                 </CollapsibleTrigger>
                                                                 {article.elements.length > 0 && (
                                                                     <CollapsibleContent className="px-4 pb-4 pt-0 space-y-1.5">
-                                                                        {article.elements.map((element) => (
+                                                                        {article.elements.map((element: any) => (
                                                                             <div
                                                                                 key={element.code}
                                                                                 className="flex items-center justify-between p-3.5 rounded-2xl text-[14px] text-slate-600 hover:bg-white hover:shadow-xl hover:shadow-indigo-500/5 hover:text-indigo-600 transition-all border border-transparent hover:border-indigo-50 group/element"
@@ -233,7 +233,7 @@ export function ExpenseClassificationView() {
 
 
                 <TabsContent value="structure" className="pt-2 focus-visible:outline-none">
-                    <Card className="border-none shadow-2xl shadow-primary/5 bg-white/60 backdrop-blur-xl rounded-[32px] overflow-hidden">
+                    <Card className="border-none shadow-2xl shadow-primary/5 bg-white/60 backdrop-blur-xl rounded-4xl overflow-hidden">
                         <CardHeader className="bg-white/40 pb-8 border-b border-border/50">
                             <div className="flex items-center gap-4">
                                 <div className="p-3.5 bg-indigo-600 rounded-[22px] text-white shadow-xl shadow-indigo-600/20"><Layers className="h-7 w-7" /></div>
@@ -248,41 +248,41 @@ export function ExpenseClassificationView() {
                         </CardHeader>
                         <CardContent className="p-10 space-y-16">
                             {/* Code Segments Display */}
-                            <div className="flex flex-wrap items-center justify-center gap-8 relative p-12 bg-white rounded-[40px] border border-slate-100 shadow-[inset_0_4px_12px_rgba(0,0,0,0.02)]">
+                            <div className="flex flex-wrap items-center justify-center gap-8 relative p-12 bg-white rounded-5xl border border-slate-100 shadow-[inset_0_4px_12px_rgba(0,0,0,0.02)]">
                                 <div className="flex flex-col items-center gap-4 transform hover:scale-110 transition-transform duration-500 group">
-                                    <div className="h-16 w-32 flex items-center justify-center text-3xl font-mono font-black bg-blue-600 text-white rounded-[24px] shadow-2xl shadow-blue-600/30 group-hover:rotate-[-2deg]">XX</div>
+                                    <div className="h-16 w-32 flex items-center justify-center text-3xl font-mono font-black bg-blue-600 text-white rounded-3xl shadow-2xl shadow-blue-600/30 group-hover:-rotate-2">XX</div>
                                     <div className="flex flex-col items-center">
                                         <span className="text-[11px] font-black uppercase text-blue-600 tracking-widest">Категория</span>
                                         <Badge className="text-[10px] font-black bg-blue-50 text-blue-700 px-3 py-1 rounded-full mt-2 border-none">2 знака</Badge>
                                     </div>
                                 </div>
-                                <div className="h-px w-8 bg-slate-200 border-t-2 border-dashed border-slate-300 mt-[-50px] opacity-40" />
+                                <div className="h-px w-8 bg-slate-200 border-t-2 border-dashed border-slate-300 -mt-12.5 opacity-40" />
                                 <div className="flex flex-col items-center gap-4 transform hover:scale-110 transition-transform duration-500 group">
-                                    <div className="h-16 w-24 flex items-center justify-center text-3xl font-mono font-black bg-emerald-600 text-white rounded-[24px] shadow-2xl shadow-emerald-600/30 group-hover:rotate-[2deg]">X</div>
+                                    <div className="h-16 w-24 flex items-center justify-center text-3xl font-mono font-black bg-emerald-600 text-white rounded-3xl shadow-2xl shadow-emerald-600/30 group-hover:rotate-2">X</div>
                                     <div className="flex flex-col items-center">
                                         <span className="text-[11px] font-black uppercase text-emerald-600 tracking-widest">Статья</span>
                                         <Badge className="text-[10px] font-black bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full mt-2 border-none">1 знак</Badge>
                                     </div>
                                 </div>
-                                <div className="h-px w-8 bg-slate-200 border-t-2 border-dashed border-slate-300 mt-[-50px] opacity-40" />
+                                <div className="h-px w-8 bg-slate-200 border-t-2 border-dashed border-slate-300 -mt-12.5 opacity-40" />
                                 <div className="flex flex-col items-center gap-4 transform hover:scale-110 transition-transform duration-500 group">
-                                    <div className="h-16 w-24 flex items-center justify-center text-3xl font-mono font-black bg-purple-600 text-white rounded-[24px] shadow-2xl shadow-purple-600/30 group-hover:rotate-[-2deg]">X</div>
+                                    <div className="h-16 w-24 flex items-center justify-center text-3xl font-mono font-black bg-purple-600 text-white rounded-3xl shadow-2xl shadow-purple-600/30 group-hover:-rotate-2">X</div>
                                     <div className="flex flex-col items-center">
                                         <span className="text-[11px] font-black uppercase text-purple-600 tracking-widest">Подстатья</span>
                                         <Badge className="text-[10px] font-black bg-purple-50 text-purple-700 px-3 py-1 rounded-full mt-2 border-none">1 знак</Badge>
                                     </div>
                                 </div>
-                                <div className="h-px w-8 bg-slate-200 border-t-2 border-dashed border-slate-300 mt-[-50px] opacity-40" />
+                                <div className="h-px w-8 bg-slate-200 border-t-2 border-dashed border-slate-300 -mt-12.5 opacity-40" />
                                 <div className="flex flex-col items-center gap-4 transform hover:scale-110 transition-transform duration-500 group">
-                                    <div className="h-16 w-36 flex items-center justify-center text-3xl font-mono font-black bg-orange-600 text-white rounded-[24px] shadow-2xl shadow-orange-600/30 group-hover:rotate-[2deg]">XXX</div>
+                                    <div className="h-16 w-36 flex items-center justify-center text-3xl font-mono font-black bg-orange-600 text-white rounded-3xl shadow-2xl shadow-orange-600/30 group-hover:rotate-2">XXX</div>
                                     <div className="flex flex-col items-center">
                                         <span className="text-[11px] font-black uppercase text-orange-600 tracking-widest">Элемент</span>
                                         <Badge className="text-[10px] font-black bg-orange-50 text-orange-700 px-3 py-1 rounded-full mt-2 border-none">3 знака</Badge>
                                     </div>
                                 </div>
-                                <div className="h-px w-8 bg-slate-200 border-t-2 border-dashed border-slate-300 mt-[-50px] opacity-40" />
+                                <div className="h-px w-8 bg-slate-200 border-t-2 border-dashed border-slate-300 -mt-12.5 opacity-40" />
                                 <div className="flex flex-col items-center gap-4 transform hover:scale-110 transition-transform duration-500 group">
-                                    <div className="h-16 w-36 flex items-center justify-center text-3xl font-mono font-black bg-cyan-600 text-white rounded-[24px] shadow-2xl shadow-cyan-600/30 group-hover:rotate-[-2deg]">XXX</div>
+                                    <div className="h-16 w-36 flex items-center justify-center text-3xl font-mono font-black bg-cyan-600 text-white rounded-3xl shadow-2xl shadow-cyan-600/30 group-hover:-rotate-2">XXX</div>
                                     <div className="flex flex-col items-center">
                                         <span className="text-[11px] font-black uppercase text-cyan-600 tracking-widest">Управление</span>
                                         <Badge className="text-[10px] font-black bg-cyan-50 text-cyan-700 px-3 py-1 rounded-full mt-2 border-none">3 знака</Badge>
@@ -299,7 +299,7 @@ export function ExpenseClassificationView() {
                                         <h4 className="text-xl font-black text-slate-900 tracking-tight">Пример дешифровки кода</h4>
                                     </div>
 
-                                    <div className="p-8 pb-4 rounded-[32px] bg-white shadow-xl shadow-slate-200/50 border border-slate-100 flex flex-col items-center">
+                                    <div className="p-8 pb-4 rounded-4xl bg-white shadow-xl shadow-slate-200/50 border border-slate-100 flex flex-col items-center">
                                         <div className="text-4xl font-mono font-black text-indigo-600 tracking-[0.3em] bg-indigo-50/50 px-8 py-4 rounded-2xl mb-10 w-full text-center shadow-inner">
                                             41 1 1 101 023
                                         </div>
@@ -331,8 +331,8 @@ export function ExpenseClassificationView() {
                                         <h4 className="text-xl font-black text-slate-900 tracking-tight">Регламент использования</h4>
                                     </div>
 
-                                    <div className="relative group overflow-hidden rounded-[40px] border-none bg-gradient-to-br from-amber-500 to-orange-600 p-10 shadow-2xl shadow-orange-600/20">
-                                        <div className="absolute top-[-40px] right-[-40px] w-64 h-64 bg-white/10 rounded-full blur-[80px]" />
+                                    <div className="relative group overflow-hidden rounded-5xl border-none bg-linear-to-br from-amber-500 to-orange-600 p-10 shadow-2xl shadow-orange-600/20">
+                                        <div className="absolute -top-10 -right-10 w-64 h-64 bg-white/10 rounded-full blur-[80px]" />
                                         <div className="flex flex-col items-start gap-8 relative z-10 text-white">
                                             <div className="p-5 bg-white/20 rounded-3xl backdrop-blur-xl border border-white/20 shadow-xl">
                                                 <Icons.Alert className="h-10 w-10 text-white drop-shadow-lg" />
@@ -350,7 +350,7 @@ export function ExpenseClassificationView() {
                                         </div>
                                     </div>
 
-                                    <div className="p-8 rounded-[32px] bg-slate-900 text-white shadow-2xl shadow-slate-900/20 relative overflow-hidden group">
+                                    <div className="p-8 rounded-4xl bg-slate-900 text-white shadow-2xl shadow-slate-900/20 relative overflow-hidden group">
                                         <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
                                             <ShieldCheck className="h-32 w-32" />
                                         </div>

@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db/prisma"
 
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json(
-      logs.map((l) => ({
+      logs.map((l: any) => ({
         id: l.id,
         action: l.change_type,
         details: l.description,
@@ -29,3 +30,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
+

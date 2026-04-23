@@ -6,8 +6,16 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Icons } from "@/components/icons"
-import { ChevronDown, ChevronRight } from "lucide-react"
+import { ChevronDown, ChevronRight, MoreVertical, Copy, Eye, FileEdit, Trash2 } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { useTranslation } from "@/lib/i18n/hooks"
 import {
     getLocalizedUnitName,
@@ -367,7 +375,7 @@ export function ApprovedPlansTable({
                                                 <div className="whitespace-nowrap text-xs text-muted-foreground text-center">
                                                     {plan.periodCoveredStart
                                                         ? getQuarterLabel(plan.periodCoveredStart, locale)
-                                                        : plan.periodConducted}
+                                                        : toSafeString(plan.periodConducted, locale)}
                                                 </div>
                                             </TableCell>
                                             <TableCell>
@@ -385,9 +393,7 @@ export function ApprovedPlansTable({
                                                                     <div className="flex flex-col gap-1">
                                                                         {units.map((u: any, i: number) => {
                                                                             const name = u.unitName || u.name
-                                                                            const displayName = typeof name === 'object' 
-                                                                                ? (name.ru || name.uz || name.uzk || JSON.stringify(name)) 
-                                                                                : String(name || "—")
+                                                                            const displayName = toSafeString(name, locale)
                                                                             return (
                                                                                 <span key={i} className="whitespace-nowrap">
                                                                                     {displayName}
@@ -430,69 +436,63 @@ export function ApprovedPlansTable({
                                                 })()}
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                <div className="flex items-center justify-end gap-1">
-                                                    {(() => {
-                                                        const isLocked = plan.orders && plan.orders.length > 0;
-                                                        const editButton = (
-                                                            <Button 
-                                                                variant="ghost" 
-                                                                size="icon" 
-                                                                className="h-8 w-8" 
-                                                                onClick={() => onEdit(plan)}
-                                                                disabled={isLocked}
-                                                            >
-                                                                <Icons.Edit className={cn("h-4 w-4", isLocked && "opacity-50")} />
-                                                            </Button>
-                                                        );
-
-                                                        const deleteButton = (
-                                                            <Button 
-                                                                variant="ghost" 
-                                                                size="icon" 
-                                                                className="h-8 w-8 text-destructive" 
-                                                                onClick={() => onDelete(plan)}
-                                                                disabled={isLocked}
-                                                            >
-                                                                <Icons.Trash className={cn("h-4 w-4", isLocked && "opacity-50")} />
-                                                            </Button>
-                                                        );
-
-                                                        if (isLocked) {
-                                                            return (
-                                                                <div className="flex items-center gap-1">
-                                                                    <Tooltip>
-                                                                        <TooltipTrigger asChild>
-                                                                            <div className="cursor-not-allowed">
-                                                                                {editButton}
-                                                                            </div>
-                                                                        </TooltipTrigger>
-                                                                        <TooltipContent>
-                                                                            {t("annual.locked.description")}
-                                                                        </TooltipContent>
-                                                                    </Tooltip>
-                                                                    <Tooltip>
-                                                                        <TooltipTrigger asChild>
-                                                                            <div className="cursor-not-allowed">
-                                                                                {deleteButton}
-                                                                            </div>
-                                                                        </TooltipTrigger>
-                                                                        <TooltipContent>
-                                                                            {t("annual.locked.description")}
-                                                                        </TooltipContent>
-                                                                    </Tooltip>
-                                                                    <Icons.Lock className="h-3 w-3 text-muted-foreground ml-1" />
-                                                                </div>
-                                                            );
-                                                        }
-
-                                                        return (
-                                                            <>
-                                                                {editButton}
-                                                                {deleteButton}
-                                                            </>
-                                                        );
-                                                    })()}
-                                                </div>
+                                                {(() => {
+                                                    const isLocked = plan.orders && plan.orders.length > 0;
+                                                    
+                                                    return (
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-muted/80">
+                                                                    <span className="sr-only">Open menu</span>
+                                                                    <Icons.MoreVertical className="h-4 w-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end" className="w-[180px] p-1.5 shadow-xl border-border/50 backdrop-blur-sm bg-background/95">
+                                                                <DropdownMenuLabel className="text-[10px] font-bold uppercase text-muted-foreground px-2 py-1.5">
+                                                                    {locale === "ru" ? "Управление" : "Boshqarish"}
+                                                                </DropdownMenuLabel>
+                                                                <DropdownMenuSeparator className="opacity-50" />
+                                                                <DropdownMenuItem 
+                                                                    className="gap-2 focus:bg-primary/10 focus:text-primary cursor-pointer rounded-md transition-colors"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        onEdit(plan);
+                                                                    }}
+                                                                    disabled={isLocked}
+                                                                >
+                                                                    <Icons.Edit className="h-4 w-4" />
+                                                                    <span>{locale === "ru" ? "Редактировать" : "Tahrirlash"}</span>
+                                                                    {isLocked && <Icons.Lock className="ml-auto h-3 w-3 opacity-50" />}
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem 
+                                                                    className="gap-2 focus:bg-primary/10 focus:text-primary cursor-pointer rounded-md transition-colors"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        // Logic for duplication if available, else just onEdit with modified data
+                                                                        const { id, ...duplicateData } = plan;
+                                                                        onEdit(duplicateData);
+                                                                    }}
+                                                                >
+                                                                    <Icons.Copy className="h-4 w-4" />
+                                                                    <span>{locale === "ru" ? "Дублировать" : "Nusxalash"}</span>
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuSeparator className="opacity-50" />
+                                                                <DropdownMenuItem 
+                                                                    className="gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer rounded-md transition-colors"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        onDelete(plan);
+                                                                    }}
+                                                                    disabled={isLocked}
+                                                                >
+                                                                    <Icons.Trash className="h-4 w-4" />
+                                                                    <span>{locale === "ru" ? "Удалить" : "O'chirish"}</span>
+                                                                    {isLocked && <Icons.Lock className="ml-auto h-3 w-3 opacity-50" />}
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    );
+                                                })()}
                                             </TableCell>
                                         </TableRow>
                                     )}

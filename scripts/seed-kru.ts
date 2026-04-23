@@ -1,6 +1,11 @@
+import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+import pg from 'pg'
 
-const prisma = new PrismaClient()
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL })
+const adapter = new PrismaPg(pool)
+const prisma = new PrismaClient({ adapter })
 
 interface Position {
     title: string
@@ -52,12 +57,28 @@ const initialKruStructure: Department = {
 }
 
 async function main() {
-    const unitId = 208
+    const firstUnit = await prisma.ref_units.findFirst()
+    let unitId = firstUnit?.id || 1
+    if (!firstUnit) {
+        const newUnit = await prisma.ref_units.create({
+            data: {
+                name: { ru: "КРУ МО РУ" } as any,
+                is_active: true
+            }
+        })
+        unitId = newUnit.id
+    }
 
     console.log(`Seeding personnel for Unit ${unitId} based on KRU Structure...`)
 
     let maxPos = await prisma.ref_positions.aggregate({ _max: { id: true } })
     let nextPosId = (maxPos._max.id || 1000) + 1
+
+    const genderMale = await prisma.ref_genders.findUnique({ where: { code: '801' } })
+    const genderId = genderMale?.id || null
+
+    const firstRank = await prisma.ref_ranks.findFirst()
+    const rankId = firstRank?.id || null
 
     // We will extract all positions
     const allPositions: { title: string, personName: string, deptName: string }[] = []
@@ -102,7 +123,7 @@ async function main() {
                     first_name,
                     middle_name,
                     birth_date: new Date('1980-01-01'),
-                    gender_id: 801, // Male
+                    gender_id: genderId, // Male
                     passport_series: "AA",
                     passport_number: `123456${i}`
                 }
@@ -146,7 +167,7 @@ async function main() {
                     physical_person_id: person.id,
                     unit_id: unitId,
                     position_id: posDict.id,
-                    rank_id: 1, // Default rank (usually 'Ryadovoy' or similar)
+                    rank_id: rankId, // Default rank
                     status: 'active',
                     service_start_date: new Date('2020-01-01'),
                     pnr: `KRU-PNR-${i}`

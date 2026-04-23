@@ -900,16 +900,16 @@ export function useDeleteAuditViolation() {
 
 // --- Financial Audits ---
 
-export function useFinancialAudits(params?: { inspectorId?: string | number; unitName?: string }) {
+export function useFinancialAudits<T = FinancialAuditDTO[]>(params?: { inspectorId?: string | number; unitName?: string }) {
     return useQuery({
         queryKey: params ? [...AUDIT_KEYS.financialAudits(), params] : AUDIT_KEYS.financialAudits(),
         queryFn: async () => {
             const result = await auditsService.getFinancialAudits(params);
             // API returns { items, total, page, limit }
             if (result && typeof result === 'object' && 'items' in result) {
-                return (result as any).items as FinancialAuditDTO[];
+                return (result as any).items as unknown as T;
             }
-            return result as FinancialAuditDTO[];
+            return result as unknown as T;
         },
     });
 }

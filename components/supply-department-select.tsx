@@ -28,14 +28,14 @@ export function SupplyDepartmentSelect({
   const [searchQuery, setSearchQuery] = React.useState("")
   const { data: departments = [], isLoading } = useSupplyDepartments()
 
-  const selectedDepartment = value ? departments.find((d) => d.code === value) : null
+  const selectedDepartment = value ? departments.find((d: any) => d.code === value) : null
 
   const filteredDepartments = React.useMemo(() => {
     if (!searchQuery) return departments
 
     const query = searchQuery.toLowerCase()
     return departments.filter(
-      (dept) => {
+      (dept: any) => {
         const code = (dept.code || "").toLowerCase()
         const nameRu = (dept.nameRu || (typeof dept.name === 'object' ? dept.name?.ru : dept.name) || "").toLowerCase()
         return code.includes(query) || nameRu.includes(query)
@@ -68,17 +68,17 @@ export function SupplyDepartmentSelect({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[500px] p-0" align="start">
+      <PopoverContent className="w-125 p-0" align="start">
         <Command shouldFilter={false}>
           <CommandInput
             placeholder="Поиск по коду или названию..."
             value={searchQuery}
             onValueChange={setSearchQuery}
           />
-          <CommandList className="max-h-[300px]">
+          <CommandList className="max-h-75">
             <CommandEmpty>Управление не найдено</CommandEmpty>
             <CommandGroup heading="Довольствующие управления МО РУз">
-              {filteredDepartments.map((dept) => {
+              {filteredDepartments.map((dept: any) => {
                 const nameRu = dept.name_ru || (typeof dept.name === 'object' ? dept.name?.ru : dept.name) || "";
                 return (
                   <CommandItem

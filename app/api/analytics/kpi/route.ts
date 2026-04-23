@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server";
 import { getOverallKPIMetrics, getRegionalKPIMetrics } from "@/lib/services/kpi-service";
 
