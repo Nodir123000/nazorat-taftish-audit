@@ -279,7 +279,9 @@ export function ApprovedPlanDialog({
     }, [formData.controlObject, formData.controlAuthority]);
 
 
-    const inspectionTypes = classifiers.find(c => c.id === 23 || c.id === 2)?.values || []
+    const c2 = classifiers.find(c => c.id === 2)
+    const c23 = classifiers.find(c => c.id === 23)
+    const inspectionTypes = [...(c2?.values || []), ...(c23?.values || [])]
     const statusOptions = classifiers.find(c => c.id === 1)?.values || []
 
     const handleAddSubordinateUnit = () => {

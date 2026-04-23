@@ -46,8 +46,18 @@ export const getStatusLabel = (statusId: string | number | undefined | null, loc
 
 export const getInspectionTypeLabel = (typeId: string | number | undefined | null, locale: Locale) => {
     if (typeId === undefined || typeId === null) return ""
-    const classifier = classifiers.find(c => c.id === 23) || classifiers.find(c => c.id === 2)
-    const value = classifier?.values.find(v => v.id?.toString() === typeId.toString() || v.name === typeId || (v as any).name?.toLowerCase() === typeId.toString().toLowerCase())
+    
+    // Search in both classifiers 2 and 23
+    const c2 = classifiers.find(c => c.id === 2)
+    const c23 = classifiers.find(c => c.id === 23)
+    const allValues = [...(c2?.values || []), ...(c23?.values || [])]
+    
+    const value = allValues.find(v => 
+        v.id?.toString() === typeId.toString() || 
+        v.name === typeId || 
+        (v as any).name?.toLowerCase() === typeId.toString().toLowerCase()
+    )
+    
     if (!value) return String(typeId)
 
     let result: any = ""
