@@ -152,10 +152,25 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
         groupSpecialists: [] as string[]
     })
 
+    const [isSaving, setIsSaving] = useState(false)
     const [currentStep, setCurrentStep] = useState(1)
     const totalSteps = 3
     
     const nextStep = () => {
+        // Basic Validation
+        if (currentStep === 1) {
+            if (!manageFormData.orderNum || !manageFormData.orderDate) {
+                toast.error(locale === "ru" ? "Заполните номер и дату приказа" : "Buyruq raqami va sanasini kiriting")
+                return
+            }
+        }
+        if (currentStep === 2) {
+            if (!manageFormData.briefingDate) {
+                toast.error(locale === "ru" ? "Заполните дату инструктажа" : "Yo'riqnoma sanasini kiriting")
+                return
+            }
+        }
+
         if (currentStep < totalSteps) setCurrentStep(currentStep + 1)
     }
     const prevStep = () => {
@@ -301,41 +316,51 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
 
     const handleSaveManagement = async () => {
         if (!managingItem) return;
+        setIsSaving(true);
 
-        try {
-            const payload = {
-                planId: managingItem.planId,
-                lang: locale,
-                orderNumber: manageFormData.orderNum,
-                orderDate: manageFormData.orderDate,
-                briefingDate: manageFormData.briefingDate,
-                prescriptionNumber: manageFormData.prescriptionNum,
-                prescriptionDate: manageFormData.prescriptionDate,
-                commission: [
-                    ...(manageFormData.groupLeader ? [{ userId: manageFormData.groupLeader, role: "Председатель комиссии" }] : []),
-                    ...manageFormData.groupMembers.map(id => ({ userId: id, role: "Член комиссии" })),
-                    ...manageFormData.groupSpecialists.map(id => ({ personnelId: id, role: "Привлечённый специалист" }))
-                ]
-            };
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const payload = {
+                    planId: managingItem.planId,
+                    lang: locale,
+                    orderNumber: manageFormData.orderNum,
+                    orderDate: manageFormData.orderDate,
+                    briefingDate: manageFormData.briefingDate,
+                    prescriptionNumber: manageFormData.prescriptionNum,
+                    prescriptionDate: manageFormData.prescriptionDate,
+                    commission: [
+                        ...(manageFormData.groupLeader ? [{ userId: manageFormData.groupLeader, role: "Председатель комиссии" }] : []),
+                        ...manageFormData.groupMembers.map(id => ({ userId: id, role: "Член комиссии" })),
+                        ...manageFormData.groupSpecialists.map(id => ({ personnelId: id, role: "Привлечённый специалист" }))
+                    ]
+                };
 
-            const res = await fetch("/api/planning/orders/manage", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
+                const res = await fetch("/api/planning/orders/manage", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
 
-            if (!res.ok) {
-                const errData = await res.json();
-                throw new Error(errData.error || "Failed to save changes");
+                if (!res.ok) {
+                    const errData = await res.json();
+                    throw new Error(errData.error || "Failed to save changes");
+                }
+
+                setShowManageDialog(false);
+                router.refresh();
+                resolve(true);
+            } catch (err) {
+                reject(err);
+            } finally {
+                setIsSaving(false);
             }
+        });
 
-            toast.success("Данные успешно сохранены")
-            setShowManageDialog(false);
-            router.refresh()
-        } catch (err: any) {
-            console.error("HandleSaveManagement Error:", err);
-            toast.error(`Ошибка при сохранении: ${err.message}`);
-        }
+        toast.promise(promise, {
+            loading: locale === "ru" ? "Сохранение изменений..." : "O'zgarishlar saqlanmoqda...",
+            success: locale === "ru" ? "Данные успешно обновлены" : "Ma'lumotlar muvaffaqiyatli yangilandi",
+            error: (err: any) => `${locale === "ru" ? "Ошибка" : "Xato"}: ${err.message}`
+        });
     };
 
     const handleViewDocument = (item: UnifiedRegistryItem) => {
