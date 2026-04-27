@@ -10,6 +10,16 @@ import { InspectorPhotoCard } from "./inspector-photo-card"
 import { InspectorNavigation, defaultSections } from "./inspector-navigation"
 import { InspectorSectionContent } from "./inspector-section-content"
 import { motion, AnimatePresence } from "framer-motion"
+import { useTranslation } from "@/lib/i18n/hooks"
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+
 
 interface InspectorCardProps {
     inspector: Inspector
@@ -17,6 +27,7 @@ interface InspectorCardProps {
     initialSection?: string
     action?: string | null
     planId?: string | null
+    onEdit?: () => void
 }
 
 export function InspectorCard({
@@ -24,10 +35,13 @@ export function InspectorCard({
     mode = "personnel",
     initialSection = "personal",
     action,
-    planId
+    planId,
+    onEdit
 }: InspectorCardProps) {
     const router = useRouter()
+    const { t } = useTranslation()
     const [activeSection, setActiveSection] = useState(initialSection)
+
 
     const headerTitle = mode === "inspector" ? "КАРТОЧКА СОТРУДНИКА КРУ" : "ЛИЧНАЯ КАРТОЧКА"
 
@@ -35,51 +49,83 @@ export function InspectorCard({
         <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col h-full bg-background"
+            className="flex flex-col h-full bg-slate-50/30"
         >
-            {/* Header - Refined Military Aesthetic */}
-            <div className="border-b-2 border-primary/20 bg-linear-to-r from-card via-card/95 to-muted/30 p-6 shadow-md relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-1 h-full bg-primary shadow-[0_0_15px_rgba(var(--primary),0.5)]" />
-                <div className="flex items-center justify-between relative z-10">
+            {/* Header Area with Breadcrumbs */}
+            <div className="p-4 md:p-8 pb-0 space-y-6">
+                <Breadcrumb>
+                    <BreadcrumbList>
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="/">{t("common.home")}</BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="/personnel">{t("sidebar.personnel")}</BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="/personnel/personnel">{t("sidebar.cards.personnel")}</BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                            <BreadcrumbPage>{inspector.fullName}</BreadcrumbPage>
+                        </BreadcrumbItem>
+                    </BreadcrumbList>
+                </Breadcrumb>
+
+                <div className="flex justify-between items-center border-l-4 border-blue-600 pl-6 py-2 bg-white/40 backdrop-blur-sm rounded-r-2xl">
                     <div className="flex items-center gap-6">
                         <div>
                             <div className="flex items-center gap-4 mb-1">
-                                <span className="text-tiny font-mono tracking-[0.3em] text-primary/70 uppercase">{headerTitle}</span>
+                                <span className="text-xs font-bold tracking-[0.2em] text-blue-600 uppercase">{headerTitle}</span>
                             </div>
-                            <h1 className="text-4xl font-black text-foreground tracking-tight uppercase">
+                            <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent uppercase">
                                 {inspector.fullName}
                             </h1>
                             <div className="flex items-center gap-3 mt-2">
-                                <span className="px-2 py-0.5 bg-primary/10 border border-primary/20 rounded-sm text-tiny font-bold text-primary tracking-wider uppercase">
+                                <span className="px-2 py-0.5 bg-blue-600/10 border border-blue-600/20 rounded-md text-[10px] font-bold text-blue-700 tracking-wider uppercase">
                                     {inspector.inspectorCategory}
                                 </span>
-                                <span className="text-sm text-muted-foreground font-mono">
+                                <span className="text-xs text-slate-500 font-mono font-medium">
                                     ID: {inspector.serviceNumber || inspector.id.toString().padStart(6, '0')}
                                 </span>
                             </div>
                         </div>
+                        {onEdit && (
+                            <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={onEdit}
+                                className="h-9 rounded-xl border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:border-blue-300 font-bold gap-2 px-4 shadow-sm"
+                            >
+                                <Icons.Settings className="h-4 w-4" />
+                                {t("common.edit")}
+                            </Button>
+                        )}
                     </div>
-                    <div className="flex items-center gap-3">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-10 px-4 border-2 border-border hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 font-bold tracking-wide"
-                            onClick={() => window.print()}
-                        >
-                            <Icons.FileText className="h-4 w-4 mr-2 text-primary" />
-                            ПЕЧАТЬ
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            onClick={() => router.back()}
-                            className="h-10 px-4 hover:bg-destructive/10 hover:text-destructive transition-colors duration-300 font-bold"
-                        >
-                            <Icons.ArrowRight className="h-4 w-4 mr-2 rotate-180" />
-                            ВЕРНУТЬСЯ
-                        </Button>
+                    
+                    <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-4 bg-white p-3 rounded-2xl shadow-sm border border-slate-100 px-6">
+                            <div className="text-right border-r border-slate-100 pr-6">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Эффективность</p>
+                                <div className="flex items-center gap-2 justify-end">
+                                    <span className="text-xl font-black text-slate-900">{inspector.kpiScore}%</span>
+                                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Ревизий</p>
+                                <div className="flex items-center gap-1 justify-end">
+                                    <span className="text-xl font-black text-slate-900">{inspector.auditsCompleted || 0}</span>
+                                    <Icons.ChevronRight className="h-4 w-4 text-slate-300" />
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
+
 
             {/* Main Content Area */}
             <div className="flex-1 overflow-auto p-8 bg-[#f8f9fa] dark:bg-[#0a0a0b]">

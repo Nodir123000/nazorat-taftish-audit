@@ -34,10 +34,10 @@ function convertToInspector(dto: EmployeeDTO): Inspector {
         position: dto.position,
         department: dto.department || "Управление финансового контроля",
         citizenship: "Узбекистан",
-        placeOfBirth: "",
-        registrationAddress: "",
-        actualAddress: "",
-        maritalStatus: "Женат",
+        placeOfBirth: dto.birthPlace || "",
+        registrationAddress: dto.registrationAddress || "",
+        actualAddress: dto.actualAddress || "",
+        maritalStatus: dto.maritalStatus || "Женат",
         gender: dto.gender === "MALE" ? "MALE" : "FEMALE",
         nationality: dto.nationality || "Узбек",
         passportSeries: dto.passport?.series || "",
@@ -50,11 +50,12 @@ function convertToInspector(dto: EmployeeDTO): Inspector {
         serviceNumber: dto.serviceNumber || "",
         serviceStartDate: dto.serviceStartDate || "2020-01-01",
         specialization: dto.specialization || "",
-        clearanceLevel: "Форма 2",
-        contactPhone: dto.contacts?.[0]?.value || "",
-        email: dto.contacts?.find(c => c.type === "EMAIL")?.value || "",
-        emergencyContact: "",
-        emergencyPhone: "",
+        clearanceLevel: dto.clearanceLevel || "Форма 2",
+        contactPhone: dto.contactPhone || "",
+        email: dto.email || "",
+        emergencyContact: dto.emergencyContact || "",
+        emergencyPhone: dto.emergencyPhone || "",
+        biography: dto.biography || "",
 
         // Служебные данные
         employmentDate: dto.serviceStartDate || "2020-01-01",
@@ -63,13 +64,13 @@ function convertToInspector(dto: EmployeeDTO): Inspector {
         completedCourses: [],
 
         // KPI инспектора (will be updated with real data)
-        auditsCompleted: 0,
-        auditsInProgress: 0,
-        auditsPlanned: 0,
-        violationsFound: 0,
-        totalDamageAmount: 0,
-        kpiScore: 75,
-        kpiRating: "satisfactory",
+        auditsCompleted: dto.auditsCompleted || 0,
+        auditsInProgress: dto.auditsInProgress || 0,
+        auditsPlanned: dto.auditsPlanned || 0,
+        violationsFound: dto.violationsFound || 0,
+        totalDamageAmount: dto.totalDamageAmount || 0,
+        kpiScore: dto.kpiScore || 75,
+        kpiRating: dto.kpiRating || "satisfactory",
 
         // Категория инспектора
         inspectorCategory: (dto.inspectorCategory as any) || "Инспектор",
@@ -77,11 +78,11 @@ function convertToInspector(dto: EmployeeDTO): Inspector {
 
         // История (подгружается динамически)
         auditHistory: [],
-        inspectionResults: [],
+        inspectionResults: dto.inspectionResults || [],
 
         // Дополнительная информация
-        workPhone: dto.contacts?.find(c => c.type === "PHONE")?.value || "",
-        personalPhone: dto.contacts?.[0]?.value || "",
+        workPhone: dto.workPhone || "",
+        personalPhone: dto.personalPhone || "",
         militaryDistrict: dto.militaryDistrict || "Ташкентский военный округ",
         dislocation: dto.dislocation || "",
         notes: "",
@@ -92,12 +93,16 @@ function convertToInspector(dto: EmployeeDTO): Inspector {
     }
 }
 
+import { PersonnelEditDialog } from "@/components/reference/personnel-edit-dialog"
+import { useState } from "react"
+
 export default function PersonnelViewClient({ id, employee }: PersonnelViewClientProps) {
     const router = useRouter()
     const searchParams = useSearchParams()
     const mode = (searchParams?.get("mode") as "inspector" | "personnel") || "personnel"
     const action = searchParams?.get("action")
     const planId = searchParams?.get("planId")
+    const [isEditOpen, setIsEditOpen] = useState(false)
 
     // Real-time statistical hooks
     const { data: audits = [] } = useFinancialAudits({ inspectorId: Number(id) })
@@ -136,11 +141,22 @@ export default function PersonnelViewClient({ id, employee }: PersonnelViewClien
         )
     }
 
-    return <InspectorCard
-        inspector={inspector}
-        mode={mode}
-        initialSection={defaultSection}
-        action={action}
-        planId={planId}
-    />
+    return (
+        <>
+            <InspectorCard
+                inspector={inspector}
+                mode={mode}
+                initialSection={defaultSection}
+                action={action}
+                planId={planId}
+                onEdit={() => setIsEditOpen(true)}
+            />
+            <PersonnelEditDialog 
+                isOpen={isEditOpen} 
+                onOpenChange={setIsEditOpen} 
+                personnelId={Number(id)}
+                onSuccess={() => router.refresh()}
+            />
+        </>
+    )
 }

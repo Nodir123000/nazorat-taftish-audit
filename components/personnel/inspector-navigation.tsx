@@ -20,8 +20,6 @@ interface InspectorNavigationProps {
 
 const defaultSections: InspectorSection[] = [
     { id: "personal", title: "ОСНОВНЫЕ ДАННЫЕ", icon: Icons.User, iconColor: "text-blue-500" },
-    { id: "military", title: "ВОЕННЫЕ ДАННЫЕ", icon: Icons.Shield, iconColor: "text-red-500" },
-    { id: "service", title: "СЛУЖЕБНАЯ ИНФОРМАЦИЯ", icon: Icons.Briefcase, iconColor: "text-emerald-500" },
     { id: "commission_assignments", title: "НАЗНАЧЕНИЯ", icon: Icons.Users, iconColor: "text-purple-500" },
     { id: "my_revisions", title: "МОИ РЕВИЗИИ", icon: Icons.Clipboard, iconColor: "text-blue-500" },
     { id: "audits", title: "ИСТОРИЯ РЕВИЗИЙ", icon: Icons.Clipboard, iconColor: "text-amber-500" },

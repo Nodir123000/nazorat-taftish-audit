@@ -84,7 +84,7 @@ export function FinancialAuditRegistry({
     }
 
     const getDistrictAbbr = (districtName: string) => {
-        if (!districtName || typeof districtName !== 'string') return districtName;
+        if (!districtName || typeof districtName !== 'string') return typeof districtName === 'object' ? '' : districtName;
         
         const normalize = (s: any) => {
             if (typeof s !== 'string') return '';
@@ -100,9 +100,12 @@ export function FinancialAuditRegistry({
             normalize(d.code) === search
         )
         if (found) {
-            if (locale === "uzLatn") return found.abbreviation_uz_latn || found.short_name_uz_latn || found.code || districtName
-            if (locale === "uzCyrl") return found.abbreviation_uz_cyrl || found.short_name_uz_cyrl || found.code || districtName
-            return found.abbreviation || found.short_name || found.code || districtName
+            let res = districtName;
+            if (locale === "uzLatn") res = found.abbreviation_uz_latn || found.short_name_uz_latn || found.code || districtName
+            else if (locale === "uzCyrl") res = found.abbreviation_uz_cyrl || found.short_name_uz_cyrl || found.code || districtName
+            else res = found.abbreviation || found.short_name || found.code || districtName
+            
+            return typeof res === 'string' ? res : (typeof res === 'object' ? '' : String(res));
         }
 
         const fallback: Record<string, string> = {
@@ -119,8 +122,9 @@ export function FinancialAuditRegistry({
         return fallback[districtName] || districtName
     }
 
+
     const getDirectionAbbr = (directionName: string) => {
-        if (!directionName || typeof directionName !== 'string') return directionName;
+        if (!directionName || typeof directionName !== 'string') return typeof directionName === 'object' ? '' : directionName;
 
         const normalize = (s: any) => {
             if (typeof s !== 'string') return '';
@@ -145,9 +149,12 @@ export function FinancialAuditRegistry({
             return false;
         });
         if (found) {
-            if (locale === "uzLatn") return found.abbreviation_uz_latn || found.short_name_uz_latn || found.code || directionName
-            if (locale === "uzCyrl") return found.abbreviation_uz_cyrl || found.short_name_uz_cyrl || found.code || directionName
-            return found.abbreviation || found.short_name || found.code || directionName
+            let res = directionName;
+            if (locale === "uzLatn") res = found.abbreviation_uz_latn || found.short_name_uz_latn || found.code || directionName
+            else if (locale === "uzCyrl") res = found.abbreviation_uz_cyrl || found.short_name_uz_cyrl || found.code || directionName
+            else res = found.abbreviation || found.short_name || found.code || directionName
+            
+            return typeof res === 'string' ? res : (typeof res === 'object' ? '' : String(res));
         }
 
         const fallback: Record<string, string> = {
@@ -170,6 +177,7 @@ export function FinancialAuditRegistry({
         }
         return fallback[directionName] || directionName
     }
+
 
     const getControlAuthority = (name: string) => {
         return authorities.find(a => 
@@ -209,7 +217,17 @@ export function FinancialAuditRegistry({
                 audit.cashier.toLowerCase().includes(filters.search.toLowerCase())
                 : true
             const matchesStatus = filters.status ? audit.status === filters.status : true
-            const matchesDate = filters.dateFrom ? audit.date >= filters.dateFrom : true
+
+            // Parse dates for comparison (format: DD.MM.YYYY)
+            const parseDate = (dateStr: string) => {
+                const [day, month, year] = dateStr.split('.').map(Number);
+                return new Date(year, month - 1, day);
+            };
+
+            const matchesDate = filters.dateFrom
+                ? parseDate(audit.date) >= parseDate(filters.dateFrom)
+                : true
+
             return matchesSearch && matchesStatus && matchesDate
         })
     }, [audits, filters])

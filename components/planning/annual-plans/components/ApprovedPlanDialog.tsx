@@ -145,8 +145,8 @@ export function ApprovedPlanDialog({
         controlAuthority: "",
         inspectionDirection: "",
         inspectionDirectionSubtitle: "",
-        inspectionType: 2301,
-        status: 101, // Default status
+        inspectionType: null,
+        status: 106, // Default to "Study/Draft" instead of Approved
         periodCoveredStart: "",
         periodCoveredEnd: "",
         periodConducted: "",
@@ -207,8 +207,8 @@ export function ApprovedPlanDialog({
                 controlAuthority: "",
                 inspectionDirection: "",
                 inspectionDirectionSubtitle: "",
-                inspectionType: 2301,
-                status: 101,
+                inspectionType: null,
+                status: 106,
                 periodCoveredStart: "",
                 periodCoveredEnd: "",
                 periodConducted: "",
@@ -248,35 +248,43 @@ export function ApprovedPlanDialog({
     }, [formData.unitId, formData.year, open, isEditing, initialData?.id, initialData?.planId])
 
     // Автозаполнение периода предыдущего контроля
-    useEffect(() => {
-        const fetchPreviousPeriod = async () => {
-            // Срабатывает только если выбраны и часть, и орган, и поля даты еще пусты
-            if (formData.controlObject && formData.controlAuthority && !formData.periodCoveredStart && !formData.periodCoveredEnd) {
-                setIsLoadingHistory(true);
-                try {
-                    const response = await fetch(`/api/planning/previous-period?unitName=${encodeURIComponent(formData.controlObject)}&authorityCode=${encodeURIComponent(formData.controlAuthority)}`);
-                    const result = await response.json();
-                    
-                    if (result.success && result.data) {
-                        setFormData((prev: any) => ({
-                            ...prev,
-                            periodCoveredStart: result.data.start,
-                            periodCoveredEnd: result.data.end
-                        }));
-                        setIsHistoryPopulated(true);
-                    } else {
-                        setIsHistoryPopulated(false);
-                    }
-                } catch (error) {
-                    console.error("Failed to fetch previous period:", error);
-                } finally {
-                    setIsLoadingHistory(false);
-                }
-            }
-        };
+    const fetchPreviousPeriod = async (force = false) => {
+        // Срабатывает только если выбраны и часть, и орган, и поля даты еще пусты (или форсировано)
+        const canFetch = (formData.unitId || formData.controlObject) && formData.controlAuthority;
+        const isFieldsEmpty = !formData.periodCoveredStart && !formData.periodCoveredEnd;
+        
+        if (canFetch && (isFieldsEmpty || force)) {
+            setIsLoadingHistory(true);
+            try {
+                const params = new URLSearchParams();
+                if (formData.unitId) params.append("unitId", formData.unitId.toString());
+                if (formData.controlObject) params.append("unitName", formData.controlObject);
+                if (formData.controlAuthority) params.append("authorityCode", formData.controlAuthority);
 
+                const response = await fetch(`/api/planning/previous-period?${params.toString()}`);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    setFormData((prev: any) => ({
+                        ...prev,
+                        periodCoveredStart: result.data.start,
+                        periodCoveredEnd: result.data.end
+                    }));
+                    setIsHistoryPopulated(true);
+                } else {
+                    setIsHistoryPopulated(false);
+                }
+            } catch (error) {
+                console.error("Failed to fetch previous period:", error);
+            } finally {
+                setIsLoadingHistory(false);
+            }
+        }
+    };
+
+    useEffect(() => {
         fetchPreviousPeriod();
-    }, [formData.controlObject, formData.controlAuthority]);
+    }, [formData.controlObject, formData.unitId, formData.controlAuthority]);
 
 
     const c2 = classifiers.find(c => c.id === 2)
@@ -337,11 +345,12 @@ export function ApprovedPlanDialog({
     };
 
     const stepLabels = [
-        locale === "ru" ? "Основное" : "Asosiy",
-        locale === "ru" ? "Орган" : "Organ",
+        locale === "ru" ? "Объект" : "Ob'ekt",
+        locale === "ru" ? "Контроль" : "Nazorat",
         locale === "ru" ? "Сроки" : "Muddat",
-        locale === "ru" ? "Объекты" : "O'byektlar"
+        locale === "ru" ? "Состав" : "Tarkib"
     ];
+
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -392,26 +401,43 @@ export function ApprovedPlanDialog({
                 <div className="flex-1 overflow-y-auto p-6">
                     <div className="grid gap-6">
                         {collisionInfo?.hasCollision && (
-                            <Alert variant="destructive" className="bg-destructive/10 border-destructive/20 text-destructive mb-2 animate-in fade-in slide-in-from-top-2">
-                                <Icons.AlertTriangle className="h-4 w-4" />
-                                <AlertTitle className="font-bold text-sm">
-                                    {locale === "ru" ? "Внимание: Коллизия планов" : "Diqqat: Rejalar to'qnashuvi"}
-                                </AlertTitle>
-                                <AlertDescription className="text-xs mt-1">
-                                    {locale === "ru" 
-                                        ? `В ${formData.year} году для этой части уже запланированы проверки (${collisionInfo.plans.length}):`
-                                        : `${formData.year}-yilda ushbu qism uchun rejalar mavjud (${collisionInfo.plans.length}):`}
-                                    <ul className="list-disc list-inside mt-1 font-medium">
-                                        {collisionInfo.plans?.map((p: any, i: number) => (
-                                            <li key={i}>
-                                                {toSafeString(p.authority, locale as any) || (locale === "ru" ? "Неизвестный орган" : "Noma'lum organ")} - {toSafeString(p.type, locale as any) || (locale === "ru" ? "Неизвестный тип" : "Noma'lum tur")} 
-                                                ({p.startDate ? dayjs(p.startDate).format('DD.MM.YYYY') : '...'} - {p.endDate ? dayjs(p.endDate).format('DD.MM.YYYY') : '...'})
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </AlertDescription>
-                            </Alert>
+                            <div className="mx-6 mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
+                                <Alert variant="destructive" className="bg-red-50 border-red-200 text-red-900 shadow-sm rounded-2xl overflow-hidden p-0">
+                                    <div className="flex">
+                                        <div className="bg-red-500 p-4 flex items-center justify-center">
+                                            <Icons.AlertTriangle className="h-6 w-6 text-white" />
+                                        </div>
+                                        <div className="p-4 flex-1">
+                                            <AlertTitle className="font-black text-sm uppercase tracking-tight flex items-center gap-2">
+                                                {locale === "ru" ? "Внимание: Коллизия планов" : "Diqqat: Rejalar to'qnashuvi"}
+                                                <Badge className="bg-red-500 text-white border-none text-[10px] h-5">
+                                                    {collisionInfo.plans.length}
+                                                </Badge>
+                                            </AlertTitle>
+                                            <AlertDescription className="text-xs mt-1 text-red-700/80 font-medium">
+                                                {locale === "ru" 
+                                                    ? `В ${formData.year} году для этой части уже запланированы проверки:`
+                                                    : `${formData.year}-yilda ushbu qism uchun rejalar mavjud:`}
+                                                <div className="grid grid-cols-1 gap-1 mt-2">
+                                                    {collisionInfo.plans?.map((p: any, i: number) => (
+                                                        <div key={i} className="flex items-center gap-2 bg-white/50 p-1.5 rounded-lg border border-red-100">
+                                                            <Icons.Shield className="w-3 h-3 text-red-400" />
+                                                            <span className="font-bold">{toSafeString(p.authority, locale as any)}</span>
+                                                            <span className="opacity-50">|</span>
+                                                            <span>{toSafeString(p.type, locale as any)}</span>
+                                                            <Badge variant="outline" className="ml-auto text-[9px] font-mono border-red-200">
+                                                                {p.startDate ? dayjs(p.startDate).format('DD.MM.YYYY') : '...'}
+                                                            </Badge>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </AlertDescription>
+                                        </div>
+                                    </div>
+                                </Alert>
+                            </div>
                         )}
+
 
                         <fieldset disabled={isLocked} className="grid gap-6 border-none p-0 m-0 animate-in fade-in slide-in-from-right-4 duration-300">
                             {/* STEP 1: Main Info */}
@@ -694,6 +720,19 @@ export function ApprovedPlanDialog({
                                             <div className="flex items-center gap-2">
                                                 <Icons.CalendarRange className="w-4 h-4" />
                                                 {t("annual.approved.periodCovered")}
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="icon" 
+                                                    className="h-6 w-6 ml-1 opacity-50 hover:opacity-100"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        fetchPreviousPeriod(true);
+                                                    }}
+                                                    disabled={isLoadingHistory || (!formData.unitId && !formData.controlObject) || !formData.controlAuthority}
+                                                    title={locale === "ru" ? "Обновить из базы" : "Bazadan yangilash"}
+                                                >
+                                                    <Icons.RefreshCw className={cn("h-3 w-3", isLoadingHistory && "animate-spin")} />
+                                                </Button>
                                             </div>
                                             {isLoadingHistory && <Icons.Loader2 className="w-3.5 h-3.5 animate-spin" />}
                                             {isHistoryPopulated && !isLoadingHistory && (

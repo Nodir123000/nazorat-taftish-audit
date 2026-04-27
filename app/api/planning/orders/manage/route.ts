@@ -65,6 +65,20 @@ export async function POST(request: NextRequest) {
         // 1. Manage ORDER
         const orderRes = await planningService.getOrders({ plan_id: planIdNum })
         let order;
+        
+        // Uniqueness check for Order Number
+        if (data.orderNumber) {
+            const duplicateOrder = await prisma.orders.findFirst({
+                where: { 
+                    order_number: data.orderNumber,
+                    NOT: orderRes.items && orderRes.items.length > 0 ? { id: orderRes.items[0].id } : undefined
+                }
+            });
+            if (duplicateOrder) {
+                return NextResponse.json({ error: `Приказ с номером "${data.orderNumber}" уже существует в системе.` }, { status: 400 });
+            }
+        }
+
         try {
             if (orderRes.items && orderRes.items.length > 0) {
                 const existingOrder = orderRes.items[0];
@@ -114,6 +128,17 @@ export async function POST(request: NextRequest) {
             try {
                 const prescriptions = await planningService.getPrescriptions({ plan_id: planIdNum })
                 const localizedReqs = await getLocalizedText('prescription.default.requirements', lang, 'prescription');
+
+                // Uniqueness check for Prescription Number
+                const duplicatePresc = await (prisma as any).prescriptions.findFirst({
+                    where: { 
+                        prescription_num: data.prescriptionNumber,
+                        NOT: prescriptions && prescriptions.length > 0 ? { id: prescriptions[0].id } : undefined
+                    }
+                });
+                if (duplicatePresc) {
+                    return NextResponse.json({ error: `Предписание с номером "${data.prescriptionNumber}" уже существует.` }, { status: 400 });
+                }
 
                 if (prescriptions && prescriptions.length > 0) {
                     prescriptionRecord = await planningService.updatePrescription(prescriptions[0].id, {
@@ -224,6 +249,17 @@ export async function POST(request: NextRequest) {
             } catch (err: any) {
                 console.error(`[Manage] Auto-create Audit Error: ${err.message}`);
             }
+        }
+
+        // 6. Update Plan Status to Approved (101) if not already
+        try {
+            await prisma.rev_plan_year.update({
+                where: { plan_id: planIdNum },
+                data: { status: "101" } // 101 is "Утвержден" / "Approved"
+            });
+            console.log(`[Manage] Updated Plan ID ${planIdNum} status to Approved (101)`);
+        } catch (err: any) {
+            console.error(`[Manage] Plan Status Update Error: ${err.message}`);
         }
 
         return NextResponse.json({ success: true, orderId: order.id })

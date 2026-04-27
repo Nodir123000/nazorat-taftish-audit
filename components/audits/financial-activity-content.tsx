@@ -10,16 +10,22 @@ import {
     useFinancialAudits,
     useCreateFinancialAudit,
     useUpdateFinancialAudit,
+} from "@/lib/hooks/use-financial-audits";
+import {
     useAuditViolations,
     useCreateAuditViolation,
     useUpdateAuditViolation,
     useDeleteAuditViolation,
+} from "@/lib/hooks/use-violations";
+import {
     useCreateServiceInvestigation,
     useUpdateServiceInvestigation,
+} from "@/lib/hooks/use-service-investigations";
+import {
     useCreateLawEnforcementCase,
     useUpdateLawEnforcementCase,
-    useAllReferences
-} from "@/lib/hooks/use-audits"
+} from "@/lib/hooks/use-law-enforcement";
+import { useAllReferences } from "@/lib/hooks/use-references";
 import { FinancialAuditDTO, AuditViolationDTO } from "@/lib/types/audits.dto"
 import { useToast } from "@/lib/hooks/use-toast"
 import { ServiceInvestigationDialogs } from "./service-investigation-dialogs"

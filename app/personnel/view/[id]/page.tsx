@@ -32,6 +32,69 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     })
 
     if (item) {
+      // Fetch Audit Statistics
+      const audits = await prisma.financial_audits.findMany({
+        where: { inspector_id: item.id },
+        include: { financial_violations: true }
+      });
+
+      const auditsCompleted = audits.filter(a => a.status === 'completed').length;
+      const auditsInProgress = audits.filter(a => a.status === 'in_progress' || a.status === 'draft').length;
+      const auditsPlanned = audits.filter(a => a.status === 'planned').length;
+
+      let totalDamageAmount = 0;
+      let violationsFound = 0;
+      let totalRecovered = 0;
+
+      audits.forEach(a => {
+        const violations = (a.financial_violations as any[]) || [];
+        violationsFound += violations.length;
+        violations.forEach(v => {
+          totalDamageAmount += Number(v.amount || 0);
+          totalRecovered += Number(v.recovered || 0);
+        });
+      });
+
+      // KPI Calculation: Based on recovery rate (simple version)
+      const recoveryRate = totalDamageAmount > 0 ? (totalRecovered / totalDamageAmount) * 100 : 0;
+      const kpiScore = Math.round(recoveryRate);
+      
+      let kpiRating: "excellent" | "good" | "satisfactory" | "unsatisfactory" = "satisfactory";
+      if (kpiScore >= 90) kpiRating = "excellent";
+      else if (kpiScore >= 70) kpiRating = "good";
+      else if (kpiScore >= 50) kpiRating = "satisfactory";
+      else if (totalDamageAmount > 0) kpiRating = "unsatisfactory";
+      else kpiRating = "good"; // Default for new inspectors
+
+      // Map audits to InspectionResult for the UI
+      const inspectionResults = audits.map(a => ({
+        id: a.id.toString(),
+        planId: (a as any).prescription_id?.toString() || "",
+        actNumber: (a as any).act_number || a.id.toString(),
+        actDate: a.date ? a.date.toISOString().split('T')[0] : "",
+        controlAuthority: a.control_body || "КРУ МО",
+        controlObject: a.unit || "",
+        controlObjectRegion: a.unit_subtitle || "",
+        inspectionDirection: a.inspection_direction || "",
+        inspectionDepartment: "Финансовый",
+        inspectionType: (a.inspection_type?.toLowerCase().includes("план") ? "planned" : "unplanned") as "planned" | "unplanned",
+        totalAmount: (a.financial_violations as any[])?.reduce((sum, v) => sum + Number(v.amount || 0), 0) || 0,
+        recoveredAmount: (a.financial_violations as any[])?.reduce((sum, v) => sum + Number(v.recovered || 0), 0) || 0,
+        quantityStats: `${(a.financial_violations as any[])?.length || 0} (0)`,
+        responsiblePerson: a.cashier || "",
+        status: (a.status === 'completed' ? 'checked' : 'in_progress') as "checked" | "in_progress",
+        violations: (a.financial_violations as any[])?.map(v => ({
+            id: v.id.toString(),
+            violationType: v.type || "Финансовое",
+            violationSubtype: v.category || "",
+            source: v.source || "",
+            amount: Number(v.amount || 0),
+            recoveredAmount: Number(v.recovered || 0),
+            quantityStats: "1 (0)",
+            responsiblePerson: v.responsible || ""
+        })) || []
+      }));
+
       // Helper to get localized name
       const getLoc = (obj: any, loc: string = 'ru') => {
         if (!obj) return "";
@@ -66,25 +129,47 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         dob: p?.birth_date?.toISOString() || "",
         gender: (item.ref_physical_persons?.gender_id === 801 ? "MALE" : "FEMALE") as "MALE" | "FEMALE",
         nationality: "Узбек",
+        citizenship: "Узбекистан",
+        maritalStatus: "Женат",
 
         passportNumber: `${p?.passport_series || ""}${p?.passport_number || ""}`,
         passport: {
           series: p?.passport_series || "",
           number: p?.passport_number || "",
           issueDate: "",
-          expiryDate: "",
-          issuedBy: ""
+          expiryDate: p?.passport_expiry_date?.toISOString() || "",
+          issuedBy: p?.passport_issued_by || ""
         },
+        passportIssuedBy: p?.passport_issued_by || "",
+        passportExpiryDate: p?.passport_expiry_date?.toISOString() || "",
+        birthPlace: p?.birth_place || "",
+        actualAddress: p?.actual_address || "",
+        registrationAddress: p?.address || "",
+        biography: p?.biography || "",
+        email: p?.email || "",
+        contactPhone: p?.contact_phone || "",
+        personalPhone: p?.contact_phone || "",
+        workPhone: item.emergency_phone || "",
+        emergencyContact: item.emergency_contact || "",
+        emergencyPhone: item.emergency_phone || "",
+        
         specialization: item.ref_vus_list?.code || "",
 
-        inspectorCategory: "Инспектор",
-        totalDamageAmount: 0,
-        kpiRating: "good",
+        inspectorCategory: item.category || "Инспектор",
+        totalDamageAmount: totalDamageAmount,
+        kpiScore: kpiScore,
+        kpiRating: kpiRating,
         serviceStartDate: item.service_start_date?.toISOString() || "",
-        violationsFound: 0,
+        violationsFound: violationsFound,
         serviceNumber: item.service_number || "",
+        clearanceLevel: item.clearance_level || "Нет данных",
         licenseCount: 0,
-        auditCount: 0,
+        auditCount: audits.length,
+        auditsCompleted,
+        auditsInProgress,
+        auditsPlanned,
+        
+        inspectionResults: inspectionResults,
 
         createdAt: item.created_at?.toISOString() || new Date().toISOString(),
         updatedAt: item.updated_at?.toISOString() || new Date().toISOString(),

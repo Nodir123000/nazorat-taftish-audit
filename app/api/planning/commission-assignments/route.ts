@@ -11,14 +11,77 @@ export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url)
         const personnelId = searchParams.get("personnelId")
+        const userId = searchParams.get("userId")
+        const from = searchParams.get("from")
+        const to = searchParams.get("to")
+        const excludeOrderId = searchParams.get("excludeOrderId")
 
-        if (!personnelId) {
-            return NextResponse.json({ error: "personnelId is required" }, { status: 400 })
+        if (!personnelId && !userId) {
+            return NextResponse.json({ error: "personnelId or userId is required" }, { status: 400 })
         }
 
-        const pId = Number(personnelId)
-        if (isNaN(pId)) {
+        // --- Fast conflict check mode (userId + period) ---
+        if (userId && (from || to)) {
+            const uid = parseInt(userId)
+            const conflicts = await (prisma as any).commission_members.findMany({
+                where: {
+                    user_id: uid,
+                    ...(excludeOrderId ? { order_id: { not: parseInt(excludeOrderId) } } : {}),
+                },
+                include: {
+                    orders: {
+                        select: {
+                            id: true,
+                            order_number: true,
+                            rev_plan_year: {
+                                select: {
+                                    period_covered_start: true,
+                                    period_covered_end: true,
+                                    unit: { select: { name: true } }
+                                }
+                            }
+                        }
+                    }
+                }
+            })
+            const fromDate = from ? new Date(from) : null
+            const toDate = to ? new Date(to) : null
+            const overlapping = conflicts.filter((c: any) => {
+                const plan = c.orders?.rev_plan_year
+                if (!plan?.period_covered_start || !plan?.period_covered_end) return false
+                const start = new Date(plan.period_covered_start)
+                const end = new Date(plan.period_covered_end)
+                const overlaps = (!fromDate || start <= toDate!) && (!toDate || end >= fromDate!)
+                return overlaps
+            })
+            return NextResponse.json({
+                success: true,
+                hasConflict: overlapping.length > 0,
+                data: overlapping.map((c: any) => {
+                    const plan = c.orders?.rev_plan_year
+                    const unitName = typeof plan?.unit?.name === "object"
+                        ? (plan.unit.name as any)?.ru || ""
+                        : plan?.unit?.name || "—"
+                    return {
+                        orderId: c.order_id,
+                        orderNumber: c.orders?.order_number || "—",
+                        role: c.role,
+                        controlObject: unitName,
+                        period: plan?.period_covered_start && plan?.period_covered_end
+                            ? `${new Date(plan.period_covered_start).toLocaleDateString("ru-RU")} – ${new Date(plan.period_covered_end).toLocaleDateString("ru-RU")}`
+                            : "—"
+                    }
+                })
+            })
+        }
+
+        const pId = personnelId ? Number(personnelId) : null
+        if (pId !== null && isNaN(pId)) {
             return NextResponse.json({ error: "personnelId must be a number" }, { status: 400 })
+        }
+
+        if (!pId) {
+            return NextResponse.json({ success: true, data: [], total: 0 })
         }
 
         // Search for personnel record
@@ -27,13 +90,13 @@ export async function GET(request: NextRequest) {
             select: { full_name: true }
         })
 
-        let userId: number | null = null
+        let resolvedUserId: number | null = null
         if (person?.full_name) {
-            const user = await prisma.users.findFirst({
+            const u = await prisma.users.findFirst({
                 where: { fullname: person.full_name },
                 select: { user_id: true }
             })
-            if (user) userId = user.user_id
+            if (u) resolvedUserId = u.user_id
         }
 
         // 1. Fetch commission memberships
@@ -41,7 +104,7 @@ export async function GET(request: NextRequest) {
             where: {
                 OR: [
                     { personnel_id: pId },
-                    ...(userId ? [{ user_id: userId }] : [])
+                    ...(resolvedUserId ? [{ user_id: resolvedUserId }] : [])
                 ]
             },
             orderBy: { id: "desc" }
@@ -130,6 +193,10 @@ export async function GET(request: NextRequest) {
                 prescriptionDate: prescription?.date 
                     ? new Date(prescription.date).toLocaleDateString("ru-RU") 
                     : null,
+                financialAuditId: prescription ? (await prisma.financial_audits.findFirst({
+                    where: { prescription_id: prescription.id },
+                    select: { id: true }
+                }))?.id || null : null,
             })
         }
 

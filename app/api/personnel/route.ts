@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getPersonnel, getPersonnelCount } from "@/lib/services/reference-db-service";
 import { DiagnosticsService } from "@/lib/services/diagnostics-service";
 import { getCurrentUser } from "@/lib/auth";
+import { prisma } from "@/lib/db/prisma";
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +21,7 @@ export async function GET(request: Request) {
     const rankId = searchParams.get("rankId") ? parseInt(searchParams.get("rankId")!, 10) : undefined;
     const unitId = searchParams.get("unitId") ? parseInt(searchParams.get("unitId")!, 10) : undefined;
 
-    const options = {
+    const options: any = {
       skip,
       take: limit,
       search,
@@ -29,21 +30,40 @@ export async function GET(request: Request) {
       unitId: unitId && !isNaN(unitId) ? unitId : undefined
     };
 
-    const [data, total] = await Promise.all([
+    const isInspectorFilter = searchParams.get("isInspector") === "true";
+    if (isInspectorFilter && !unitId) {
+      options.unitId = [208, 20801, 20802, 20803, 20804];
+    }
+
+    const [data, total, allUsers, kruSummaryRaw] = await Promise.all([
       getPersonnel(options),
-      getPersonnelCount(options)
+      getPersonnelCount(options),
+      prisma.users.findMany({ select: { fullname: true } }),
+      prisma.personnel.groupBy({
+        by: ['unit_id'],
+        where: { unit_id: { in: [208, 20801, 20802, 20803, 20804] } },
+        _count: { id: true }
+      })
     ]);
 
+    const kruSummary: Record<number, number> = {};
+    kruSummaryRaw.forEach((s: any) => {
+      kruSummary[s.unit_id] = s._count.id;
+    });
+
+    const userNames = new Set(allUsers.map(u => u.fullname));
+
     // ... existing transform logic ...
-    const items = data.map((item: any) => {
+    let items = data.map((item: any) => {
       const p = item.ref_physical_persons;
+      const fullName = `${p?.last_name || ""} ${p?.first_name || ""} ${p?.middle_name || ""}`.trim();
       return {
         id: item.id.toString(),
         pin: p?.pinfl || "",
         firstName: p?.first_name || "",
         lastName: p?.last_name || "",
         patronymic: p?.middle_name || "",
-        fullName: `${p?.last_name || ""} ${p?.first_name || ""} ${p?.middle_name || ""}`.trim(),
+        fullName: fullName,
         pnr: item.pnr,
         rank: (item.ref_ranks?.name as any)?.['ru'] || item.ref_ranks?.name || "",
         position: (item.ref_positions?.name as any)?.['ru'] || item.ref_positions?.name || "",
@@ -51,7 +71,8 @@ export async function GET(request: Request) {
         militaryUnit: (item.ref_units?.name as any)?.['ru'] || item.ref_units?.name || "",
         militaryDistrict: item.ref_units?.ref_military_districts?.short_name || "",
         serviceStartDate: item.service_start_date?.toISOString() || "",
-        status: item.status
+        status: item.status,
+        isInspector: userNames.has(fullName) || [208, 20801, 20802, 20803, 20804].includes(item.unit_id)
       };
     });
 
@@ -67,6 +88,7 @@ export async function GET(request: Request) {
       items,
       data,
       total,
+      kruSummary,
       pagination: {
         total,
         page,

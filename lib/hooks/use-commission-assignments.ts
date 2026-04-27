@@ -18,6 +18,7 @@ export interface CommissionAssignment {
     briefingDate: string | null
     prescriptionNum: string | null
     prescriptionDate: string | null
+    financialAuditId: number | null
 }
 
 async function fetchCommissionAssignments(personnelId: number): Promise<CommissionAssignment[]> {

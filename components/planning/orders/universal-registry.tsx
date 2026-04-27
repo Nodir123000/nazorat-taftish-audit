@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -9,6 +9,26 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Icons } from "@/components/icons"
+import { 
+    Building2, 
+    MapPin, 
+    Tag, 
+    ShieldAlert, 
+    CircleDot, 
+    FileText, 
+    Calendar, 
+    Users, 
+    Zap, 
+    CheckCircle2, 
+    UserCheck,
+    ClipboardCheck,
+    Gavel,
+    History as HistoryIcon,
+    Plus,
+    Search,
+    Trash2,
+    Eye
+} from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
@@ -43,6 +63,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { Checkbox } from "@/components/ui/checkbox"
 import type { OrdersFilters } from "@/lib/types/orders"
+import { motion } from "framer-motion"
 
 type RegistryType = "order" | "commission" | "prescription" | "briefing"
 
@@ -76,9 +97,6 @@ interface UnifiedRegistryItem {
     commissionMembers?: CommissionMember[]
     commissionMembersData?: string
     subordinateUnits?: Array<{ unitCode: string; unitName: string; allowanceType: string }>
-    orderText?: string | null
-    briefingContent?: string | null
-    prescriptionRequirements?: string | null
 }
 
 
@@ -90,55 +108,33 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
         status: "",
         dateFrom: "",
     })
-    const [showViewDoc, setShowViewDoc] = useState(false)
     const [showManageDialog, setShowManageDialog] = useState(false)
     const [managingItem, setManagingItem] = useState<UnifiedRegistryItem | null>(null)
     const [showHistory, setShowHistory] = useState(false)
     const [selectedItemForHistory, setSelectedItemForHistory] = useState<UnifiedRegistryItem | null>(null)
     const [historyLogs, setHistoryLogs] = useState<Array<{ id: number; action: string; details: string; date: string }>>([])
     const [historyLoading, setHistoryLoading] = useState(false)
-    const [availableDocs, setAvailableDocs] = useState<Array<{ type: string, content: string, title: string, label?: string }>>([])
-    const [activeDocType, setActiveDocType] = useState<string>("")
 
     // Новые стейты для работы с реальными данными
-    const [kruStaff, setKruStaff] = useState<any[]>([])
+    // Search states for Step 3
     const [specSearchText, setSpecSearchText] = useState("")
+    const [chairmanSearchText, setChairmanSearchText] = useState("")
+    const [memberSearchText, setMemberSearchText] = useState("")
+    
     const [specSearchResults, setSpecSearchResults] = useState<any[]>([])
+    const [chairmanSearchResults, setChairmanSearchResults] = useState<any[]>([])
+    const [memberSearchResults, setMemberSearchResults] = useState<any[]>([])
+    
     const [isSearchingSpec, setIsSearchingSpec] = useState(false)
+    const [isSearchingChairman, setIsSearchingChairman] = useState(false)
+    const [isSearchingMember, setIsSearchingMember] = useState(false)
 
-    useEffect(() => {
-        const fetchKruStaff = async () => {
-            try {
-                const res = await fetch("/api/planning/kru-staff")
-                const data = await res.json()
-                if (data.users) setKruStaff(data.users)
-            } catch (err) {
-                console.error("Failed to fetch KRU staff:", err)
-            }
-        }
-        fetchKruStaff()
-    }, [])
-
-    useEffect(() => {
-        const searchSpec = async () => {
-            if (specSearchText.length < 3) {
-                setSpecSearchResults([])
-                return
-            }
-            setIsSearchingSpec(true)
-            try {
-                const res = await fetch(`/api/personnel?search=${encodeURIComponent(specSearchText)}&limit=10`)
-                const data = await res.json()
-                if (data.items) setSpecSearchResults(data.items)
-            } catch (err) {
-                console.error("Search failed:", err)
-            } finally {
-                setIsSearchingSpec(false)
-            }
-        }
-        const timer = setTimeout(searchSpec, 500)
-        return () => clearTimeout(timer)
-    }, [specSearchText])
+    // Personnel cache (id -> object)
+    const [personnelObjects, setPersonnelObjects] = useState<Record<string, any>>({})
+    
+    // Busy status (id -> { busy, where })
+    const [busyPersonnel, setBusyPersonnel] = useState<Record<string, { busy: boolean; where: string }>>({})
+    const [isCheckingConflicts, setIsCheckingConflicts] = useState(false)
 
     const [manageFormData, setManageFormData] = useState({
         orderNum: "",
@@ -151,10 +147,60 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
         groupMembers: [] as string[],
         groupSpecialists: [] as string[]
     })
-
     const [isSaving, setIsSaving] = useState(false)
     const [currentStep, setCurrentStep] = useState(1)
     const totalSteps = 3
+
+    // Cache helper
+    const cachePersonnel = (items: any[]) => {
+        setPersonnelObjects(prev => {
+            const next = { ...prev }
+            items.forEach(i => { next[i.id.toString()] = i })
+            return next
+        })
+    }
+
+    const isMounted = useRef(true)
+    useEffect(() => {
+        isMounted.current = true
+        return () => { isMounted.current = false }
+    }, [])
+
+    // Unified Search Effect
+    useEffect(() => {
+        const search = async (text: string, setter: any, loader: any) => {
+            if (text.length < 1) { 
+                if (isMounted.current) setter([]); 
+                return; 
+            }
+            if (isMounted.current) loader(true)
+            try {
+                const res = await fetch(`/api/personnel?search=${encodeURIComponent(text)}&limit=50`)
+                const data = await res.json()
+                const items = data.items || data.data || []
+                if (isMounted.current) {
+                    setter(items)
+                    cachePersonnel(items)
+                }
+            } catch (err) { console.error("Search failed:", err) }
+            finally { 
+                if (isMounted.current) loader(false) 
+            }
+        }
+
+        const t1 = setTimeout(() => search(specSearchText, setSpecSearchResults, setIsSearchingSpec), 300)
+        const t2 = setTimeout(() => search(chairmanSearchText, setChairmanSearchResults, setIsSearchingChairman), 300)
+        const t3 = setTimeout(() => search(memberSearchText, setMemberSearchResults, setIsSearchingMember), 300)
+        
+        return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); }
+    }, [specSearchText, chairmanSearchText, memberSearchText])
+
+    // Load initial data for existing members
+    useEffect(() => {
+        if (!managingItem) return;
+        // In a real app, we'd fetch full objects for current IDs here
+    }, [managingItem])
+
     
     const nextStep = () => {
         // Basic Validation
@@ -200,6 +246,16 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
         return dateStr;
     };
 
+    // Converts "dd.mm.yyyy" or "dd.mm.yy" to "yyyy-mm-dd" for API params
+    const convertRuDateToIso = (ruDate: string): string | null => {
+        if (!ruDate) return null
+        const parts = ruDate.trim().split(".")
+        if (parts.length !== 3) return null
+        const [d, m, y] = parts
+        const year = y.length === 2 ? `20${y}` : y
+        return `${year}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`
+    }
+
     const getLocalizedName = (obj: any, locale: any): string => {
         if (!obj?.name) return ""
         if (typeof obj.name === 'string') return obj.name
@@ -239,8 +295,8 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                     controlObjectSubtitle: p.unit?.ref_military_districts?.short_name
                         ? (typeof p.unit.ref_military_districts.short_name === 'string' ? p.unit.ref_military_districts.short_name : p.unit.ref_military_districts.short_name.ru)
                         : "",
-                    inspectionDirection: getLocalizedDirectionName(p.inspectionDirectionId || p.inspectionDirection, locale as any),
-                    inspectionDirectionSubtitle: getInspectionTypeLabel(p.inspectionTypeId || p.inspectionType, locale as any),
+                    inspectionDirection: getLocalizedDirectionName(p.inspectionDirectionId || p.inspectionDirection, locale as any) || (locale === "ru" ? "Направление не указано" : "Yo'nalish ko'rsatilmagan"),
+                    inspectionDirectionSubtitle: getInspectionTypeLabel(p.inspectionTypeId || p.inspectionType, locale as any) || (locale === "ru" ? "Плановая инспекция" : "Rejali inspektsiya"),
                     commissionCount: latestOrder?.commission_members?.length || 0,
                     commissionMembers: latestOrder?.commission_members?.map((m: any) => ({
                         id: m.user_id || m.userId,
@@ -251,13 +307,10 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                     })) || [],
                     briefingStatus: latestBriefing ? "Проведен" : "Не проведен",
                     briefingDate: latestBriefing?.instruction_date || latestBriefing?.date || latestBriefing?.created_at || null,
-                    briefingContent: latestBriefing?.content || null,
                     briefingId: latestBriefing?.id || null,
                     prescriptionNum: latestPrescription?.prescription_num || latestPrescription?.prescriptionNum || null,
                     prescriptionDate: latestPrescription?.date || latestPrescription?.issueDate || null,
-                    prescriptionRequirements: latestPrescription?.requirements || null,
                     prescriptionId: latestPrescription?.id || null,
-                    orderText: latestOrder?.order_text || null,
                     orderId: latestOrder?.id || null,
                     commissionMembersData: latestOrder?.commission_members?.map((m: any) => {
                         const rank = m.users?.rank || ""
@@ -275,11 +328,29 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
     const handleOpenManage = (item: UnifiedRegistryItem) => {
         setManagingItem(item);
 
-        const leader = item.commissionMembers?.find(m => m.role === "Председатель комиссии")?.id?.toString() || ""
+        // Pre-populate personnel objects for existing members to show them in cards
+        const initialCache: Record<string, any> = {}
+        item.commissionMembers?.forEach(m => {
+            const mid = (m.personnelId || m.id)?.toString()
+            if (mid) {
+                initialCache[mid] = {
+                    id: mid,
+                    fullName: m.name,
+                    rank: m.rank,
+                    militaryUnit: "" // Unit might be unknown here but name/rank will show
+                }
+            }
+        })
+        setPersonnelObjects(prev => ({ ...prev, ...initialCache }))
+
+        const leader = item.commissionMembers?.find(m => m.role === "Председатель комиссии")?.personnelId?.toString() || 
+                       item.commissionMembers?.find(m => m.role === "Председатель комиссии")?.id?.toString() || ""
+        
         const members = item.commissionMembers
             ?.filter(m => m.role === "Член комиссии")
-            .map(m => m.id?.toString())
+            .map(m => (m.personnelId || m.id)?.toString())
             .filter(Boolean) as string[] || []
+            
         const specialists = item.commissionMembers
             ?.filter(m => m.role === "Привлечённый специалист")
             .map(m => (m.personnelId || m.id)?.toString())
@@ -316,6 +387,15 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
 
     const handleSaveManagement = async () => {
         if (!managingItem) return;
+        
+        // Validation: chairman is REQUIRED
+        if (!manageFormData.groupLeader) {
+            toast.error(locale === "ru" 
+                ? "Необходимо выбрать Председателя комиссии перед сохранением." 
+                : "Saqlashdan oldin komissiya raisi tanlanishi shart.");
+            return;
+        }
+
         setIsSaving(true);
 
         const promise = new Promise(async (resolve, reject) => {
@@ -329,8 +409,8 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                     prescriptionNumber: manageFormData.prescriptionNum,
                     prescriptionDate: manageFormData.prescriptionDate,
                     commission: [
-                        ...(manageFormData.groupLeader ? [{ userId: manageFormData.groupLeader, role: "Председатель комиссии" }] : []),
-                        ...manageFormData.groupMembers.map(id => ({ userId: id, role: "Член комиссии" })),
+                        ...(manageFormData.groupLeader ? [{ personnelId: manageFormData.groupLeader, role: "Председатель комиссии" }] : []),
+                        ...manageFormData.groupMembers.map(id => ({ personnelId: id, role: "Член комиссии" })),
                         ...manageFormData.groupSpecialists.map(id => ({ personnelId: id, role: "Привлечённый специалист" }))
                     ]
                 };
@@ -363,22 +443,6 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
         });
     };
 
-    const handleViewDocument = (item: UnifiedRegistryItem) => {
-        const docs = []
-        if (item.orderText) docs.push({ type: "order", label: "Приказ", content: item.orderText, title: item.orderNum })
-        if (item.briefingContent) docs.push({ type: "briefing", label: "Инструктаж", content: item.briefingContent, title: `Инструктаж по ${item.title}` })
-        if (item.prescriptionRequirements) docs.push({ type: "prescription", label: "Предписание", content: item.prescriptionRequirements, title: item.prescriptionNum || "Предписание" })
-
-        if (docs.length === 0) {
-            toast.info("Для данной записи нет изданных документов.")
-            return
-        }
-
-        const mappedDocs = docs.map((d: any) => ({ type: d.type, content: d.content, title: d.title, label: d.label }))
-        setAvailableDocs(mappedDocs)
-        setActiveDocType(mappedDocs[0].type)
-        setShowViewDoc(true)
-    }
 
     const filteredData = useMemo(() => {
         return allData.filter((item: UnifiedRegistryItem) => {
@@ -440,91 +504,164 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                 </CardHeader>
                 <CardContent>
                     <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="w-12.5">{t("orders.table.id")}</TableHead>
-                                <TableHead className="w-20">ИД плана</TableHead>
-                                <TableHead className="w-45">Объект контроля</TableHead>
-                                <TableHead className="w-37.5">Направление</TableHead>
-                                <TableHead className="w-25">Тип</TableHead>
-                                <TableHead className="w-45">Состав комиссии</TableHead>
-                                <TableHead className="w-37.5">Номер и дата приказа</TableHead>
-                                <TableHead className="w-25">Инструктаж</TableHead>
-                                <TableHead className="w-37.5">Предписание</TableHead>
-                                <TableHead className="w-25">{t("orders.table.status")}</TableHead>
-                                <TableHead className="w-12.5">{t("orders.table.actions")}</TableHead>
+                        <TableHeader className="bg-slate-50/50 dark:bg-slate-900/20">
+                            <TableRow className="hover:bg-transparent border-b-2">
+                                <TableHead className="w-[50px] font-bold text-[10px] uppercase tracking-wider text-muted-foreground/80">#</TableHead>
+                                <TableHead className="min-w-[220px] font-bold text-[10px] uppercase tracking-wider text-muted-foreground/80">Объект и План</TableHead>
+                                <TableHead className="min-w-[180px] font-bold text-[10px] uppercase tracking-wider text-muted-foreground/80">Параметры проверки</TableHead>
+                                <TableHead className="min-w-[220px] font-bold text-[10px] uppercase tracking-wider text-muted-foreground/80">Состав комиссии</TableHead>
+                                <TableHead className="min-w-[280px] font-bold text-[10px] uppercase tracking-wider text-muted-foreground/80">Документооборот</TableHead>
+                                <TableHead className="w-[120px] font-bold text-[10px] uppercase tracking-wider text-muted-foreground/80 text-center">{t("orders.table.status")}</TableHead>
+                                <TableHead className="w-[80px] font-bold text-[10px] uppercase tracking-wider text-muted-foreground/80 text-right">{t("orders.table.actions")}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {filteredData.map((item, index) => (
-                                <TableRow key={item.id} className="text-[11px]">
-                                    <TableCell>{index + 1}</TableCell>
-                                    <TableCell><Badge variant="outline" className="font-mono">{item.planId}</Badge></TableCell>
+                                <TableRow key={item.id} className="group transition-all hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
+                                    <TableCell className="font-mono text-[10px] text-muted-foreground/70">
+                                        {(index + 1).toString().padStart(3, '0')}
+                                    </TableCell>
                                     <TableCell>
-                                        <div className="flex flex-col">
-                                            <span className="font-semibold">{item.controlObject}</span>
-                                            <span className="text-[9px] text-muted-foreground">{item.controlObjectSubtitle}</span>
+                                        <div className="flex flex-col gap-1.5">
+                                            <div className="flex items-center gap-2">
+                                                <Building2 className="w-4 h-4 text-primary/70 shrink-0" />
+                                                <span className="font-bold text-sm leading-tight">{item.controlObject}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 ml-6">
+                                                <Badge variant="outline" className="font-mono text-[9px] py-0 h-4 px-1.5 border-primary/20 text-primary/70 bg-primary/5">
+                                                    ID: {item.planId}
+                                                </Badge>
+                                                {item.controlObjectSubtitle && (
+                                                    <Badge variant="secondary" className="text-[9px] py-0 h-4 px-1.5 bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 font-bold uppercase tracking-tighter">
+                                                        {item.controlObjectSubtitle}
+                                                    </Badge>
+                                                )}
+                                            </div>
                                         </div>
                                     </TableCell>
-                                    <TableCell>{item.inspectionDirection}</TableCell>
                                     <TableCell>
-                                        <Badge variant="secondary" className="text-[9px] whitespace-nowrap">
-                                            {item.inspectionDirectionSubtitle || "—"}
-                                        </Badge>
+                                        <div className="flex flex-col gap-1.5">
+                                            <div className="flex items-start gap-2">
+                                                <ShieldAlert className="w-3.5 h-3.5 text-blue-500/80 shrink-0 mt-0.5" />
+                                                <span className="text-[11px] font-medium leading-tight text-foreground/80">
+                                                    {item.inspectionDirection}
+                                                </span>
+                                            </div>
+                                            <div className="mt-0.5 ml-5.5">
+                                                <Badge variant="secondary" className="py-0 h-4 px-1.5 text-[9px] font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                                                    <Tag className="w-2.5 h-2.5 mr-1" />
+                                                    {item.inspectionDirectionSubtitle || "—"}
+                                                </Badge>
+                                            </div>
+                                        </div>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="max-w-50">
+                                        <div className="flex flex-col gap-2">
                                             {item.commissionMembers && item.commissionMembers.length > 0 ? (
-                                                <div className="flex flex-wrap gap-1">
-                                                    {item.commissionMembers.slice(0, 3).map((m, i) => (
-                                                        <Badge key={i} variant="outline" className="text-[9px] bg-slate-50">
-                                                            {m.name.split(' ').map((n, idx) => idx === 0 ? n : n[0] + '.').join(' ')}
-                                                        </Badge>
-                                                    ))}
-                                                    {item.commissionMembers.length > 3 && (
-                                                        <Badge variant="outline" className="text-[9px] bg-blue-50 text-blue-700">
-                                                            +{item.commissionMembers.length - 3}
-                                                        </Badge>
-                                                    )}
-                                                </div>
+                                                <>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <UserCheck className="w-3.5 h-3.5 text-purple-500/80 shrink-0" />
+                                                        <span className="text-[11px] font-bold text-purple-700 dark:text-purple-400">
+                                                            {item.commissionMembers.find(m => m.role?.includes("Председатель"))?.name || item.commissionMembers[0].name}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-1 ml-5">
+                                                        {item.commissionMembers.filter(m => !m.role?.includes("Председатель")).slice(0, 2).map((m, i) => (
+                                                            <Badge key={i} variant="outline" className="text-[9px] bg-slate-50/50 py-0 h-4 border-slate-200">
+                                                                {m.name.split(' ').map((n, idx) => idx === 0 ? n : n[0] + '.').join(' ')}
+                                                            </Badge>
+                                                        ))}
+                                                        {item.commissionMembers.length > 3 && (
+                                                            <Badge variant="outline" className="text-[9px] bg-blue-50 text-blue-700 border-blue-100 py-0 h-4">
+                                                                +{item.commissionMembers.length - 3}
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                </>
                                             ) : (
-                                                <span className="text-slate-400 italic">Не назначена</span>
+                                                <div className="flex items-center gap-1.5 text-slate-400 italic text-[10px]">
+                                                    <Users className="w-3.5 h-3.5" />
+                                                    <span>Не назначена</span>
+                                                </div>
                                             )}
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        {item.orderNum !== "—" ? (
-                                            <div className="flex flex-col">
-                                                <span className="font-medium">{item.orderNum}</span>
-                                                <span className="text-[9px] text-muted-foreground">{formatDateShort(item.date)}</span>
+                                        <div className="flex flex-col gap-2">
+                                            {/* Order */}
+                                            <div className="flex items-start gap-2">
+                                                <FileText className={cn("w-3.5 h-3.5 shrink-0 mt-0.5", item.orderNum !== "—" ? "text-indigo-500" : "text-muted-foreground/30")} />
+                                                <div className="flex flex-col">
+                                                    <span className="text-[9px] uppercase tracking-wider font-semibold text-muted-foreground">Приказ</span>
+                                                    {item.orderNum !== "—" ? (
+                                                        <span className="text-[10px] font-mono font-medium">
+                                                            №{item.orderNum} <span className="text-muted-foreground ml-1">от {formatDateShort(item.date)}</span>
+                                                        </span>
+                                                    ) : <span className="text-[10px] text-muted-foreground/50 italic">{locale === "ru" ? "Не сформирован" : "Shakllantirilmagan"}</span>}
+                                                </div>
                                             </div>
-                                        ) : "—"}
-                                    </TableCell>
-                                    <TableCell>{item.briefingDate ? formatDateShort(item.briefingDate) : "—"}</TableCell>
-                                    <TableCell>
-                                        {item.prescriptionNum ? (
-                                            <div className="flex flex-col">
-                                                <span className="font-medium text-amber-700">{item.prescriptionNum}</span>
-                                                <span className="text-[9px] text-muted-foreground">{formatDateShort(item.prescriptionDate)}</span>
+                                            
+                                            {/* Briefing */}
+                                            <div className="flex items-start gap-2 ml-0.5 border-l-2 border-slate-100 dark:border-slate-800 pl-3 py-0.5">
+                                                <Zap className={cn("w-3 h-3 shrink-0 mt-1", item.briefingDate ? "text-amber-500" : "text-muted-foreground/30")} />
+                                                <div className="flex flex-col">
+                                                    <span className="text-[8px] uppercase tracking-wider font-semibold text-muted-foreground/70">Инструктаж</span>
+                                                    <span className={cn("text-[10px]", item.briefingDate ? "font-medium" : "text-muted-foreground/40")}>
+                                                        {item.briefingDate ? formatDateShort(item.briefingDate) : <span className="text-muted-foreground/50 italic">{locale === "ru" ? "Не проведен" : "O'tkazilmagan"}</span>}
+                                                    </span>
+                                                </div>
                                             </div>
-                                        ) : "—"}
+
+                                            {/* Prescription */}
+                                            <div className="flex items-start gap-2 ml-0.5 border-l-2 border-slate-100 dark:border-slate-800 pl-3 py-0.5">
+                                                <ClipboardCheck className={cn("w-3 h-3 shrink-0 mt-1", item.prescriptionNum ? "text-green-500" : "text-muted-foreground/30")} />
+                                                <div className="flex flex-col">
+                                                    <span className="text-[8px] uppercase tracking-wider font-semibold text-muted-foreground/70">Предписание</span>
+                                                    <span className={cn("text-[10px]", item.prescriptionNum ? "font-medium" : "text-muted-foreground/40")}>
+                                                         {item.prescriptionNum ? (
+                                                             <>
+                                                                 {item.prescriptionNum}
+                                                                 {item.prescriptionDate && (
+                                                                     <span className="text-muted-foreground ml-1 font-normal italic">
+                                                                         от {formatDateShort(item.prescriptionDate)}
+                                                                     </span>
+                                                                 )}
+                                                             </>
+                                                         ) : (
+                                                             <span className="text-muted-foreground/50 italic">{locale === "ru" ? "Не выдано" : "Berilmagan"}</span>
+                                                         )}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </TableCell>
-                                    <TableCell><Badge variant={item.statusVariant} className="text-[9px]">{item.status}</Badge></TableCell>
-                                    <TableCell>
-                                        <div className="flex gap-1">
+                                    <TableCell className="text-center">
+                                        <Badge variant={item.statusVariant} className={cn("whitespace-nowrap font-medium text-[10px] px-2 py-0.5 shadow-sm transition-all hover:shadow-md")}>
+                                            {item.status}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
-                                                        <Button variant="ghost" size="sm" onClick={() => handleOpenManage(item)} className="h-7 w-7 p-0">
-                                                            <Icons.Plus className="h-4 w-4 text-green-600" />
+                                                        <Button variant="ghost" size="icon" onClick={() => handleOpenManage(item)} className="h-8 w-8 hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-950">
+                                                            <Plus className="h-4 w-4" />
                                                         </Button>
                                                     </TooltipTrigger>
                                                     <TooltipContent>Управление данными</TooltipContent>
                                                 </Tooltip>
                                             </TooltipProvider>
-                                            <Button variant="ghost" size="sm" onClick={() => handleViewDocument(item)} className="h-7 w-7 p-0">
-                                                <Icons.FileText className="h-4 w-4" />
-                                            </Button>
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button variant="ghost" size="icon" onClick={() => {/* handle delete */}} className="h-8 w-8 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950">
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>Удалить запись</TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -548,7 +685,7 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                             </div>
                             <div>
                                 <DialogTitle className="text-xl font-bold tracking-tight">
-                                    {t("orders.manage.title") || "Управление данными"}
+                                    {t("orders.manage.title") !== "orders.manage.title" ? t("orders.manage.title") : (locale === "ru" ? "Управление документами" : "Hujjatlarni boshqarish")}
                                 </DialogTitle>
                                 <DialogDescription className="text-blue-600/70 font-medium">
                                     {managingItem?.controlObject}
@@ -559,9 +696,9 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                         {/* Visual Stepper */}
                         <div className="flex items-center justify-between gap-2 px-2 pt-2">
                             {[
-                                { id: 1, label: locale === "ru" ? "Приказ" : "Buyruq", icon: Icons.FileText },
-                                { id: 2, label: locale === "ru" ? "Исполнение" : "Ijro", icon: Icons.Zap },
-                                { id: 3, label: locale === "ru" ? "Комиссия" : "Komissiya", icon: Icons.Users }
+                                { id: 1, label: t("orders.manage.step1"), icon: Icons.FileText },
+                                { id: 2, label: t("orders.manage.step2"), icon: Icons.ClipboardCheck },
+                                { id: 3, label: t("orders.manage.step3"), icon: Icons.Users }
                             ].map((step, idx) => (
                                 <div key={step.id} className="flex items-center flex-1 last:flex-none">
                                     <div className="flex flex-col items-center gap-1.5 relative z-10">
@@ -631,7 +768,7 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                                         <div className="p-6 bg-green-50/50 dark:bg-green-900/10 rounded-2xl border-2 border-dashed border-green-200 dark:border-green-800 space-y-3">
                                             <div className="flex items-center gap-2 text-green-700">
                                                 <Icons.ShieldCheck className="h-5 w-5" />
-                                                <Label className="font-bold">Инструктаж по безопасности</Label>
+                                                <Label className="font-bold">{locale === "ru" ? "Проведение инструктажа" : "Yo'riqnoma o'tkazish"}</Label>
                                             </div>
                                             <Input 
                                                 type="date" 
@@ -643,8 +780,8 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
 
                                         <div className="p-6 bg-amber-50/50 dark:bg-amber-900/10 rounded-2xl border-2 border-dashed border-amber-200 dark:border-amber-800 space-y-4">
                                             <div className="flex items-center gap-2 text-amber-700">
-                                                <Icons.Lock className="h-5 w-5" />
-                                                <Label className="font-bold">Данные предписания</Label>
+                                                <Icons.FileText className="h-5 w-5" />
+                                                <Label className="font-bold">{locale === "ru" ? "Выдача предписания" : "Ko'rsatma berish"}</Label>
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-2">
@@ -674,89 +811,240 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                             {/* Step 3: Commission members */}
                             {currentStep === 3 && (
                                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                                    <div className="space-y-4">
-                                        <div className="space-y-2">
-                                            <Label className="text-sm font-bold text-purple-700 dark:text-purple-400">Главный ревизор</Label>
-                                            <Select value={manageFormData.groupLeader} onValueChange={val => setManageFormData({ ...manageFormData, groupLeader: val })}>
-                                                <SelectTrigger className="h-11 border-2 border-purple-200/50">
-                                                    <SelectValue placeholder="Выберите главного ревизора" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {kruStaff.map((s: any) => (
-                                                        <SelectItem key={s.user_id} value={s.user_id.toString()}>
-                                                            {s.rank} {s.fullname}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                    {/* Chairman Section */}
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <Label className="text-[10px] font-black text-purple-700 dark:text-purple-400 uppercase tracking-[0.2em]">
+                                                {locale === "ru" ? "Председатель комиссии" : "Komissiya raisi"}
+                                            </Label>
+                                            {manageFormData.groupLeader && (
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="sm" 
+                                                    onClick={() => setManageFormData({...manageFormData, groupLeader: ""})}
+                                                    className="h-6 text-[10px] text-red-500 hover:text-red-600 hover:bg-red-50"
+                                                >
+                                                    {locale === "ru" ? "Изменить" : "O'zgartirish"}
+                                                </Button>
+                                            )}
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <Label className="text-sm font-bold text-purple-700 dark:text-purple-400 uppercase tracking-widest text-[10px]">Участники комиссии</Label>
-                                            <ScrollArea className="h-40 border-2 rounded-2xl p-4 bg-background/50 border-purple-100 dark:border-purple-900/50">
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    {kruStaff.map((s: any) => (
-                                                        <div key={s.user_id} className="flex items-center space-x-3 p-2 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-xl transition-colors border border-transparent hover:border-purple-200/50">
-                                                            <Checkbox
-                                                                id={`m-${s.user_id}`}
-                                                                className="h-5 w-5 border-2 border-purple-300 text-purple-600"
-                                                                checked={manageFormData.groupMembers.includes(s.user_id.toString())}
-                                                                onCheckedChange={(checked: boolean) => {
-                                                                    const m = checked ? [...manageFormData.groupMembers, s.user_id.toString()] : manageFormData.groupMembers.filter((id: string) => id !== s.user_id.toString())
-                                                                    setManageFormData({ ...manageFormData, groupMembers: m })
-                                                                }}
-                                                            />
-                                                            <Label htmlFor={`m-${s.user_id}`} className="text-xs cursor-pointer font-medium">
-                                                                {s.rank} {s.fullname}
-                                                            </Label>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </ScrollArea>
-                                        </div>
-
-                                        <div className="pt-2">
-                                            <Label className="text-sm font-bold text-teal-700 dark:text-teal-400">Внешние специалисты</Label>
-                                            <div className="mt-2 relative">
+                                        {!manageFormData.groupLeader ? (
+                                            <div className="relative">
+                                                <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                                 <Input 
-                                                    placeholder="Поиск по ФИО или ПИНФЛ..." 
-                                                    value={specSearchText} 
-                                                    onChange={e => setSpecSearchText(e.target.value)} 
-                                                    className="h-11 pl-10 border-2 border-teal-100" 
+                                                    placeholder={locale === "ru" ? "Поиск председателя по ФИО..." : "Raisni qidirish..."}
+                                                    value={chairmanSearchText}
+                                                    onChange={(e) => setChairmanSearchText(e.target.value)}
+                                                    className="pl-9 h-11 border-2 border-purple-100 focus:border-purple-300 rounded-xl transition-all shadow-sm bg-white"
                                                 />
-                                                <Icons.Search className="absolute left-3.5 top-3.5 h-4 w-4 text-teal-500/50" />
-                                                {isSearchingSpec && <Icons.Loader2 className="absolute right-3.5 top-3.5 h-4 w-4 animate-spin text-teal-600" />}
-
-                                                {specSearchResults.length > 0 && (
-                                                    <div className="absolute z-50 w-full mt-2 border rounded-2xl shadow-2xl bg-background max-h-48 overflow-auto animate-in fade-in zoom-in-95 duration-200">
-                                                        {specSearchResults.map((p: any) => (
-                                                            <div key={p.id} className="p-3 hover:bg-teal-50 dark:hover:bg-teal-900/20 cursor-pointer text-xs border-b last:border-0 flex justify-between items-center transition-colors" onClick={() => {
-                                                                if (!manageFormData.groupSpecialists.includes(p.id.toString())) {
-                                                                    setManageFormData({ ...manageFormData, groupSpecialists: [...manageFormData.groupSpecialists, p.id.toString()] })
-                                                                }
-                                                                setSpecSearchText(""); setSpecSearchResults([])
-                                                            }}>
-                                                                <div className="flex flex-col">
-                                                                    <span className="font-bold">{p.rank} {p.fullName}</span>
-                                                                    <span className="text-[10px] text-muted-foreground">{p.pinfl}</span>
+                                                {isSearchingChairman && <Icons.Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-purple-400" />}
+                                                
+                                                {chairmanSearchResults.length > 0 && (
+                                                    <div className="absolute z-50 w-full mt-2 bg-background border-2 border-purple-100 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-80 overflow-y-auto">
+                                                        {chairmanSearchResults.map(p => (
+                                                            <div 
+                                                                key={p.id}
+                                                                onClick={() => {
+                                                                    setManageFormData({...manageFormData, groupLeader: p.id.toString()})
+                                                                    setChairmanSearchText("")
+                                                                    setChairmanSearchResults([])
+                                                                }}
+                                                                className="p-3 hover:bg-purple-50 cursor-pointer border-b border-purple-50 last:border-0 flex items-center justify-between group"
+                                                            >
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-xs uppercase">
+                                                                        {p.lastName?.[0]}{p.firstName?.[0]}
+                                                                    </div>
+                                                                    <div>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <p className="text-sm font-bold group-hover:text-purple-700">{p.fullName}</p>
+                                                                            {p.isInspector && <Badge className="text-[8px] h-3.5 px-1 bg-blue-100 text-blue-700 border-blue-200">КРУ</Badge>}
+                                                                        </div>
+                                                                        <p className="text-[10px] text-muted-foreground">{p.rank} • {p.militaryUnit} {p.pnr ? `[${p.pnr}]` : ""}</p>
+                                                                    </div>
                                                                 </div>
-                                                                <Badge variant="outline" className="bg-teal-500 text-white border-none">Выбрать</Badge>
+                                                                <Icons.ChevronRight className="h-4 w-4 text-purple-200 group-hover:text-purple-400 transition-colors" />
                                                             </div>
                                                         ))}
                                                     </div>
                                                 )}
                                             </div>
+                                        ) : (
+                                            <motion.div 
+                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                className="p-4 bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/10 dark:to-background border-2 border-purple-200 dark:border-purple-800 rounded-2xl flex items-center gap-4 shadow-sm"
+                                            >
+                                                <div className="h-12 w-12 rounded-2xl bg-purple-600 flex items-center justify-center text-white shadow-lg shadow-purple-200 dark:shadow-none">
+                                                    <Icons.UserCheck className="h-6 w-6" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-black text-slate-800 dark:text-slate-100">{personnelObjects[manageFormData.groupLeader]?.fullName}</span>
+                                                        <Badge className="bg-purple-600 text-white border-0 text-[9px] px-1.5 py-0">ПРЕДСЕДАТЕЛЬ</Badge>
+                                                    </div>
+                                                    <p className="text-xs text-muted-foreground truncate">
+                                                        {personnelObjects[manageFormData.groupLeader]?.rank} • {personnelObjects[manageFormData.groupLeader]?.militaryUnit}
+                                                    </p>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </div>
 
-                                            {manageFormData.groupSpecialists.length > 0 && (
-                                                <div className="mt-3 flex flex-wrap gap-2">
-                                                    {manageFormData.groupSpecialists.map(id => (
-                                                        <Badge key={id} className="bg-teal-600/10 text-teal-700 border-teal-200 px-3 py-1.5 rounded-full flex items-center gap-2">
-                                                            ID: {id}
-                                                            <Icons.X className="h-3.5 w-3.5 cursor-pointer hover:text-red-500 transition-colors" onClick={() => setManageFormData({ ...manageFormData, groupSpecialists: manageFormData.groupSpecialists.filter(i => i !== id) })} />
-                                                        </Badge>
+                                    {/* Members Section */}
+                                    <div className="space-y-3">
+                                        <Label className="text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-[0.2em]">
+                                            {locale === "ru" ? "Члены комиссии" : "Komissiya a'zolari"}
+                                        </Label>
+                                        
+                                        <div className="relative">
+                                            <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <Input 
+                                                placeholder={locale === "ru" ? "Найти и добавить члена комиссии..." : "A'zo qo'shish..."}
+                                                value={memberSearchText}
+                                                onChange={(e) => setMemberSearchText(e.target.value)}
+                                                className="pl-9 h-11 border-2 border-blue-50 focus:border-blue-200 rounded-xl bg-blue-50/20 shadow-sm"
+                                            />
+                                            {isSearchingMember && <Icons.Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-blue-400" />}
+
+                                            {memberSearchResults.length > 0 && (
+                                                <div className="absolute z-50 w-full mt-2 bg-background border border-blue-100 rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 max-h-60 overflow-y-auto">
+                                                    {memberSearchResults.filter(p => !manageFormData.groupMembers.includes(p.id.toString()) && p.id.toString() !== manageFormData.groupLeader).map(p => (
+                                                        <div 
+                                                            key={p.id}
+                                                            onClick={() => {
+                                                                setManageFormData({...manageFormData, groupMembers: [...manageFormData.groupMembers, p.id.toString()]})
+                                                                setMemberSearchText("")
+                                                                setMemberSearchResults([])
+                                                            }}
+                                                            className="p-3 hover:bg-blue-50 cursor-pointer border-b border-blue-50 last:border-0 flex items-center justify-between group"
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-[10px] uppercase">
+                                                                    {p.lastName?.[0]}{p.firstName?.[0]}
+                                                                </div>
+                                                                <div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <p className="text-xs font-bold group-hover:text-blue-700">{p.fullName}</p>
+                                                                        {p.isInspector && <Badge className="text-[8px] h-3.5 px-1 bg-blue-100 text-blue-700 border-blue-200">КРУ</Badge>}
+                                                                    </div>
+                                                                    <p className="text-[9px] text-muted-foreground">{p.rank} • {p.militaryUnit} {p.pnr ? `[${p.pnr}]` : ""}</p>
+                                                                </div>
+                                                            </div>
+                                                            <Icons.Plus className="h-4 w-4 text-blue-200 group-hover:text-blue-500" />
+                                                        </div>
                                                     ))}
                                                 </div>
                                             )}
+                                        </div>
+
+                                        <ScrollArea className="max-h-40 overflow-auto pr-2">
+                                            <div className="grid grid-cols-1 gap-2">
+                                                {manageFormData.groupMembers.map(id => {
+                                                    const p = personnelObjects[id]
+                                                    return (
+                                                        <motion.div 
+                                                            key={id}
+                                                            initial={{ opacity: 0, x: -10 }}
+                                                            animate={{ opacity: 1, x: 0 }}
+                                                            className="flex items-center justify-between p-2 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl shadow-sm group"
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="h-8 w-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-bold text-xs uppercase">
+                                                                    {p?.lastName?.[0] || '?'}{p?.firstName?.[0] || ''}
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-xs font-bold">{p?.fullName || `ID: ${id}`}</p>
+                                                                    <p className="text-[9px] text-muted-foreground">{p?.rank} • {p?.militaryUnit}</p>
+                                                                </div>
+                                                            </div>
+                                                            <Button 
+                                                                variant="ghost" 
+                                                                size="icon" 
+                                                                className="h-8 w-8 text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all"
+                                                                onClick={() => setManageFormData({...manageFormData, groupMembers: manageFormData.groupMembers.filter(m => m !== id)})}
+                                                            >
+                                                                <Icons.X className="h-4 w-4" />
+                                                            </Button>
+                                                        </motion.div>
+                                                    )
+                                                })}
+                                                {manageFormData.groupMembers.length === 0 && (
+                                                    <div className="text-center py-6 border-2 border-dashed border-slate-50 rounded-2xl opacity-40">
+                                                        <Icons.Users className="h-6 w-6 mx-auto mb-2 text-slate-300" />
+                                                        <p className="text-[10px] uppercase tracking-widest font-black">
+                                                            {locale === "ru" ? "Члены комиссии не выбраны" : "A'zolar tanlanmagan"}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </ScrollArea>
+                                    </div>
+
+                                    {/* Specialists Section */}
+                                    <div className="space-y-3 pt-4 border-t border-dashed border-slate-200">
+                                        <Label className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-[0.2em]">
+                                            {locale === "ru" ? "Привлечённые специалисты" : "Mutaxassislar"}
+                                        </Label>
+                                        <div className="relative">
+                                            <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <Input 
+                                                placeholder={locale === "ru" ? "Поиск по ФИО или ПИНФЛ..." : "Ism yoki PINFL bo'yicha..."}
+                                                value={specSearchText}
+                                                onChange={(e) => setSpecSearchText(e.target.value)}
+                                                className="pl-9 h-10 border-2 border-emerald-50 focus:border-emerald-200 rounded-xl bg-emerald-50/10 shadow-sm"
+                                            />
+                                            {isSearchingSpec && <Icons.Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-emerald-400" />}
+
+                                            {specSearchResults.length > 0 && (
+                                                <div className="absolute z-50 w-full mt-2 bg-background border border-emerald-100 rounded-xl shadow-xl overflow-hidden max-h-60 overflow-y-auto">
+                                                    {specSearchResults.map(p => (
+                                                        <div 
+                                                            key={p.id}
+                                                            onClick={() => {
+                                                                if (!manageFormData.groupSpecialists.includes(p.id.toString())) {
+                                                                    setManageFormData({...manageFormData, groupSpecialists: [...manageFormData.groupSpecialists, p.id.toString()]})
+                                                                }
+                                                                setSpecSearchText("")
+                                                                setSpecSearchResults([])
+                                                            }}
+                                                            className="p-3 hover:bg-emerald-50 cursor-pointer border-b border-emerald-50 last:border-0 flex items-center justify-between group"
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="h-8 w-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-[10px] uppercase">
+                                                                    {p.lastName?.[0]}{p.firstName?.[0]}
+                                                                </div>
+                                                                <div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <p className="text-xs font-bold group-hover:text-emerald-700">{p.fullName}</p>
+                                                                        {p.isInspector && <Badge className="text-[8px] h-3.5 px-1 bg-blue-100 text-blue-700 border-blue-200">КРУ</Badge>}
+                                                                    </div>
+                                                                    <p className="text-[9px] text-muted-foreground">{p.rank} • {p.militaryUnit} {p.pnr ? `[${p.pnr}]` : ""}</p>
+                                                                </div>
+                                                            </div>
+                                                            <Icons.Plus className="h-4 w-4 text-emerald-300 group-hover:text-emerald-600" />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="flex flex-wrap gap-2">
+                                            {manageFormData.groupSpecialists.map(id => (
+                                                <Badge key={id} variant="secondary" className="pl-1 pr-1 py-1 h-8 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200 gap-2 rounded-xl group">
+                                                    <div className="h-6 w-6 rounded-lg bg-emerald-600 flex items-center justify-center text-white text-[9px] font-black uppercase">
+                                                        {personnelObjects[id]?.lastName?.[0] || 'S'}
+                                                    </div>
+                                                    <span className="text-[10px] font-bold">{personnelObjects[id]?.fullName || `ID: ${id}`}</span>
+                                                    <button 
+                                                        className="h-5 w-5 rounded-md hover:bg-emerald-200 flex items-center justify-center transition-colors"
+                                                        onClick={() => setManageFormData({...manageFormData, groupSpecialists: manageFormData.groupSpecialists.filter(s => s !== id)})}
+                                                    >
+                                                        <Icons.X className="h-3 w-3" />
+                                                    </button>
+                                                </Badge>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>
@@ -769,7 +1057,7 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                             if (currentStep === 1) setShowManageDialog(false)
                             else prevStep()
                         }}>
-                            {currentStep === 1 ? (t("common.cancel") || "Отмена") : (t("common.back") || "Назад")}
+                            {currentStep === 1 ? (t("common.cancel")) : (t("common.back"))}
                         </Button>
                         
                         <div className="flex gap-3">
@@ -795,68 +1083,6 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                 </DialogContent>
             </Dialog>
 
-            {/* Document View Dialog - Modernized */}
-            <Dialog open={showViewDoc} onOpenChange={setShowViewDoc}>
-                <DialogContent className="max-w-4xl h-[90vh] p-0 flex flex-col overflow-hidden border-none shadow-2xl">
-                    <DialogHeader className="p-6 bg-slate-900 text-white border-b shrink-0">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-white/10 rounded-lg">
-                                    <Icons.FileText className="h-5 w-5 text-blue-400" />
-                                </div>
-                                <div>
-                                    <DialogTitle className="text-xl font-bold">Просмотр документа</DialogTitle>
-                                    <DialogDescription className="text-slate-400">
-                                        Официальный сформированный документ
-                                    </DialogDescription>
-                                </div>
-                            </div>
-                            {availableDocs.length > 1 && (
-                                <div className="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/10">
-                                    {availableDocs.map(d => (
-                                        <Button 
-                                            key={d.type} 
-                                            variant="ghost" 
-                                            size="sm" 
-                                            onClick={() => setActiveDocType(d.type)}
-                                            className={cn(
-                                                "h-8 text-[10px] uppercase tracking-wider font-bold rounded-lg transition-all",
-                                                activeDocType === d.type ? "bg-white text-slate-900 shadow-lg" : "text-slate-400 hover:text-white"
-                                            )}
-                                        >
-                                            {d.label}
-                                        </Button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </DialogHeader>
-
-                    <div className="flex-1 overflow-y-auto p-12 bg-slate-100 dark:bg-slate-950 flex justify-center">
-                        <div className="w-full max-w-[210mm] bg-white dark:bg-slate-900 shadow-2xl rounded-sm p-[20mm] min-h-full font-serif text-[14pt] leading-relaxed relative border border-slate-200 dark:border-slate-800 animate-in zoom-in-95 duration-500">
-                            <div className="absolute top-0 left-0 w-full h-1.5 bg-blue-600" />
-                            <div className="whitespace-pre-wrap selection:bg-blue-100 dark:selection:bg-blue-900">
-                                {availableDocs.find(d => d.type === activeDocType)?.content || "Текст отсутствует"}
-                            </div>
-                        </div>
-                    </div>
-
-                    <DialogFooter className="p-4 bg-slate-50 dark:bg-slate-900/50 border-t flex items-center justify-between gap-4 shrink-0">
-                        <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest px-4">
-                            Документ сгенерирован автоматически АИС КРР
-                        </div>
-                        <div className="flex gap-3">
-                            <Button variant="outline" className="h-9 px-4 font-bold text-xs uppercase tracking-wider" onClick={() => window.print()}>
-                                <Icons.Printer className="mr-2 h-4 w-4" />
-                                Печать
-                            </Button>
-                            <Button className="h-9 px-6 bg-slate-900 dark:bg-slate-100 dark:text-slate-900 font-bold text-xs uppercase tracking-wider" onClick={() => setShowViewDoc(false)}>
-                                Закрыть
-                            </Button>
-                        </div>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
 
             {/* History Dialog - Modernized */}
             <Dialog open={showHistory} onOpenChange={setShowHistory}>

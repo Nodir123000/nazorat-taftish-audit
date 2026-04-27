@@ -73,23 +73,10 @@ const modules: Module[] = [
       {
         id: "financial-violations",
         title: "Финансовые нарушения",
-        sections: [
-          { id: "shortages", title: "Недостачи денежных средств" },
-          { id: "theft", title: "Растраты и хищения" },
-          { id: "unlawful-expenses", title: "Незаконные расходы" },
-          { id: "overpayment", title: "Переплаты" },
-          { id: "underpayment", title: "Недоплата" },
-        ],
       },
       {
         id: "assets",
         title: "Недостачи имущества",
-        sections: [
-          { id: "accounts", title: "Счета" },
-          { id: "shortage", title: "Недостача" },
-          { id: "theft-asset", title: "Хищения" },
-          { id: "unlawful-writeoff", title: "Незаконное списание" },
-        ],
       },
     ],
   },

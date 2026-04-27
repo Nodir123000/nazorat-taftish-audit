@@ -143,9 +143,14 @@ export const auditsService = {
 
     // --- Financial Audits (Cash Audits) ---
 
-    async getFinancialAudits(params?: { inspectorId?: string | number; unitName?: string }): Promise<FinancialAuditDTO[]> {
-        const response = await axiosInstance.get<{ items: FinancialAuditDTO[] }>(`${BASE_ENDPOINT}/financial-audits`, { params });
-        return response.items || [];
+    async getFinancialAudits(params?: { inspectorId?: string | number; unitName?: string }): Promise<{ items: FinancialAuditDTO[]; total: number; page: number; limit: number }> {
+        const response = await axiosInstance.get<{ items: FinancialAuditDTO[]; total: number }>(`${BASE_ENDPOINT}/financial-audits`, { params });
+        return {
+            items: response.items || [],
+            total: response.total || 0,
+            page: 1,
+            limit: 50,
+        };
     },
 
     async getFinancialAudit(id: number): Promise<FinancialAuditDTO> {

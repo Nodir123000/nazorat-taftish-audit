@@ -30,9 +30,9 @@ export default function PersonnelDashboardPage() {
                     <h1 className="text-2xl font-bold text-foreground">Кадры</h1>
                     <p className="text-sm text-muted-foreground mt-1">Обзор кадрового состава</p>
                 </div>
-                <Link href="/personnel/list">
+                <Link href="/personnel/personnel">
                     <Button variant="outline">
-                        Перейти к списку
+                        Перейти к реестру
                         <Icons.ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                 </Link>

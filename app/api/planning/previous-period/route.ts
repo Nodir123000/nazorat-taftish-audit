@@ -9,17 +9,19 @@ import { planningService } from "@/lib/services/planning-service"
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
+    const unitId = searchParams.get("unitId")
     const unitName = searchParams.get("unitName")
     const authorityCode = searchParams.get("authorityCode")
 
-    if (!unitName || !authorityCode) {
+    if ((!unitId && !unitName) || !authorityCode) {
       return NextResponse.json(
-        { success: false, error: "Необходимо указать unitName и authorityCode" },
+        { success: false, error: "Необходимо указать unitId/unitName и authorityCode" },
         { status: 400 }
       )
     }
 
-    const data = await planningService.findLastControlPeriod(unitName, authorityCode)
+    const unitRef = unitId ? Number(unitId) : unitName!
+    const data = await planningService.findLastControlPeriod(unitRef, authorityCode)
 
     return NextResponse.json({
       success: true,

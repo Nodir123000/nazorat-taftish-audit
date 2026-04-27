@@ -49,6 +49,8 @@ interface PersonnelTableProps {
     onMove: (member: any) => void
     onDelete: (id: number) => void
     rankOptions: any[]
+    showOnlyInspectors?: boolean
+    hideRegionalColumns?: boolean
 }
 
 export function PersonnelTable({
@@ -68,6 +70,8 @@ export function PersonnelTable({
     onMove,
     onDelete,
     rankOptions,
+    showOnlyInspectors = false,
+    hideRegionalColumns = false,
 }: PersonnelTableProps) {
     const getAvatarColor = (id: number) => {
         const colors = [
@@ -141,6 +145,12 @@ export function PersonnelTable({
                                 <span className="text-[9px] font-black text-primary/80 uppercase tracking-widest bg-primary/10 px-1 py-0 rounded">
                                     {getLocalizedName(row.original.rank)}
                                 </span>
+                                {row.original.isInspector && (
+                                    <Badge variant="outline" className="text-[8px] font-black bg-blue-50 text-blue-600 border-blue-200 px-1 py-0 rounded flex items-center gap-0.5 animate-pulse">
+                                        <ShieldCheck className="h-2 w-2" />
+                                        ИНСПЕКТОР
+                                    </Badge>
+                                )}
                             </div>
                             <span className="font-bold text-sm truncate text-slate-900">
                                 {row.original.physicalPerson?.lastName} {row.original.physicalPerson?.firstName} {row.original.physicalPerson?.middleName}
@@ -149,60 +159,61 @@ export function PersonnelTable({
                     </div>
                 ),
             },
-            {
-                accessorKey: "dislocation",
-                header: "Дислокация",
-                size: 200,
-                Cell: ({ row }) => (
-                    <div className="flex flex-col">
-                        <div className="flex items-center gap-1.5 leading-none mb-1">
-                            <MapPin className="h-3 w-3 text-emerald-600" />
-                            <span className="text-[11px] font-bold text-slate-800 truncate" title={row.original.dislocation}>
-                                {row.original.dislocation || "—"}
+            ...(!hideRegionalColumns ? [
+                {
+                    accessorKey: "dislocation",
+                    header: "Дислокация",
+                    size: 200,
+                    Cell: ({ row }: { row: any }) => (
+                        <div className="flex flex-col">
+                            <div className="flex items-center gap-1.5 leading-none mb-1">
+                                <MapPin className="h-3 w-3 text-emerald-600" />
+                                <span className="text-[11px] font-bold text-slate-800 truncate" title={row.original.dislocation}>
+                                    {row.original.dislocation || "—"}
+                                </span>
+                            </div>
+                            <span className="text-[9px] text-muted-foreground font-medium italic block pl-5 truncate">
+                                {row.original.unit?.area?.region?.nameRu || "—"}
                             </span>
                         </div>
-                        <span className="text-[9px] text-muted-foreground font-medium italic block pl-5 truncate" title={getLocalizedName(row.original.unit?.area?.region)}>
-                            {getLocalizedName(row.original.unit?.area?.region)}
-                        </span>
-                    </div>
-                ),
-            },
-            {
-                accessorKey: "unit.district.shortName",
-                header: "Округ",
-                size: 150,
-                Cell: ({ row }) => (
-                    <Badge
-                        variant="outline"
-                        className="font-normal text-[10px] bg-slate-50 text-slate-600 border-slate-200 gap-1.5 py-1"
-                    >
-                        <ShieldCheck className="h-3 w-3" />
-                        {getLocalizedName(row.original.unit?.district?.shortName)}
-                    </Badge>
-                ),
-            },
-            {
-                accessorKey: "unit.unitId",
-                header: "Подразделение",
-                size: 180,
-                Cell: ({ row }) => (
-                    <div className="flex flex-col">
-                        <div className="flex items-center gap-2 group/unit mb-1">
-                            <Building2 className="h-3 w-3 text-indigo-500" />
-                            <span className="text-[11px] font-bold text-foreground truncate">
-                                {(() => {
-                                    const code = row.original.unit?.unitCode;
-                                    const id = row.original.unit?.unitId;
-                                    const name = getLocalizedName(row.original.unit);
-                                    if (code && !isNaN(Number(code))) return `В/Ч ${code.toString().padStart(5, "0")}`;
-                                    if (id && !isNaN(Number(id))) return `В/Ч ${id.toString().padStart(5, "0")}`;
-                                    return name || "—";
-                                })()}
-                            </span>
+                    ),
+                },
+                {
+                    accessorKey: "unit.district.shortName",
+                    header: "Округ",
+                    size: 150,
+                    Cell: ({ row }: { row: any }) => (
+                        <Badge
+                            variant="outline"
+                            className="font-normal text-[10px] bg-slate-50 text-slate-600 border-slate-200 gap-1.5 py-1"
+                        >
+                            <ShieldCheck className="h-3 w-3" />
+                            {row.original.unit?.district?.shortNameRu || row.original.unit?.district?.nameRu || "—"}
+                        </Badge>
+                    ),
+                },
+                {
+                    accessorKey: "unit.unitId",
+                    header: "Подразделение",
+                    size: 180,
+                    Cell: ({ row }: { row: any }) => (
+                        <div className="flex flex-col">
+                            <div className="flex items-center gap-2 group/unit mb-1">
+                                <Building2 className="h-3 w-3 text-indigo-500" />
+                                <span className="text-[11px] font-bold text-foreground truncate">
+                                    {(() => {
+                                        const code = row.original.unit?.unitCode;
+                                        const id = row.original.unit?.unitId;
+                                        if (code && !isNaN(Number(code))) return `В/Ч ${code.toString().padStart(5, "0")}`;
+                                        if (id && !isNaN(Number(id))) return `В/Ч ${id.toString().padStart(5, "0")}`;
+                                        return row.original.unit?.nameRu || "—";
+                                    })()}
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                ),
-            },
+                    ),
+                },
+            ] : []),
             {
                 accessorKey: "position.nameRu",
                 header: "Должность / ВУС",
@@ -275,6 +286,11 @@ export function PersonnelTable({
             columnFilters,
             globalFilter,
             isLoading,
+            columnVisibility: showOnlyInspectors ? {
+                "dislocation": false,
+                "unit.district.shortName": false,
+                "unit.unitId": false
+            } : {}
         },
         paginationDisplayMode: "pages",
         positionPagination: "top",

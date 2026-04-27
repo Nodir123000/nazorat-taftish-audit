@@ -268,7 +268,12 @@ export function OrdersRegistry() {
                                             <TableCell>{getUnitName(order.unit)}</TableCell>
                                             <TableCell>{getPersonnelName(order.commander)}</TableCell>
                                             <TableCell>
-                                                <Badge variant={order.status === "Действует" ? "default" : "secondary"}>{order.status}</Badge>
+                                                <Badge className={order.status === "Действует"
+                                                    ? "bg-emerald-500/15 text-emerald-700 border-emerald-500/30 text-[10px] font-black uppercase tracking-widest"
+                                                    : order.status === "Завершён"
+                                                        ? "bg-slate-500/15 text-slate-600 border-slate-500/30 text-[10px] font-black uppercase tracking-widest"
+                                                        : "bg-amber-500/15 text-amber-700 border-amber-500/30 text-[10px] font-black uppercase tracking-widest"
+                                                }>{order.status}</Badge>
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex justify-end gap-2">
@@ -365,38 +370,78 @@ export function OrdersRegistry() {
                 </CardContent>
             </Card>
 
-            {/* Диалог просмотра (Legacy / Modal view) */}
+            {/* Технический Паспорт Приказа */}
             <Dialog open={viewOrderOpen} onOpenChange={setViewOrderOpen}>
-                <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                        <DialogTitle>Приказ {selectedOrder?.orderNum}</DialogTitle>
-                        <DialogDescription>Детальная информация о приказе</DialogDescription>
-                    </DialogHeader>
+                <DialogContent className="max-w-2xl rounded-2xl border-none shadow-2xl bg-card p-0 overflow-hidden">
+                    {/* Gradient Header */}
                     {selectedOrder && (
-                        <div className="grid gap-4 py-4">
-                            <SmartDeadline period={selectedOrder.period} status={selectedOrder.status} />
-                            {/* Basic details reused */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Дата приказа</p>
-                                    <p className="font-medium">{selectedOrder.date}</p>
+                        <>
+                            <div className="relative bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 px-8 pt-7 pb-6 overflow-hidden">
+                                <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(ellipse at 80% 50%, #3b82f6 0%, transparent 60%)" }} />
+                                <div className="absolute top-4 right-4 opacity-5">
+                                    <Icons.FileText className="h-20 w-20 text-white" />
                                 </div>
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Статус</p>
-                                    <Badge variant={selectedOrder.status === "Действует" ? "default" : "secondary"}>
-                                        {selectedOrder.status}
-                                    </Badge>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Воинская часть</p>
-                                    <p className="font-medium">{getUnitName(selectedOrder.unit)}</p>
-                                </div>
-                                <div className="col-span-2">
-                                    <p className="text-sm text-muted-foreground">Подписал</p>
-                                    <p className="font-medium">{getPersonnelName(selectedOrder.commander)}</p>
+                                <div className="relative">
+                                    <div className="flex items-start justify-between">
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">ТЕХНИЧЕСКИЙ ПАСПОРТ</p>
+                                            <h2 className="text-2xl font-black text-white tracking-tight">Приказ {selectedOrder.orderNum}</h2>
+                                            <p className="text-slate-400 text-sm mt-1">{selectedOrder.date}</p>
+                                        </div>
+                                        <Badge className={selectedOrder.status === "Действует"
+                                            ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-[10px] font-black uppercase tracking-widest"
+                                            : "bg-slate-500/20 text-slate-300 border-slate-500/30 text-[10px] font-black uppercase tracking-widest"
+                                        }>{selectedOrder.status}</Badge>
+                                    </div>
+                                    <div className="mt-4">
+                                        <SmartDeadline period={selectedOrder.period} status={selectedOrder.status} />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+
+                            {/* Body */}
+                            <div className="px-8 py-5 space-y-1">
+                                {[
+                                    { label: "Воинская часть (объект)", value: getUnitName(selectedOrder.unit), icon: Icons.Landmark },
+                                    { label: "Подписал", value: getPersonnelName(selectedOrder.commander), icon: Icons.User },
+                                    { label: "Период проверки", value: selectedOrder.period, icon: Icons.Calendar },
+                                    { label: "Состав комиссии", value: `${getCommissionMembersByOrderId(selectedOrder.id).length} чел.`, icon: Icons.Users },
+                                ].map((row) => (
+                                    <div key={row.label} className="grid grid-cols-2 gap-4 py-2.5 border-b border-border/30 last:border-0">
+                                        <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                                            <row.icon className="h-3.5 w-3.5" />
+                                            {row.label}
+                                        </div>
+                                        <span className="text-sm font-semibold text-foreground">{row.value || "—"}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Commission Members Summary */}
+                            {getCommissionMembersByOrderId(selectedOrder.id).length > 0 && (
+                                <div className="px-8 pb-6">
+                                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3">СОСТАВ КОМИССИИ</p>
+                                    <div className="space-y-2">
+                                        {getCommissionMembersByOrderId(selectedOrder.id).map((m: any) => (
+                                            <div key={m.id} className="flex items-center justify-between bg-muted/30 rounded-lg px-4 py-2.5">
+                                                <div>
+                                                    <p className="text-sm font-semibold">{getPersonnelName(m.name)}</p>
+                                                    <p className="text-[10px] text-muted-foreground">{m.position}</p>
+                                                </div>
+                                                <Badge className={m.role === "Председатель комиссии"
+                                                    ? "bg-purple-600 text-white text-[9px] font-black uppercase"
+                                                    : "bg-teal-600 text-white text-[9px] font-black uppercase"
+                                                }>{m.role === "Председатель комиссии" ? "ПРЕДСЕДАТЕЛЬ" : "ЧЛЕН"}</Badge>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="px-8 pb-6 flex justify-end">
+                                <Button variant="outline" onClick={() => setViewOrderOpen(false)}>Закрыть</Button>
+                            </div>
+                        </>
                     )}
                 </DialogContent>
             </Dialog>

@@ -78,18 +78,34 @@ export async function GET(
       passport: {
         series: p?.passport_series || "",
         number: p?.passport_number || "",
-        issueDate: "",
-        expiryDate: "",
-        issuedBy: ""
+        issueDate: "", // Legacy
+        expiryDate: p?.passport_expiry_date?.toISOString() || "",
+        issuedBy: p?.passport_issued_by || ""
       },
+      passportIssuedBy: p?.passport_issued_by || "",
+      passportExpiryDate: p?.passport_expiry_date?.toISOString() || "",
+      birthPlace: p?.birth_place || "",
+      actualAddress: p?.actual_address || "",
+      registrationAddress: p?.address || "",
+      biography: p?.biography || "",
+      email: p?.email || "",
+      contactPhone: p?.contact_phone || "",
+      personalPhone: p?.contact_phone || "",
+      workPhone: item.emergency_phone || "", // Fallback or use separate field
+
       specialization: item.ref_vus_list?.code || "",
 
       inspectorCategory: "Инспектор",
       totalDamageAmount: 0,
       kpiRating: "good",
       serviceStartDate: item.service_start_date?.toISOString() || "",
-      violationsFound: 0,
       serviceNumber: item.service_number || "",
+      clearanceLevel: item.clearance_level || "",
+      emergencyContact: item.emergency_contact || "",
+      emergencyPhone: item.emergency_phone || "",
+
+      contracts: (item as any).contracts || [],
+      serviceHistory: (item as any).service_history || [],
 
       createdAt: item.created_at?.toISOString() || new Date().toISOString(),
       updatedAt: item.updated_at?.toISOString() || new Date().toISOString(),
@@ -117,32 +133,23 @@ export async function PUT(
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
 
-    const item = await prisma.personnel.findUnique({
-      where: { id }
-    });
-
-    if (!item) {
-      return NextResponse.json({ error: "Personnel not found" }, { status: 404 });
-    }
-
     const body = await request.json();
+    
+    // Import the service dynamically to avoid issues with SSR/Build
+    const { PersonnelManagementService, PersonnelUpdateSchema } = await import("@/lib/services/personnel-management-service");
+    
+    // Validate data
+    const validatedData = PersonnelUpdateSchema.parse(body);
 
-    const updateData: any = {};
-    if (body.pnr) updateData.pnr = body.pnr;
-    if (body.rankId && body.rankId !== "0") updateData.rank_id = Number.parseInt(body.rankId);
-    if (body.positionId && body.positionId !== "0") updateData.position_id = Number.parseInt(body.positionId);
-    if (body.vusId && body.vusId !== "0") updateData.vus_id = Number.parseInt(body.vusId);
-    if (body.unitId && body.unitId !== "0") updateData.unit_id = Number.parseInt(body.unitId);
-    if (body.status) updateData.status = body.status;
-
-    const updated = await prisma.personnel.update({
-      where: { id },
-      data: updateData
-    });
+    // Update using transaction-based service
+    const updated = await PersonnelManagementService.updateFullProfile(id, validatedData);
 
     return NextResponse.json({ success: true, data: updated });
   } catch (error: any) {
     console.error("Error updating personnel:", error);
+    if (error.name === "ZodError") {
+      return NextResponse.json({ success: false, error: "Validation Error", details: error.errors }, { status: 400 });
+    }
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

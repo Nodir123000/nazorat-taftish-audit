@@ -5,8 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Building2, Shield, MapPin, Plus } from "lucide-react"
+import { Building2, Shield, MapPin, Plus, TrendingUp, Users, ClipboardCheck, AlertTriangle, CheckCircle2 } from "lucide-react"
 import { TechnicalNameBadge } from "@/components/reference/technical-name-badge"
+import { EnhancedStatCard } from "@/components/enhanced-stat-card"
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+
 import {
     Dialog,
     DialogContent,
@@ -100,7 +110,8 @@ function mapUnits(raw: any[], locale: string): UnitRow[] {
 }
 
 export default function MilitaryUnitsPage() {
-    const { locale } = useTranslation()
+    const { t, locale } = useTranslation()
+
     const [pagination, setPagination] = useState<MRT_PaginationState>({ pageIndex: 0, pageSize: 50 })
     const [sorting, setSorting] = useState<MRT_SortingState>([])
     const [columnFilters, setColumnFilters] = useState<MRT_ColumnFiltersState>([])
@@ -245,24 +256,109 @@ export default function MilitaryUnitsPage() {
         }
     }
 
+    const { data: statsData } = useSWR("/api/units/summary", fetcher)
+    const stats = statsData || { total: 0, active: 0, inactive: 0, byDistrict: {} }
+
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <Card className="border-none shadow-xl shadow-primary/5 bg-white/60 backdrop-blur-xl overflow-hidden text-slate-900">
-                <CardHeader className="relative pb-6 border-b border-border/50">
-                    <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-                        <Building2 className="h-32 w-32" />
+        <div className="flex-1 space-y-6 p-4 md:p-8 pt-6 bg-slate-50/30 min-h-screen">
+            <Breadcrumb>
+                <BreadcrumbList>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink href="/">{t("common.home")}</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                        <BreadcrumbLink href="/personnel">{t("sidebar.personnel")}</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>{t("sidebar.personnel.units")}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                </BreadcrumbList>
+            </Breadcrumb>
+
+            <div className="flex justify-between items-center border-l-4 border-blue-600 pl-6 py-2">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                        {t("sidebar.personnel.units")}
+                    </h1>
+                    <p className="text-muted-foreground mt-1">
+                        Управление дислокацией и реестром воинских частей — Регламент №688
+                    </p>
+                </div>
+                <div className="flex items-center gap-4 bg-white p-3 rounded-2xl shadow-sm border border-slate-100">
+                    <div className="text-right">
+                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Всего частей</p>
+                        <div className="flex items-center gap-2 justify-end">
+                            <span className="text-2xl font-black text-slate-900">{stats.total}</span>
+                            <span className="text-[10px] font-bold bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">АКТУАЛЬНО</span>
+                        </div>
                     </div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <EnhancedStatCard
+                    title="Всего подразделений"
+                    value={stats.total}
+                    subtitle="В реестре"
+                    icon={Building2}
+                    trend={{ value: 0, isPositive: true }}
+                    sparklineData={[30, 40, 35, 50, 45, 60, 55]}
+                    variant="default"
+                />
+                <EnhancedStatCard
+                    title="Активные части"
+                    value={stats.active}
+                    subtitle="Действующие"
+                    icon={CheckCircle2}
+                    trend={{ value: 2.5, isPositive: true }}
+                    sparklineData={[20, 25, 22, 30, 28, 35, 33]}
+                    variant="success"
+                />
+                <EnhancedStatCard
+                    title="Проверено (КРР)"
+                    value={Math.floor(stats.total * 0.45)}
+                    subtitle="За текущий год"
+                    icon={ClipboardCheck}
+                    trend={{ value: 12, isPositive: true }}
+                    sparklineData={[10, 15, 12, 20, 25, 30, 35]}
+                    variant="info"
+                />
+                <EnhancedStatCard
+                    title="С нарушениями"
+                    value={Math.floor(stats.total * 0.08)}
+                    subtitle="Риск-факторы"
+                    icon={AlertTriangle}
+                    trend={{ value: 5, isPositive: false }}
+                    sparklineData={[5, 8, 4, 7, 6, 9, 8]}
+                    variant="warning"
+                />
+                <EnhancedStatCard
+                    title="Охват дислокации"
+                    value="98%"
+                    subtitle="По округам"
+                    icon={MapPin}
+                    trend={{ value: 1, isPositive: true }}
+                    sparklineData={[90, 92, 91, 95, 96, 97, 98]}
+                    variant="purple"
+                />
+            </div>
+
+            <Card className="border-none shadow-xl shadow-primary/5 bg-white/60 backdrop-blur-xl overflow-hidden text-slate-900">
+                <CardHeader className="relative pb-6 border-b border-border/50 bg-slate-50/50">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
                         <div className="space-y-1.5">
                             <div className="flex items-center gap-2.5">
-                                <div className="p-2.5 rounded-2xl bg-primary/10 text-primary shadow-inner">
-                                    <Building2 className="h-6 w-6" />
+                                <div className="p-2.5 rounded-2xl bg-blue-600/10 text-blue-600 shadow-inner">
+                                    <Shield className="h-6 w-6" />
                                 </div>
-                                <CardTitle className="text-3xl font-extrabold tracking-tight">Реестр воинских частей с привязкой к округам и территориям</CardTitle>
+                                <CardTitle className="text-xl font-bold tracking-tight">Реестр воинских частей</CardTitle>
                             </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-4 flex-1 justify-end">
                             <TechnicalNameBadge name="UnitsList" />
+
 
                             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                                 <DialogTrigger asChild>

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Icons } from "@/components/icons"
-import { ChevronDown, ChevronRight, MoreVertical, Copy, Eye, FileEdit, Trash2 } from "lucide-react"
+import { ChevronDown, ChevronRight, MoreVertical, Copy, Eye, FileEdit, Trash2, Calendar, MapPin, Building2, Tag, ShieldAlert, CircleDot, FileText } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import {
     DropdownMenu,
@@ -17,6 +17,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useTranslation } from "@/lib/i18n/hooks"
+import dayjs from "dayjs"
 import {
     getLocalizedUnitName,
     getLocalizedDistrictName,
@@ -216,19 +217,14 @@ export function ApprovedPlansTable({
         <div className="rounded-md border">
             <div className="min-h-[400px]">
                 <Table className="relative border-collapse">
-                    <TableHeader className="sticky top-0 bg-background z-20 shadow-sm after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[1px] after:bg-border">
-                        <TableRow className="hover:bg-transparent">
-                            <TableHead className="w-[50px] bg-background">ID</TableHead>
-                            <TableHead className="bg-background">{t("annual.approved.controlObject")}</TableHead>
-                            <TableHead className="bg-background">{t("common.location") || (locale === "ru" ? "Место дислокации" : "Joylashuvi")}</TableHead>
-                            <TableHead className="bg-background">{t("annual.approved.controlAuthority")}</TableHead>
-                            <TableHead className="bg-background">{t("annual.approved.inspectionDirection")}</TableHead>
-                            <TableHead className="bg-background">{t("annual.approved.inspectionType")}</TableHead>
-                            <TableHead className="bg-background whitespace-pre-line min-w-[120px]">{t("annual.approved.periodCovered")}</TableHead>
-                            <TableHead className="bg-background whitespace-pre-line min-w-[120px]">{t("annual.approved.periodConducted")}</TableHead>
-                            <TableHead className="bg-background">{t("annual.approved.subordinateUnits")}</TableHead>
-                            <TableHead className="bg-background">{t("annual.approved.status")}</TableHead>
-                            <TableHead className="text-right bg-background">{t("annual.table.actions")}</TableHead>
+                    <TableHeader className="sticky top-0 bg-background/80 backdrop-blur-md z-20 shadow-[0_1px_3px_0_rgb(0,0,0,0.05)] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[1px] after:bg-border">
+                        <TableRow className="hover:bg-transparent border-none">
+                            <TableHead className="w-[50px] bg-transparent font-semibold text-foreground/80">ID</TableHead>
+                            <TableHead className="bg-transparent font-semibold text-foreground/80 min-w-[250px]">{t("annual.approved.controlObject")} {locale === "ru" ? "и Дислокация" : "va Joylashuv"}</TableHead>
+                            <TableHead className="bg-transparent font-semibold text-foreground/80 min-w-[200px]">{locale === "ru" ? "Параметры проверки" : "Tekshiruv parametrlari"}</TableHead>
+                            <TableHead className="bg-transparent font-semibold text-foreground/80 min-w-[180px]">{locale === "ru" ? "Сроки (Таймлайн)" : "Muddatlar"}</TableHead>
+                            <TableHead className="bg-transparent font-semibold text-foreground/80">{t("annual.approved.status")}</TableHead>
+                            <TableHead className="text-right bg-transparent font-semibold text-foreground/80">{t("annual.table.actions")}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -255,181 +251,188 @@ export function ApprovedPlansTable({
                             return (
                                 <React.Fragment key={plan.id || plan.planId || `plan-${index}`}>
                                     {showGroupHeader && (
-                                        <TableRow className="bg-muted/50 hover:bg-muted/80 cursor-pointer transition-colors" onClick={() => toggleGroup(currentGroup)}>
-                                            <TableCell colSpan={10} className="font-semibold p-2.5">
-                                                <div className="flex items-center gap-2">
-                                                    <div className={cn(
-                                                        "p-1 rounded-sm",
-                                                        isGroupExpanded ? "bg-primary/10 text-primary" : "bg-muted-foreground/10 text-muted-foreground"
-                                                    )}>
-                                                        {isGroupExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                                        <TableRow className="bg-slate-100/60 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer transition-colors duration-200 border-b shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)] group/header" onClick={() => toggleGroup(currentGroup)}>
+                                            <TableCell colSpan={6} className="font-semibold p-3">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={cn(
+                                                            "p-1 rounded-sm transition-colors",
+                                                            isGroupExpanded ? "bg-primary/10 text-primary" : "bg-muted-foreground/10 text-muted-foreground group-hover/header:bg-primary/5 group-hover/header:text-primary/70"
+                                                        )}>
+                                                            {isGroupExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                                        </div>
+                                                        <span className="text-sm font-semibold tracking-tight text-foreground/90">
+                                                            {currentGroup || (
+                                                                viewMode === 'regions' 
+                                                                    ? (locale === 'ru' ? 'Без области' : locale === 'uzLatn' ? 'Viloyatsiz' : 'Вилоятсиз')
+                                                                    : viewMode === 'districts' 
+                                                                        ? (locale === 'ru' ? 'Без локации' : 'Joylashuvsiz') 
+                                                                        : 'Unknown'
+                                                            )}
+                                                        </span>
+                                                        <Badge variant="secondary" className="ml-2 font-medium bg-white/50 dark:bg-black/20 border-slate-200 dark:border-slate-700 shadow-sm">
+                                                            {(() => {
+                                                                const groupPlans = groupingPlans.filter(p => {
+                                                                    if (viewMode === 'years') return String(p.year) === currentGroup
+                                                                    if (viewMode === 'regions') return getRegionDisplay(p, locale) === currentGroup
+                                                                    if (viewMode === 'districts') return getDistrictDisplay(p, locale) === currentGroup
+                                                                    if (viewMode === 'authorities') return getLocalizedAuthorityName(p.controlAuthority, locale, supplyDepartments) === currentGroup
+                                                                    return false
+                                                                });
+                                                                const total = groupPlans.length;
+                                                                const completed = groupPlans.filter(p => p.status?.toString() === '104' || p.status === 'completed').length;
+                                                                
+                                                                return (
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        <span className="text-[11px] text-muted-foreground">{locale === 'ru' ? 'Планы:' : 'Rejalar:'}</span>
+                                                                        <span className="text-sm">{total}</span>
+                                                                        {total > 0 && (
+                                                                            <span className="ml-1 text-[10px] text-teal-600 dark:text-teal-400 bg-teal-500/10 px-1.5 py-0.5 rounded-sm flex items-center">
+                                                                                {Math.round((completed / total) * 100)}% {locale === 'ru' ? 'выполнено' : 'bajarildi'}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                )
+                                                            })()}
+                                                        </Badge>
                                                     </div>
-                                                    <span className="text-sm">
-                                                        {currentGroup || (
-                                                            viewMode === 'regions' 
-                                                                ? (locale === 'ru' ? 'Без области' : locale === 'uzLatn' ? 'Viloyatsiz' : 'Вилоятсиз')
-                                                                : viewMode === 'districts' 
-                                                                    ? (locale === 'ru' ? 'Без локации' : 'Joylashuvsiz') 
-                                                                    : 'Unknown'
-                                                        )}
-                                                    </span>
-                                                    <Badge variant="outline" className="ml-2 font-normal">
-                                                        {groupingPlans.filter(p => {
-                                                            if (viewMode === 'years') return String(p.year) === currentGroup
-                                                            if (viewMode === 'regions') return getRegionDisplay(p, locale) === currentGroup
-                                                            if (viewMode === 'districts') return getDistrictDisplay(p, locale) === currentGroup
-                                                            if (viewMode === 'authorities') return getLocalizedAuthorityName(p.controlAuthority, locale, supplyDepartments) === currentGroup
-                                                            return false
-                                                        }).length}
-                                                    </Badge>
                                                 </div>
                                             </TableCell>
                                         </TableRow>
                                     )}
 
                                     {(viewMode === 'list' || isGroupExpanded) && (
-                                        <TableRow>
+                                        <TableRow className="group transition-all duration-200 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 hover:shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
                                             <TableCell className="font-mono text-xs text-muted-foreground/70">
                                                 {((currentPage - 1) * itemsPerPage + index + 1).toString().padStart(5, '0')}
                                             </TableCell>
-                                            <TableCell className="font-medium">
-                                                <div className="flex flex-col">
-                                                    <span className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
-                                                        {(() => {
-                                                            if (plan.unit?.unit_code) {
-                                                                return `В/Ч ${plan.unit.unit_code.toString().padStart(5, "0")}`;
-                                                            }
-                                                            return plan.unit ? getLocalizedName(plan.unit, locale) : toSafeString(plan.controlObject, locale);
-                                                        })()}
-                                                    </span>
+                                            <TableCell className="font-medium min-w-[250px]">
+                                                <div className="flex flex-col gap-1.5">
+                                                    <div className="flex items-start gap-2 text-sm font-semibold">
+                                                        <Building2 className="w-4 h-4 text-primary/70 shrink-0 mt-0.5" />
+                                                        <span className="whitespace-normal leading-tight text-foreground/90">
+                                                            {(() => {
+                                                                if (plan.unit?.unit_code) {
+                                                                    return `В/Ч ${plan.unit.unit_code.toString().padStart(5, "0")}`;
+                                                                }
+                                                                return plan.unit ? getLocalizedName(plan.unit, locale) : toSafeString(plan.controlObject, locale);
+                                                            })()}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 ml-6">
+                                                        <MapPin className="w-3.5 h-3.5 text-muted-foreground/70 shrink-0" />
+                                                        <div className="text-muted-foreground/90 text-xs">
+                                                            {renderLocationCell(plan, locale)}
+                                                        </div>
+                                                    </div>
                                                     {(() => {
-                                                        if (plan.unit?.ref_military_districts) {
-                                                            const dist = plan.unit.ref_military_districts
-                                                            const fullName = getLocalizedName(dist, locale)
-                                                            const shortName = dist.short_name
-                                                                ? getLocalizedName({ ...dist, name: dist.short_name }, locale)
-                                                                : fullName
+                                                        const units = plan.subordinateUnitsOnAllowance
+                                                        if (Array.isArray(units) && units.length > 0) {
                                                             return (
-                                                                <Tooltip>
-                                                                    <TooltipTrigger asChild>
-                                                                        <div className="text-[10px] text-muted-foreground cursor-help truncate max-w-[200px] leading-tight">
-                                                                            {shortName}
-                                                                        </div>
-                                                                    </TooltipTrigger>
-                                                                    <TooltipContent>
-                                                                        {fullName}
-                                                                    </TooltipContent>
-                                                                </Tooltip>
-                                                            )
-                                                        }
-                                                        // Legacy fallback
-                                                        const unit = militaryUnits.find(u =>
-                                                            u.name === plan.controlObject ||
-                                                            u.name_uz_latn === plan.controlObject ||
-                                                            u.name_uz_cyrl === plan.controlObject
-                                                        )
-                                                        if (unit?.district) {
-                                                            return (
-                                                                <div className="text-[10px] text-muted-foreground leading-tight">
-                                                                    {getLocalizedDistrictName(unit.district, locale)}
+                                                                <div className="ml-6 mt-1">
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            <Badge variant="secondary" className="cursor-help px-1.5 py-0 h-5 text-[10px] bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700">
+                                                                                + {units.length} {locale === 'ru' ? 'частей на довольствии' : 'qismlar taʼminotda'}
+                                                                            </Badge>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent>
+                                                                            <div className="flex flex-col gap-1">
+                                                                                {units.map((u: any, i: number) => {
+                                                                                    const name = u.unitName || u.name
+                                                                                    return <span key={i} className="text-xs">{toSafeString(name, locale)}</span>
+                                                                                })}
+                                                                            </div>
+                                                                        </TooltipContent>
+                                                                    </Tooltip>
                                                                 </div>
                                                             )
                                                         }
-                                                        return null
+                                                        return null;
                                                     })()}
                                                 </div>
                                             </TableCell>
-                                            <TableCell>
-                                                {renderLocationCell(plan, locale)}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <span className="cursor-help underline decoration-dotted text-xs">
-                                                            {getLocalizedAuthorityName(plan.controlAuthority, locale, supplyDepartments, 'short')}
+                                            <TableCell className="min-w-[200px] align-top pt-3">
+                                                <div className="flex flex-col gap-2">
+                                                    <div className="flex items-start gap-1.5">
+                                                        <ShieldAlert className="w-3.5 h-3.5 text-amber-500/80 shrink-0 mt-0.5" />
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <span className="text-xs font-medium cursor-help underline decoration-dotted decoration-muted-foreground/50 leading-tight">
+                                                                    {getLocalizedAuthorityName(plan.controlAuthority, locale, supplyDepartments, 'short')}
+                                                                </span>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                {getLocalizedAuthorityName(plan.controlAuthority, locale, supplyDepartments, 'full')}
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </div>
+                                                    <div className="flex items-start gap-1.5">
+                                                        <CircleDot className="w-3.5 h-3.5 text-blue-500/80 shrink-0 mt-0.5" />
+                                                        <span className="text-[11px] text-muted-foreground leading-tight max-w-[220px]">
+                                                            {getLocalizedDirectionName(plan.inspectionDirection, locale)}
                                                         </span>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        {getLocalizedAuthorityName(plan.controlAuthority, locale, supplyDepartments, 'full')}
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="text-xs">
-                                                    {getLocalizedDirectionName(plan.inspectionDirection, locale)}
+                                                    </div>
+                                                    <div className="mt-0.5 ml-5">
+                                                        <Badge variant="outline" className="py-0 h-4.5 px-1.5 text-[10px] font-medium border-primary/20 text-primary/80 bg-primary/5">
+                                                            <Tag className="w-2.5 h-2.5 mr-1" />
+                                                            {getInspectionTypeLabel(plan.inspectionType, locale)}
+                                                        </Badge>
+                                                    </div>
                                                 </div>
                                             </TableCell>
-                                            <TableCell>
-                                                <Badge variant="outline" className="whitespace-nowrap py-0.5 font-normal text-[10px]">
-                                                    {getInspectionTypeLabel(plan.inspectionType, locale)}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="text-[10px] whitespace-nowrap flex items-center text-muted-foreground">
-                                                    <span>{plan.periodCoveredStart ? new Date(plan.periodCoveredStart).toLocaleDateString() : ""}</span>
-                                                    <span className="mx-0.5">-</span>
-                                                    <span>{plan.periodCoveredEnd ? new Date(plan.periodCoveredEnd).toLocaleDateString() : ""}</span>
+                                            <TableCell className="min-w-[180px] align-top pt-3">
+                                                <div className="flex flex-col gap-3">
+                                                    <div className="flex items-start gap-2">
+                                                        <Calendar className="w-4 h-4 text-muted-foreground/60 shrink-0 mt-0.5" />
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wider mb-0.5">
+                                                                {locale === 'ru' ? 'Предв. контроль' : 'Dastlabki nazorat'}
+                                                            </span>
+                                                            <span className="text-xs font-mono bg-slate-50 dark:bg-slate-800/50 px-1.5 py-0.5 rounded border">
+                                                                {plan.periodCoveredStart ? new Date(plan.periodCoveredStart).toLocaleDateString() : "—"} 
+                                                                <span className="text-muted-foreground mx-1 text-[10px]">-</span>
+                                                                {plan.periodCoveredEnd ? new Date(plan.periodCoveredEnd).toLocaleDateString() : "—"}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-start gap-2">
+                                                        <FileText className="w-4 h-4 text-muted-foreground/60 shrink-0 mt-0.5" />
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wider mb-0.5">
+                                                                {locale === 'ru' ? 'Период проведения' : 'Otkazish davri'}
+                                                            </span>
+                                                            <span className="text-[11px] font-medium leading-tight">
+                                                                {plan.periodCoveredStart
+                                                                    ? getQuarterLabel(plan.periodCoveredStart, locale)
+                                                                    : toSafeString(plan.periodConducted, locale)}
+                                                            </span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </TableCell>
-                                            <TableCell>
-                                                <div className="whitespace-nowrap text-xs text-muted-foreground text-center">
-                                                    {plan.periodCoveredStart
-                                                        ? getQuarterLabel(plan.periodCoveredStart, locale)
-                                                        : toSafeString(plan.periodConducted, locale)}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                {(() => {
-                                                    const units = plan.subordinateUnitsOnAllowance
-                                                    if (Array.isArray(units) && units.length > 0) {
-                                                        return (
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <Badge variant="secondary" className="cursor-help px-1 py-0 h-5">
-                                                                        {units.length}
-                                                                    </Badge>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <div className="flex flex-col gap-1">
-                                                                        {units.map((u: any, i: number) => {
-                                                                            const name = u.unitName || u.name
-                                                                            const displayName = toSafeString(name, locale)
-                                                                            return (
-                                                                                <span key={i} className="whitespace-nowrap">
-                                                                                    {displayName}
-                                                                                </span>
-                                                                            )
-                                                                        })}
-                                                                    </div>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        )
-                                                    }
-                                                    return <span className="text-muted-foreground text-xs">—</span>
-                                                })()}
-                                            </TableCell>
-                                            <TableCell>
+                                            <TableCell className="align-top pt-3">
                                                 {(() => {
                                                     const statusId = plan.status?.toString();
                                                     let variant: "default" | "secondary" | "outline" | "destructive" = "outline";
                                                     let className = "";
 
                                                     if (statusId === "101" || statusId === "approved" || statusId === "draft") {
-                                                        className = "bg-green-500/10 text-green-600 border-green-200";
+                                                        className = "bg-green-500/10 text-green-700 border-green-200 dark:text-green-400";
                                                     } else if (statusId === "102" || statusId === "in_progress") {
-                                                        className = "bg-indigo-500/10 text-indigo-600 border-indigo-200";
+                                                        className = "bg-indigo-500/10 text-indigo-700 border-indigo-200 dark:text-indigo-400";
                                                     } else if (statusId === "103") {
-                                                        className = "bg-slate-500/10 text-slate-600 border-slate-200";
+                                                        className = "bg-slate-500/10 text-slate-700 border-slate-200 dark:text-slate-400";
                                                     } else if (statusId === "104" || statusId === "completed") {
-                                                        className = "bg-teal-500/10 text-teal-600 border-teal-200";
+                                                        className = "bg-teal-500/10 text-teal-700 border-teal-200 dark:text-teal-400";
                                                     } else if (statusId === "105") {
                                                         variant = "destructive";
                                                     } else if (statusId === "106") {
-                                                        className = "bg-amber-500/10 text-amber-600 border-amber-200";
+                                                        className = "bg-amber-500/10 text-amber-700 border-amber-200 dark:text-amber-400";
                                                     }
 
                                                     return (
-                                                        <Badge variant={variant} className={cn("whitespace-nowrap font-medium text-[10px]", className)}>
+                                                        <Badge variant={variant} className={cn("whitespace-nowrap font-medium text-[11px] px-2.5 py-0.5 shadow-sm transition-all hover:shadow-md", className)}>
                                                             {getStatusLabel(plan.status, locale as any)}
                                                         </Badge>
                                                     );

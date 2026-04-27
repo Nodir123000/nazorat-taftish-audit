@@ -21,6 +21,7 @@ import { FinancialAuditDTO, AuditViolationDTO } from "@/lib/types/audits.dto"
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Separator } from "@/components/ui/separator"
 import { Progress } from "@/components/ui/progress"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -326,25 +327,52 @@ function LegendaryInfoRow({
 }
 
 function MainInformationSection({ inspector }: { inspector: Inspector }) {
+    const [subSection, setSubSection] = useState("all")
+
     return (
         <div className="space-y-8 pb-12">
             <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center justify-between border-b-2 border-primary/20 pb-4 mb-6"
+                className="flex flex-col md:flex-row md:items-center justify-between border-b-2 border-primary/20 pb-6 mb-8 gap-4"
             >
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                    <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg shrink-0">
                         <Icons.User className="text-primary w-6 h-6" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-black text-foreground tracking-tight uppercase">РЕЕСТР ПЕРСОНАЛЬНЫХ ДАННЫХ</h1>
-                        <p className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase mt-1">Официальная идентификация сотрудника</p>
+                        <h1 className="text-2xl font-black text-foreground tracking-tight uppercase leading-none">РЕЕСТР ПЕРСОНАЛЬНЫХ ДАННЫХ</h1>
+                        <p className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase mt-2">Официальная идентификация сотрудника</p>
                     </div>
                 </div>
+
+                <ToggleGroup 
+                    type="single" 
+                    value={subSection} 
+                    onValueChange={(v) => v && setSubSection(v)}
+                    className="bg-muted/50 p-1 rounded-lg border border-border/40 self-start md:self-center"
+                >
+                    <ToggleGroupItem value="all" className="text-[10px] font-black px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm transition-all uppercase tracking-widest">
+                        ВСЁ
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="personal" className="text-[10px] font-black px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm transition-all uppercase tracking-widest">
+                        ЛИЧНЫЕ
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="military" className="text-[10px] font-black px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm transition-all uppercase tracking-widest">
+                        ВОЕННЫЕ
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="history" className="text-[10px] font-black px-4 data-[state=on]:bg-white data-[state=on]:shadow-sm transition-all uppercase tracking-widest">
+                        БИОГРАФИЯ
+                    </ToggleGroupItem>
+                </ToggleGroup>
             </motion.div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {(subSection === "all" || subSection === "personal") && (
+                <motion.div 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+                >
                 {/* Секция: ЛИЧНЫЕ ДАННЫЕ */}
                 <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm flex flex-col transition-all hover:border-primary/30">
                     <div className="bg-muted/30 px-5 py-3 flex items-center justify-between border-b-2 border-border/60">
@@ -382,14 +410,14 @@ function MainInformationSection({ inspector }: { inspector: Inspector }) {
                 </div>
 
                 {/* Секция: КОНТАКТНАЯ ИНФОРМАЦИЯ */}
-                <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm lg:col-span-2 transition-all hover:border-primary/30">
+                <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm transition-all hover:border-primary/30 flex flex-col">
                     <div className="bg-muted/30 px-5 py-3 flex items-center justify-between border-b-2 border-border/60">
                         <div className="flex items-center gap-2 text-emerald-600 font-black uppercase tracking-[0.15em] text-[11px]">
                             <Icons.PhoneCall className="h-4 w-4" />
                             КОНТАКТЫ И СВЯЗЬ
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 bg-white/50">
+                    <div className="grid grid-cols-1 bg-white/50 flex-1">
                         <LegendaryInfoRow label="СЛУЖЕБНЫЙ ТЕЛЕФОН" value={inspector.workPhone} delay={0.3} />
                         <LegendaryInfoRow label="ЛИЧНЫЙ ТЕЛЕФОН" value={inspector.personalPhone || (inspector as any).contactPhone} delay={0.35} />
                         <LegendaryInfoRow label="E-MAIL АДРЕС" value={inspector.email} delay={0.4} />
@@ -397,7 +425,7 @@ function MainInformationSection({ inspector }: { inspector: Inspector }) {
                 </div>
 
                 {/* Секция: АДРЕСА */}
-                <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm lg:col-span-2 transition-all hover:border-primary/30">
+                <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm transition-all hover:border-primary/30 flex flex-col">
                     <div className="bg-muted/30 px-5 py-3 flex items-center justify-between border-b-2 border-border/60">
                         <div className="flex items-center gap-2 text-indigo-600 font-black uppercase tracking-[0.15em] text-[11px]">
                             <Icons.MapPin className="h-4 w-4" />
@@ -405,109 +433,92 @@ function MainInformationSection({ inspector }: { inspector: Inspector }) {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 bg-white/50">
+                    <div className="grid grid-cols-1 bg-white/50 flex-1">
                         <LegendaryInfoRow label="АДРЕС РЕГИСТРАЦИИ (ПО ПАСПОРТУ)" value={inspector.registrationAddress} delay={0.4} />
                         <LegendaryInfoRow label="ФАКТИЧЕСКИЙ АДРЕС ПРОЖИВАНИЯ" value={inspector.actualAddress} delay={0.45} />
                         <LegendaryInfoRow label="МЕСТО РОЖДЕНИЯ" value={inspector.placeOfBirth} delay={0.5} />
                     </div>
                 </div>
-            </div>
-        </div>
-    )
-}
-
-function MilitarySection({ inspector }: { inspector: Inspector }) {
-    return (
-        <div className="space-y-8 pb-12">
-            <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center justify-between border-b-2 border-primary/20 pb-4 mb-6"
-            >
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
-                        <Icons.Shield className="text-primary w-6 h-6" />
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-black text-foreground tracking-tight uppercase">РЕЕСТР ВОЕННЫХ ДАННЫХ</h1>
-                        <p className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase mt-1">Служебные сведения и документы МО РУз</p>
-                    </div>
-                </div>
             </motion.div>
+            )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Секция: СЛУЖЕБНЫЕ СВЕДЕНИЯ */}
-                <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm flex flex-col transition-all hover:border-primary/30">
-                    <div className="bg-muted/30 px-5 py-3 flex items-center justify-between border-b-2 border-border/60">
-                        <div className="flex items-center gap-2 text-primary font-black uppercase tracking-[0.15em] text-[11px]">
-                            <Icons.Shield className="h-4 w-4" />
-                            ОСНОВНЫЕ СВЕДЕНИЯ
+            {(subSection === "all" || subSection === "military") && (
+                <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                >
+                    {/* РАЗДЕЛИТЕЛЬ И ВОЕННЫЕ ДАННЫЕ */}
+                    <div className="relative py-10">
+                        <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                            <div className="w-full border-t-2 border-slate-200"></div>
+                        </div>
+                        <div className="relative flex justify-center">
+                            <span className="bg-slate-50/30 px-4 text-xs font-black text-slate-400 uppercase tracking-[0.4em]">СЛУЖЕБНЫЕ ДАННЫЕ</span>
                         </div>
                     </div>
 
-                    <div className="flex-1 bg-white/50">
-                        <LegendaryInfoRow 
-                            label="ВОИНСКОЕ ЗВАНИЕ" 
-                            value={<Badge variant="destructive" className="rounded-sm font-black px-3">{inspector.militaryRank.toUpperCase()}</Badge>} 
-                            delay={0.1} 
-                        />
-                        <LegendaryInfoRow label="ВОИНСКАЯ ЧАСТЬ" value={inspector.militaryUnit} accent delay={0.15} />
-                        <LegendaryInfoRow label="ВОЕННЫЙ ОКРУГ" value={inspector.militaryDistrict} delay={0.2} />
-                        <LegendaryInfoRow label="ПРИКАЗ О НАЗНАЧЕНИИ" value={inspector.dislocation || "ОТСУТСТВУЕТ"} delay={0.25} />
-                        <LegendaryInfoRow label="ТЕКУЩАЯ ДОЛЖНОСТЬ" value={inspector.position} delay={0.3} />
-                        <LegendaryInfoRow label="ПОДРАЗДЕЛЕНИЕ / ОТДЕЛ" value={inspector.department} delay={0.35} />
-                    </div>
-                </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {/* Секция: СЛУЖЕБНЫЕ СВЕДЕНИЯ */}
+                        <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm flex flex-col transition-all hover:border-primary/30">
+                            <div className="bg-muted/30 px-5 py-3 flex items-center justify-between border-b-2 border-border/60">
+                                <div className="flex items-center gap-2 text-primary font-black uppercase tracking-[0.15em] text-[11px]">
+                                    <Icons.Shield className="h-4 w-4" />
+                                    ВОИНСКАЯ СЛУЖБА
+                                </div>
+                            </div>
 
-                {/* Секция: ВОЕННЫЕ ДОКУМЕНТЫ */}
-                <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm flex flex-col transition-all hover:border-primary/30">
-                    <div className="bg-muted/30 px-5 py-3 flex items-center justify-between border-b-2 border-border/60">
-                        <div className="flex items-center gap-2 text-amber-600 font-black uppercase tracking-[0.15em] text-[11px]">
-                            <Icons.FileText className="h-4 w-4" />
-                            ДОКУМЕНТЫ И ДОПУСКИ
+                            <div className="flex-1 bg-white/50">
+                                <LegendaryInfoRow 
+                                    label="ВОИНСКОЕ ЗВАНИЕ" 
+                                    value={<Badge variant="destructive" className="rounded-sm font-black px-3">{inspector.militaryRank.toUpperCase()}</Badge>} 
+                                    delay={0.1} 
+                                />
+                                <LegendaryInfoRow label="ВОИНСКАЯ ЧАСТЬ" value={inspector.militaryUnit} accent delay={0.15} />
+                                <LegendaryInfoRow label="ВОЕННЫЙ ОКРУГ" value={inspector.militaryDistrict} delay={0.2} />
+                                <LegendaryInfoRow label="ПРИКАЗ О НАЗНАЧЕНИИ" value={inspector.dislocation || "ОТСУТСТВУЕТ"} delay={0.25} />
+                                <LegendaryInfoRow label="ТЕКУЩАЯ ДОЛЖНОСТЬ" value={inspector.position} delay={0.3} />
+                            </div>
+                        </div>
+
+                        {/* Секция: ВОЕННЫЕ ДОКУМЕНТЫ */}
+                        <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm flex flex-col transition-all hover:border-primary/30">
+                            <div className="bg-muted/30 px-5 py-3 flex items-center justify-between border-b-2 border-border/60">
+                                <div className="flex items-center gap-2 text-amber-600 font-black uppercase tracking-[0.15em] text-[11px]">
+                                    <Icons.FileText className="h-4 w-4" />
+                                    ДОКУМЕНТЫ И ДОПУСКИ
+                                </div>
+                            </div>
+
+                            <div className="flex-1 bg-white/50">
+                                <LegendaryInfoRow label="ВОЕННЫЙ БИЛЕТ (СЕРИЯ/№)" value={inspector.militaryID} delay={0.2} />
+                                <LegendaryInfoRow label="ДАТА ВЫДАЧИ БИЛЕТА" value={formatDate(inspector.militaryIDIssueDate)} delay={0.25} />
+                                <LegendaryInfoRow label="СРОК ДЕЙСТВИЯ" value={formatDate(inspector.militaryIDExpiryDate)} delay={0.3} />
+                                <LegendaryInfoRow label="ЛИЧНЫЙ НОМЕР (ЖЕТОН)" value={inspector.serviceNumber} accent delay={0.35} />
+                                <LegendaryInfoRow label="УРОВЕНЬ ДОПУСКА (ФОРМА)" value={inspector.clearanceLevel} delay={0.4} />
+                            </div>
                         </div>
                     </div>
+                </motion.div>
+            )}
 
-                    <div className="flex-1 bg-white/50">
-                        <LegendaryInfoRow label="ВОЕННЫЙ БИЛЕТ (СЕРИЯ/№)" value={inspector.militaryID} delay={0.2} />
-                        <LegendaryInfoRow label="ДАТА ВЫДАЧИ БИЛЕТА" value={formatDate(inspector.militaryIDIssueDate)} delay={0.25} />
-                        <LegendaryInfoRow label="СРОК ДЕЙСТВИЯ" value={formatDate(inspector.militaryIDExpiryDate)} delay={0.3} />
-                        <LegendaryInfoRow label="ЛИЧНЫЙ НОМЕР (ЖЕТОН)" value={inspector.serviceNumber} accent delay={0.35} />
-                        <LegendaryInfoRow label="УРОВЕНЬ ДОПУСКА (ФОРМА)" value={inspector.clearanceLevel} delay={0.4} />
+            {(subSection === "all" || subSection === "history") && (
+                <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                >
+                    {/* РАЗДЕЛИТЕЛЬ И ИСТОРИЯ СЛУЖБЫ */}
+                    <div className="relative py-10">
+                        <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                            <div className="w-full border-t-2 border-slate-200"></div>
+                        </div>
+                        <div className="relative flex justify-center">
+                            <span className="bg-slate-50/30 px-4 text-xs font-black text-slate-400 uppercase tracking-[0.4em]">БИОГРАФИЯ И КОНТРАКТЫ</span>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    )
-}
-
-function ServiceSection({ inspector }: { inspector: Inspector }) {
-    // Обработчики действий
-    const handleAction = (action: string, type: string, id: string) => {
-        alert(`${action} ${type === "contract" ? "контракта" : "записи службы"}: ${id}`)
-    }
-
-    return (
-        <div className="space-y-8 pb-12">
-            <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center justify-between border-b-2 border-primary/20 pb-4 mb-6"
-            >
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
-                        <Icons.History className="text-primary w-6 h-6" />
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-black text-foreground tracking-tight uppercase">РЕЕСТР СЛУЖЕБНОГО ПУТИ</h1>
-                        <p className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase mt-1">История контрактов и кадровых перемещений</p>
-                    </div>
-                </div>
-            </motion.div>
 
             <div className="space-y-8">
                 {/* Секция: КОНТРАКТЫ */}
-                <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm">
+                <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm transition-all hover:border-primary/30">
                     <div className="bg-muted/30 px-5 py-3 border-b-2 border-border/60 flex items-center gap-2 text-emerald-600 font-black uppercase tracking-[0.15em] text-[11px]">
                         <Icons.FileText className="h-4 w-4" />
                         ДЕЙСТВУЮЩИЕ И ПРОШЛЫЕ КОНТРАКТЫ
@@ -520,7 +531,7 @@ function ServiceSection({ inspector }: { inspector: Inspector }) {
                                     <TableHead className="text-[10px] font-black tracking-widest uppercase">Серия и № контракта</TableHead>
                                     <TableHead className="text-[10px] font-black tracking-widest uppercase text-center">Дата заключения</TableHead>
                                     <TableHead className="text-[10px] font-black tracking-widest uppercase text-center">Дата окончания</TableHead>
-                                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-right">Действия</TableHead>
+                                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-right pr-6">Статус</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -530,15 +541,8 @@ function ServiceSection({ inspector }: { inspector: Inspector }) {
                                             <TableCell className="font-mono font-bold text-sm text-primary">{item.seriesAndNumber}</TableCell>
                                             <TableCell className="text-center font-mono text-sm">{formatDate(item.startDate)}</TableCell>
                                             <TableCell className="text-center font-mono text-sm">{formatDate(item.endDate)}</TableCell>
-                                            <TableCell className="text-right">
-                                                <div className="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/10" onClick={() => handleAction("Просмотр", "contract", item.id)}>
-                                                        <Icons.Eye className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-destructive hover:bg-destructive/10" onClick={() => handleAction("Удаление", "contract", item.id)}>
-                                                        <Icons.Trash className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
+                                            <TableCell className="text-right pr-6">
+                                                <Badge variant="outline" className="text-[10px] font-bold uppercase">Активен</Badge>
                                             </TableCell>
                                         </TableRow>
                                     ))
@@ -553,7 +557,7 @@ function ServiceSection({ inspector }: { inspector: Inspector }) {
                 </div>
 
                 {/* Секция: ИСТОРИЯ СЛУЖБЫ */}
-                <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm">
+                <div className="bg-card rounded-xl border-2 border-border/60 overflow-hidden shadow-sm transition-all hover:border-primary/30">
                     <div className="bg-muted/30 px-5 py-3 border-b-2 border-border/60 flex items-center gap-2 text-orange-600 font-black uppercase tracking-[0.15em] text-[11px]">
                         <Icons.History className="h-4 w-4" />
                         ХРОНОЛОГИЯ ПРОХОЖДЕНИЯ СЛУЖБЫ
@@ -565,9 +569,8 @@ function ServiceSection({ inspector }: { inspector: Inspector }) {
                                 <TableRow className="hover:bg-transparent border-b-2 border-border/40">
                                     <TableHead className="text-[10px] font-black tracking-widest uppercase py-4">Войсковая часть / Округ</TableHead>
                                     <TableHead className="text-[10px] font-black tracking-widest uppercase py-4">Должность / Отдел</TableHead>
-                                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-center py-4">Приказ Л/С (Назн/Искл)</TableHead>
-                                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-center py-4">Сут. приказ (Зач/Искл)</TableHead>
-                                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-right py-4 pr-6">Управление</TableHead>
+                                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-center py-4">Период службы</TableHead>
+                                    <TableHead className="text-[10px] font-black tracking-widest uppercase text-right py-4 pr-6">Статус</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -584,31 +587,17 @@ function ServiceSection({ inspector }: { inspector: Inspector }) {
                                             </TableCell>
                                             <TableCell className="py-4 text-center">
                                                 <div className="flex flex-col gap-1 items-center">
-                                                    <span className="font-mono text-[11px] bg-primary/5 px-2 rounded border border-primary/10 text-primary">{formatDate(item.personnelOrderAppointmentDate || item.startDate)}</span>
-                                                    <span className="font-mono text-[11px] text-muted-foreground/60 italic">{formatDate(item.personnelOrderExclusionDate)}</span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="py-4 text-center">
-                                                <div className="flex flex-col gap-1 items-center">
-                                                    <span className="font-mono text-[11px] bg-muted px-2 rounded border border-border/40">{formatDate(item.dailyOrderEnrollmentDate)}</span>
-                                                    <span className="font-mono text-[11px] text-muted-foreground/60 italic">{formatDate(item.dailyOrderExclusionDate)}</span>
+                                                    <span className="font-mono text-[11px] bg-primary/5 px-2 rounded border border-primary/10 text-primary">{formatDate(item.startDate)} — {formatDate(item.personnelOrderExclusionDate) || "н.в."}</span>
                                                 </div>
                                             </TableCell>
                                             <TableCell className="py-4 text-right pr-6">
-                                                <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10" onClick={() => handleAction("Редактирование", "service", item.id)}>
-                                                        <Icons.Edit className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-destructive hover:bg-destructive/10" onClick={() => handleAction("Удаление", "service", item.id)}>
-                                                        <Icons.Trash className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
+                                                <Badge variant="secondary" className="text-[10px] font-bold uppercase">Архив</Badge>
                                             </TableCell>
                                         </TableRow>
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <td colSpan={5} className="py-12 text-center text-muted-foreground/40 font-mono text-xs italic tracking-widest uppercase">Служебные записи отсутствуют</td>
+                                        <td colSpan={4} className="py-12 text-center text-muted-foreground/40 font-mono text-xs italic tracking-widest uppercase">Служебные записи отсутствуют</td>
                                     </TableRow>
                                 )}
                             </TableBody>
@@ -616,9 +605,12 @@ function ServiceSection({ inspector }: { inspector: Inspector }) {
                     </div>
                 </div>
             </div>
-        </div>
+        </motion.div>
+        )}
+    </div>
     )
 }
+
 
 // История ревизий (Реестр приказов)
 function AuditsSection({ 
@@ -769,16 +761,8 @@ function AuditsSection({
                     </p>
                 </div>
                 <div className="flex gap-2">
-                    <Button 
-                        size="sm" 
-                        variant="default" 
-                        className="bg-blue-600 hover:bg-blue-700 shadow-md transition-all active:scale-95"
-                        onClick={handleAddAudit}
-                    >
-                        <Icons.Plus className="h-4 w-4 mr-2" />
-                        Добавить результаты
-                    </Button>
                 </div>
+
             </div>
 
             <FinancialAuditRegistry
@@ -1480,19 +1464,30 @@ function CommissionAssignmentsSection({ inspector }: { inspector: Inspector }) {
     const { data: assignments = [], isLoading } = useCommissionAssignments(inspector.id)
 
     const getRoleBadge = (role: string) => {
-        if (role === "Главный ревизор") {
-            return <Badge className="bg-purple-600 hover:bg-purple-700 text-white text-[9px] font-black uppercase tracking-widest rounded-sm px-2">ГЛАВНЫЙ</Badge>
+        const normalizedRole = role.toLowerCase();
+        if (normalizedRole.includes("председатель") || role === "Главный ревизор") {
+            return <Badge className="bg-purple-600 hover:bg-purple-700 text-white text-[9px] font-black uppercase tracking-widest rounded-sm px-2">ПРЕДСЕДАТЕЛЬ</Badge>
         }
-        if (role === "Привлечённый специалист") {
+        if (normalizedRole.includes("специалист") || role === "Привлечённый специалист") {
             return <Badge className="bg-teal-600 hover:bg-teal-700 text-white text-[9px] font-black uppercase tracking-widest rounded-sm px-2">СПЕЦИАЛИСТ</Badge>
         }
-        return <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest rounded-sm px-2">РЕВИЗОР</Badge>
+        return <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest rounded-sm px-2">ЧЛЕН КОМИССИИ</Badge>
     }
 
-    const getStatusBadge = (status: string) => {
-        if (status === "approved") return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[9px] font-black uppercase tracking-widest">УТВЕРЖДЕН</Badge>
-        if (status === "in_progress") return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-[9px] font-black uppercase tracking-widest">В РАБОТЕ</Badge>
-        if (status === "draft") return <Badge className="bg-slate-500/10 text-slate-600 border-slate-500/20 text-[9px] font-black uppercase tracking-widest">ЧЕРНОВИК</Badge>
+    const getStatusBadge = (status: string | number) => {
+        const s = String(status).toLowerCase()
+        if (s === "approved" || s === "101" || s === "запланирована") {
+            return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[9px] font-black uppercase tracking-widest">УТВЕРЖДЕН</Badge>
+        }
+        if (s === "in_progress" || s === "102" || s === "в работе") {
+            return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-[9px] font-black uppercase tracking-widest">В РАБОТЕ</Badge>
+        }
+        if (s === "draft" || s === "106" || s === "изучить и дать предложение") {
+            return <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-[9px] font-black uppercase tracking-widest">ИЗУЧИТЬ / ЧЕРНОВИК</Badge>
+        }
+        if (s === "104" || s === "завершена") {
+            return <Badge className="bg-slate-500/10 text-slate-600 border-slate-500/20 text-[9px] font-black uppercase tracking-widest">ЗАВЕРШЕНА</Badge>
+        }
         return <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest">{status}</Badge>
     }
 
@@ -1532,34 +1527,46 @@ function CommissionAssignmentsSection({ inspector }: { inspector: Inspector }) {
                                 <TableHead className="text-[10px] font-black tracking-widest uppercase py-4">Роль в группе</TableHead>
                                 <TableHead className="text-[10px] font-black tracking-widest uppercase py-4">Приказ / Предписание</TableHead>
                                 <TableHead className="text-[10px] font-black tracking-widest uppercase py-4 text-center">Срок проведения</TableHead>
-                                <TableHead className="text-[10px] font-black tracking-widest uppercase py-4 text-right pr-6">Статус</TableHead>
+                                <TableHead className="text-[10px] font-black tracking-widest uppercase py-4 text-center">Статус</TableHead>
+                                <TableHead className="text-[10px] font-black tracking-widest uppercase py-4 text-right pr-6">Действия</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {assignments.map((a) => (
-                                <TableRow key={a.assignmentId} className="hover:bg-primary/5 transition-colors group border-b border-border/40 last:border-0">
+                                <TableRow key={a.assignmentId} className="hover:bg-primary/5 transition-all group border-b border-border/40 last:border-0">
                                     <TableCell className="py-4 pl-6">
                                         <div className="flex flex-col">
                                             <span className="text-sm font-black text-foreground uppercase tracking-tight">{a.controlObject}</span>
                                             <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-[10px] font-mono bg-primary/5 text-primary border border-primary/20 px-1.5 rounded">ID: {a.planNumber}</span>
+                                                <span className="text-[10px] font-mono bg-primary/5 text-primary border border-primary/20 px-1.5 rounded" title="Номер в годовом плане">№ {a.planNumber}</span>
                                                 <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">{a.inspectionDirectionLabel}</span>
                                             </div>
                                         </div>
                                     </TableCell>
                                     <TableCell className="py-4">
-                                        {getRoleBadge(a.role)}
+                                        <div className="flex flex-col items-start gap-1">
+                                            {getRoleBadge(a.role)}
+                                            {a.isResponsible && (
+                                                <span className="text-[8px] font-bold text-destructive uppercase tracking-tighter bg-destructive/5 px-1 rounded">ОТВЕТСТВЕННЫЙ</span>
+                                            )}
+                                        </div>
                                     </TableCell>
                                     <TableCell className="py-4">
-                                        <div className="flex flex-col gap-1">
+                                        <div className="flex flex-col gap-1.5">
                                             <div className="flex items-center gap-2">
-                                                <span className="text-[10px] font-black text-foreground uppercase tracking-tighter">ПРИКАЗ:</span>
-                                                <code className="text-[11px] font-black text-primary">{a.orderNumber}</code>
+                                                <span className="text-[10px] font-black text-foreground/40 uppercase tracking-tighter w-14">ПРИКАЗ:</span>
+                                                <div className="flex flex-col">
+                                                    <code className="text-[11px] font-black text-primary group-hover:underline cursor-help" title={`Дата приказа: ${a.orderDate}`}>{a.orderNumber}</code>
+                                                    <span className="text-[9px] font-mono text-muted-foreground">ОТ {a.orderDate}</span>
+                                                </div>
                                             </div>
                                             {a.prescriptionNum && (
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">ПРЕДПИС:</span>
-                                                    <code className="text-[11px] font-bold text-blue-600">{a.prescriptionNum}</code>
+                                                    <span className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-tighter w-14">ПРЕДПИС:</span>
+                                                    <div className="flex flex-col">
+                                                        <code className="text-[11px] font-bold text-blue-600">{a.prescriptionNum}</code>
+                                                        <span className="text-[9px] font-mono text-muted-foreground">ОТ {a.prescriptionDate || "—"}</span>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
@@ -1567,8 +1574,45 @@ function CommissionAssignmentsSection({ inspector }: { inspector: Inspector }) {
                                     <TableCell className="py-4 text-center">
                                         <span className="text-[11px] font-mono font-bold text-foreground bg-muted/50 px-2 py-1 rounded border border-border/40">{a.period}</span>
                                     </TableCell>
-                                    <TableCell className="py-4 text-right pr-6">
+                                    <TableCell className="py-4 text-center">
                                         {getStatusBadge(a.status)}
+                                    </TableCell>
+                                    <TableCell className="py-4 text-right pr-6">
+                                        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button 
+                                                            variant="ghost" 
+                                                            size="icon" 
+                                                            className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+                                                            onClick={() => window.open(`/planning/orders?search=${a.orderNumber}`, '_blank')}
+                                                        >
+                                                            <Icons.FileText className="h-4 w-4" />
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>Открыть реестр приказов</TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+
+                                            {a.financialAuditId && (
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button 
+                                                                variant="ghost" 
+                                                                size="icon" 
+                                                                className="h-8 w-8 hover:bg-emerald-500/10 hover:text-emerald-600"
+                                                                onClick={() => window.open(`/audits/financial-activity/${a.financialAuditId}`, '_blank')}
+                                                            >
+                                                                <Icons.LayoutDashboard className="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>Заполнить / Просмотреть акт</TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            )}
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -1588,11 +1632,9 @@ export function InspectorSectionContent({ section, inspector, action, planId }: 
             {(() => {
                 switch (section) {
                     case "personal":
-                        return <MainInformationSection inspector={inspector} />
                     case "military":
-                        return <MilitarySection inspector={inspector} />
                     case "service":
-                        return <ServiceSection inspector={inspector} />
+                        return <MainInformationSection inspector={inspector} />
                     case "commission_assignments":
                         return <CommissionAssignmentsSection inspector={inspector} />
                     case "audits":

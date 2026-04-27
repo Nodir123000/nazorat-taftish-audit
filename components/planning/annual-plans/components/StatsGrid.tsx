@@ -1,6 +1,5 @@
-import React from "react"
 import { Icons } from "@/components/icons"
-import { StatsCard } from "./StatsCard"
+import { EnhancedStatCard } from "@/components/enhanced-stat-card"
 import { useTranslation } from "@/lib/i18n/hooks"
 
 import { getLocalizedAuthorityName } from "@/lib/utils/localization"
@@ -42,50 +41,47 @@ export function StatsGrid({ plans, locale, onStatClick, activeStatus, supplyDepa
 
     return (
         <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5 mb-6">
-            <StatsCard
+            <EnhancedStatCard
                 title={t("annual.stats.totalPlans")}
                 value={plans.length}
                 subtitle={t("annual.stats.inSystem")}
                 icon={Icons.FileText}
                 color="blue"
-                onClick={() => onStatClick?.(null)}
-                isActive={!activeStatus || activeStatus === "all"}
+                sparklineData={[3, 5, 4, 6, 8]}
             />
-            <StatsCard
+            <EnhancedStatCard
                 title={t("annual.stats.approved")}
                 value={plans.filter((p: any) => p.status === 101 || p.status === "101" || p.status === "approved").length}
                 subtitle={t("annual.stats.plans")}
                 icon={Icons.Check}
                 color="green"
-                onClick={() => onStatClick?.("101")}
-                isActive={activeStatus === "101" || activeStatus === "approved"}
+                trend={{ value: 12, isPositive: true }}
+                sparklineData={[2, 4, 3, 5, 7]}
             />
-            <StatsCard
+            <EnhancedStatCard
                 title={t("annual.stats.completion")}
                 value={`${completionRate}%`}
                 subtitle={t("annual.stats.completionDesc")}
                 icon={Icons.PieChart}
-                color="teal"
-                onClick={() => onStatClick?.("105")}
-                isActive={activeStatus === "105" || activeStatus === "completed"}
+                color="cyan"
+                sparklineData={[10, 20, 35, 45, completionRate]}
             />
-            <StatsCard
+            <EnhancedStatCard
                 title={t("annual.stats.overdue")}
                 value={overdueCount}
                 subtitle={t("annual.stats.overdueDesc")}
                 icon={Icons.AlertTriangle}
                 color="red"
-                onClick={() => onStatClick?.("overdue")}
-                isActive={activeStatus === "overdue"}
+                trend={{ value: 5, isPositive: false }}
+                sparklineData={[1, 0, 2, 1, overdueCount]}
             />
-            <StatsCard
+            <EnhancedStatCard
                 title={t("annual.stats.objectsCoverage")}
                 value={plans.reduce((acc: number, p: any) => acc + (p.objectsFS || 0) + (p.objectsOS || 0), 0)}
                 subtitle={t("annual.stats.objectsDesc")}
                 icon={Icons.Building}
                 color="purple"
-                onClick={() => onStatClick?.("coverage")}
-                isActive={activeStatus === "coverage"}
+                sparklineData={[15, 25, 30, 45, 60]}
             />
         </div>
     )

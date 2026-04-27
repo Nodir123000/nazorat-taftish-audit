@@ -18,15 +18,28 @@ export async function GET(request: Request) {
     if (inspectorId) {
         const pId = Number.parseInt(inspectorId);
         
-        let userId: number | null = null;
-        const person = await prisma.personnel.findUnique({ where: { id: pId }, select: { full_name: true } });
-        if (person?.full_name) {
-            const user = await prisma.users.findFirst({ where: { fullname: person.full_name }, select: { user_id: true } });
-            if (user) userId = user.user_id;
+        // Find associated user_id for better assignment matching
+        const personnel = await prisma.personnel.findUnique({
+            where: { id: pId },
+            select: { full_name: true }
+        });
+        
+        let userId = null;
+        if (personnel?.full_name) {
+            const user = await prisma.users.findFirst({
+                where: { fullname: personnel.full_name },
+                select: { user_id: true }
+            });
+            userId = user?.user_id;
         }
-
+        
         const assignments = await (prisma as any).commission_members.findMany({
-            where: { OR: [ { personnel_id: pId }, ...(userId ? [{ user_id: userId }] : []) ] },
+            where: { 
+                OR: [
+                    { personnel_id: pId },
+                    ...(userId ? [{ user_id: userId }] : [])
+                ]
+            },
             select: { order_id: true }
         });
 
@@ -34,87 +47,19 @@ export async function GET(request: Request) {
         let prescriptionIds: number[] = [];
 
         if (orderIds.length > 0) {
-            const orders = await prisma.orders.findMany({
-                where: { id: { in: orderIds } },
-                select: { plan_id: true }
+            const prescriptions = await prisma.prescriptions.findMany({
+                where: { rev_plan_year: { orders: { some: { id: { in: orderIds } } } } },
+                select: { id: true }
             });
-            const planIds = orders.map((o: any) => o.plan_id).filter((id: any) => id !== null) as number[];
-
-            if (planIds.length > 0) {
-                const prescriptions = await prisma.prescriptions.findMany({
-                    where: { plan_id: { in: planIds } },
-                    select: { id: true }
-                });
-                prescriptionIds = prescriptions.map((p: any) => p.id);
-            }
+            prescriptionIds = prescriptions.map((p: any) => p.id);
         }
 
         where.OR = [
             { inspector_id: pId },
             ...(prescriptionIds.length > 0 ? [{ prescription_id: { in: prescriptionIds } }] : [])
         ];
-
-        // AUTO-GENERATE DRAFT AUDITS FOR NEW ASSIGNMENTS
-        if (prescriptionIds.length > 0 && pId && person?.full_name) {
-            const existingAudits = await prisma.financial_audits.findMany({
-                where: { prescription_id: { in: prescriptionIds } },
-                select: { prescription_id: true }
-            });
-            const existingPrescriptionIds = new Set(existingAudits.map((a: any) => a.prescription_id));
-            const missingPrescriptionIds = prescriptionIds.filter(id => !existingPrescriptionIds.has(id));
-
-            if (missingPrescriptionIds.length > 0) {
-                const getLoc = (obj: any): string => {
-                    if (!obj?.name) return "";
-                    if (typeof obj.name === "string") return obj.name;
-                    return obj.name?.ru || obj.name?.uz || "";
-                };
-
-                for (const mId of missingPrescriptionIds) {
-                    const pres = await prisma.prescriptions.findUnique({
-                        where: { id: mId },
-                        include: { 
-                            rev_plan_year: { 
-                                include: { 
-                                    ref_units: { include: { ref_military_districts: true } }, 
-                                    ref_control_authorities: true, 
-                                    ref_control_directions: true 
-                                } 
-                            } 
-                        }
-                    } as any);
-
-                    if (pres && pres.rev_plan_year) {
-                        const plan = pres.rev_plan_year as any;
-                        const unitName = getLoc(plan.ref_units);
-                        const unitSubtitle = plan.ref_units?.ref_military_districts?.name_ru || getLoc(plan.ref_units?.ref_military_districts) || "";
-                        const controlBody = getLoc(plan.ref_control_authorities) || "КРУ МО РУз";
-                        const directionCode = plan.ref_control_directions?.code || "";
-                        const directionName = getLoc(plan.ref_control_directions) || directionCode;
-
-                        let type = "Комплексная";
-                        if (directionCode.includes("FIN")) type = "Финансовая";
-                        if (directionCode.includes("ECO")) type = "Хозяйственная";
-
-                        await prisma.financial_audits.create({
-                            data: {
-                                unit: unitName || "Не указан объект",
-                                unit_subtitle: unitSubtitle,
-                                control_body: controlBody,
-                                inspection_direction: directionName || "Плановая проверка",
-                                inspection_type: type,
-                                status: "Черновик",
-                                date: new Date(),
-                                inspector_id: pId,
-                                inspector_name: person.full_name,
-                                prescription_id: mId
-                            }
-                        });
-                    }
-                }
-            }
-        }
     }
+
 
     const [audits, total] = await Promise.all([
       prisma.financial_audits.findMany({
@@ -202,7 +147,9 @@ export async function GET(request: Request) {
         recoveredAmount: (item.financial_violations || [])
           .reduce((acc: number, v: any) => acc + (v.recovered != null ? parseFloat(v.recovered.toString()) : 0), 0)
           .toFixed(2),
-        resolvedViolations: 0,
+        resolvedViolations: (item.financial_violations || [])
+          .filter((v: any) => v.recovered != null && parseFloat(v.recovered.toString()) >= parseFloat(v.amount.toString()))
+          .length,
         inspectorId: item.inspector_id,
         inspectorName: item.inspector_name,
         prescriptionId: item.prescription_id

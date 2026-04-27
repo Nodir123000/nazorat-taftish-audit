@@ -661,12 +661,33 @@ export async function getPersonnel(options: { skip?: number, take?: number, sear
                             { pinfl: { contains: options.search, mode: 'insensitive' } }
                         ]
                     }
+                },
+                {
+                    ref_units: {
+                        OR: [
+                            { unit_code: { contains: options.search, mode: 'insensitive' } },
+                            { name: { path: ['ru'], string_contains: options.search } }
+                        ]
+                    }
+                },
+                {
+                    ref_positions: {
+                        OR: [
+                            { name: { path: ['ru'], string_contains: options.search } }
+                        ]
+                    }
                 }
             ];
         }
 
         if (options.status && options.status !== 'all') where.status = options.status;
-        if (options.unitId) where.unit_id = options.unitId;
+        if (options.unitId) {
+            if (Array.isArray(options.unitId)) {
+                where.unit_id = { in: options.unitId.map(id => Number(id)) };
+            } else {
+                where.unit_id = Number(options.unitId);
+            }
+        }
         if (options.rankId) where.rank_id = options.rankId;
 
         return await prisma.personnel.findMany({
@@ -715,7 +736,13 @@ export async function getPersonnelCount(options: { search?: string, status?: str
             ];
         }
         if (options.status && options.status !== 'all') where.status = options.status;
-        if (options.unitId) where.unit_id = Number(options.unitId);
+        if (options.unitId) {
+            if (Array.isArray(options.unitId)) {
+                where.unit_id = { in: options.unitId.map(id => Number(id)) };
+            } else {
+                where.unit_id = Number(options.unitId);
+            }
+        }
         if (options.rankId) where.rank_id = Number(options.rankId);
 
         return await prisma.personnel.count({ where });
@@ -730,6 +757,7 @@ export async function savePersonnel(data: any) {
         const id = data.id ? parseInt(String(data.id), 10) : null;
         const dbData: any = {
             pnr: data.pnr,
+            service_number: data.serviceNumber,
             physical_person_id: data.personId ? parseInt(String(data.personId), 10) : undefined,
             rank_id: data.rankId ? parseInt(String(data.rankId), 10) : undefined,
             unit_id: data.unitId ? parseInt(String(data.unitId), 10) : undefined,
@@ -737,6 +765,9 @@ export async function savePersonnel(data: any) {
             vus_id: data.vusId ? parseInt(String(data.vusId), 10) : undefined,
             category: data.category,
             status: data.status || 'active',
+            clearance_level: data.clearanceLevel,
+            emergency_contact: data.emergencyContact,
+            emergency_phone: data.emergencyPhone,
             service_start_date: data.serviceStartDate ? new Date(data.serviceStartDate) : undefined,
         };
 

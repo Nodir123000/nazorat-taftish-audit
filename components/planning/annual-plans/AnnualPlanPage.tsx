@@ -14,6 +14,7 @@ import { useI18n } from "@/lib/i18n/context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Icons } from "@/components/icons"
+import { PageHelpBanner } from "@/components/page-help-banner"
 import { getLocalizedDistrictName, getLocalizedAuthorityName } from "@/lib/utils/localization"
 import {
     Pagination,
@@ -202,7 +203,14 @@ export function AnnualPlanPage({ initialPlans = [] }: AnnualPlanPageProps) {
     const nextPlanNumber = (maxPlanId + 1).toString()
 
     return (
-        <div className="space-y-6">
+        <div className="flex-1 p-6 space-y-6">
+            <PageHelpBanner
+                title={t("annual.title")}
+                description={t("annual.description")}
+                tourId="annual-planning"
+                storageKey="annual-planning-help-dismissed"
+            />
+
             <Breadcrumb>
                 <BreadcrumbList>
                     <BreadcrumbItem>
@@ -219,7 +227,7 @@ export function AnnualPlanPage({ initialPlans = [] }: AnnualPlanPageProps) {
                 </BreadcrumbList>
             </Breadcrumb>
 
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center border-l-4 border-primary pl-6 py-2">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                         {t("annual.title")}
@@ -227,7 +235,7 @@ export function AnnualPlanPage({ initialPlans = [] }: AnnualPlanPageProps) {
                     <p className="text-muted-foreground">{t("annual.description")}</p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => setAutoDistributionOpen(true)} className="border-amber-200 text-amber-700 hover:bg-amber-50">
+                    <Button variant="outline" onClick={() => setAutoDistributionOpen(true)} className="border-amber-200 text-amber-700 hover:bg-amber-50 shadow-sm">
                         <Icons.Zap className="mr-2 h-4 w-4 text-amber-500" />
                         {locale === "ru" ? "Авто-распределение" : "Avto-taqsimlash"}
                     </Button>
@@ -235,7 +243,7 @@ export function AnnualPlanPage({ initialPlans = [] }: AnnualPlanPageProps) {
                         setSelectedPlan(null);
                         setIsEditing(false);
                         setApprovedPlanDialogOpen(true);
-                    }}>
+                    }} className="shadow-md transition-all hover:shadow-lg">
                         <Icons.Plus className="mr-2 h-4 w-4" />
                         {t("common.add")}
                     </Button>

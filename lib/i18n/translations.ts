@@ -20,12 +20,17 @@ export const translations: Translations = {
     "common.selectPlaceholder": "Выберите...",
     "common.preview": "Предпросмотр",
     "common.previous": "Назад",
+    "common.back": "Назад",
     "common.next": "Вперед",
     "common.copy": "Копировать",
     "common.downloadPDF": "Скачать PDF",
     "common.downloadTXT": "Скачать TXT",
     "orders.create.success": "Приказ успешно сохранен",
     "orders.create.error": "Ошибка при сохранении приказа",
+    "orders.manage.title": "Управление документами",
+    "orders.manage.step1": "Приказ",
+    "orders.manage.step2": "Документы",
+    "orders.manage.step3": "Комиссия",
     "common.export": "Экспорт",
     "common.print": "Печать",
     "common.loading": "Загрузка...",
@@ -920,6 +925,9 @@ export const translations: Translations = {
 
     "sidebar.personnel": "Мастер-данные", // Подсистема «Управление мастер-данными (Карточки)»
     "sidebar.personnel.personnel": "Личный состав", // Личный состав (субъекты ответственности)
+    "sidebar.personnel.kru": "Личный состав КРУ",
+    "sidebar.personnel.kru.title": "Личный состав КРУ",
+    "sidebar.personnel.kru.description": "Управление инспекторским составом и системными пользователями АИС КРУ",
     "sidebar.personnel.list": "Профили инспекторов", // Модуль
     "sidebar.personnel.units": "Воинские части", // Воинский части
     "sidebar.personnel.categories": "Категории",
@@ -981,7 +989,7 @@ export const translations: Translations = {
     "annual.stats.mostActive": "активный орган",
     "annual.stats.averageLoad": "Средняя нагрузка",
     "annual.stats.auditsPerPlan": "Проверок в плане",
-    "annual.registry.title": "Реестр мероприятий годового плана КРР",
+    "annual.registry.title": "Реестр мероприятий годового плана контрольно-ревизионной работы (проверки)",
     "annual.registry.description": "Полный перечень мероприятий контрольно-ревизионной работы по годам",
     "annual.table.year": "Год",
     "annual.table.district": "Военный округ",
@@ -1022,6 +1030,8 @@ export const translations: Translations = {
     "orders.stats.totalOrders": "Всего приказов",
     "orders.stats.forYear": "За год",
     "orders.stats.active": "Действующие",
+    "orders.manage.title": "Управление документами",
+    "common.back": "Назад",
     "orders.stats.orders": "приказов",
     "orders.stats.completed": "Завершённые",
     "orders.stats.last": "Последний",
@@ -1324,6 +1334,7 @@ export const translations: Translations = {
     "common.selectPlaceholder": "Танланг...",
     "common.preview": "Кўриб чиқиш",
     "common.previous": "Орқага",
+    "common.back": "Орқага",
     "common.next": "Олдинга",
     "common.copy": "Нусха олиш",
     "sidebar.kpi": "Мониторинг KPI",
@@ -1337,6 +1348,10 @@ export const translations: Translations = {
     "sidebar.analytics": "Аналитика",
     "orders.create.success": "Буйруқ муваффақиятли сақланди",
     "orders.create.error": "Буйруқни сақлашда хатолик юз берди",
+    "orders.manage.title": "Ҳужжатларни бошқариш",
+    "orders.manage.step1": "Буйруқ",
+    "orders.manage.step2": "Ҳужжатлар",
+    "orders.manage.step3": "Комиссия",
     "orders.create.field.template": "Ҳужжат шаблони",
     "common.export": "Экспорт",
     "common.print": "Чоп этиш",
@@ -2147,6 +2162,9 @@ export const translations: Translations = {
 
     "sidebar.personnel": "Мастер-маълумотлар", // Мастер-маълумотларни бошқариш (Карточкалар)
     "sidebar.personnel.personnel": "Шахсий таркиб", // Шахсий таркиб (жавобгар шахслар)
+    "sidebar.personnel.kru": "КРБ шахсий таркиби",
+    "sidebar.personnel.kru.title": "КРБ шахсий таркиби",
+    "sidebar.personnel.kru.description": "КРБ инспекторлар таркиби ва ААТ тизими фойдаланувчиларини бошқариш",
     "sidebar.personnel.units": "Ҳарбий қисмлар", // Ҳарбий қисмлар
     "sidebar.personnel.list": "Инспекторлар профиллари", // Инспекторлар профиллари
     "sidebar.personnel.categories": "Категориялар",
@@ -2488,12 +2506,17 @@ export const translations: Translations = {
     "common.selectPlaceholder": "Tanlang...",
     "common.preview": "Ko'rib chiqish",
     "common.previous": "Orqaga",
+    "common.back": "Orqaga",
     "common.next": "Oldinga",
     "common.copy": "Nusxa olish",
     "common.downloadPDF": "PDF yuklab olish",
     "common.downloadTXT": "TXT yuklab olish",
     "orders.create.success": "Buyruq muvaffaqiyatli saqlandi",
     "orders.create.error": "Buyruqni saqlashda xatolik yuz berdi",
+    "orders.manage.title": "Hujjatlarni boshqarish",
+    "orders.manage.step1": "Buyruq",
+    "orders.manage.step2": "Hujjatlar",
+    "orders.manage.step3": "Komissiya",
     "orders.create.field.template": "Hujjat shabloni",
     "common.export": "Eksport",
     "common.print": "Chop etish",
@@ -3284,6 +3307,9 @@ export const translations: Translations = {
 
     "sidebar.personnel": "Master-ma'lumotlar", // Podsistema «Master-ma'lumotlarni boshqarish (Kartochkalar)»
     "sidebar.personnel.personnel": "Shaxsiy tarkib", // Modul «Shaxsiy tarkib (javobgar shaxslar)»
+    "sidebar.personnel.kru": "KRB shaxsiy tarkibi",
+    "sidebar.personnel.kru.title": "KRB shaxsiy tarkibi",
+    "sidebar.personnel.kru.description": "KRB inspektorlar tarkibi va AAT tizimi foydalanuvchilarini boshqarish",
     "sidebar.personnel.units": "Harbiy qismlar", // Modul «Harbiy qismlar»
     "sidebar.personnel.list": "Inspektorlar profillari", // Modul «Inspektorlar profillari»
     "sidebar.personnel.categories": "Kategoriyalar",

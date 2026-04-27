@@ -86,12 +86,12 @@ export function VoiceAssistant() {
     имущество: "/violations/assets",
 
     // Personnel section - Штат
-    штат: "/personnel/list",
-    кадры: "/personnel/list",
-    персонал: "/personnel/list",
-    "список военнослужащих": "/personnel/list",
-    военнослужащие: "/personnel/list",
-    военнослужащий: "/personnel/list",
+    штат: "/personnel/personnel",
+    кадры: "/personnel/personnel",
+    персонал: "/personnel/personnel",
+    "список военнослужащих": "/personnel/personnel",
+    военнослужащие: "/personnel/personnel",
+    военнослужащий: "/personnel/personnel",
     категории: "/personnel/categories",
     категория: "/personnel/categories",
     должности: "/personnel/positions",

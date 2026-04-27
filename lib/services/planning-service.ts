@@ -68,33 +68,87 @@ export const planningService = {
       // Соблюдаем правило "Sequential Fetch": не более 2 уровней вложенности
       const plans = await prisma.rev_plan_year.findMany({
         where,
-        include: {
+        select: {
+          plan_id: true,
+          plan_number: true,
+          year: true,
+          start_date: true,
+          end_date: true,
+          status: true,
+          inspection_direction_id: true,
+          inspection_type_id: true,
+          control_authority_id: true,
+          period_covered_start: true,
+          period_covered_end: true,
           ref_units: {
-            include: {
+            select: {
+              unit_id: true,
+              unit_code: true,
+              name: true,
               ref_areas: {
-                include: {
-                  ref_regions: true
-                }
-              },
-              ref_military_districts: {
-                include: {
-                  ref_areas: {
-                    include: {
-                      ref_regions: true
+                select: {
+                  id: true,
+                  name: true,
+                  ref_regions: {
+                    select: {
+                      id: true,
+                      name: true
                     }
                   }
                 }
               },
+              ref_military_districts: {
+                select: {
+                  district_id: true,
+                  name: true,
+                  short_name: true
+                }
+              }
             }
           },
-          users_rev_plan_year_responsible_idTousers: true,
-          users_rev_plan_year_approved_by_idTousers: true,
-          ref_control_authorities: true,
-          ref_control_directions: true,
-          ref_inspection_types: true,
-          orders: true, // Плоский список заказов
-          briefings: true,
-          prescriptions: true
+          users_rev_plan_year_responsible_idTousers: {
+            select: {
+              user_id: true,
+              fullname: true,
+              rank: true,
+              position: true
+            }
+          },
+          users_rev_plan_year_approved_by_idTousers: {
+            select: {
+              user_id: true,
+              fullname: true,
+              rank: true,
+              position: true
+            }
+          },
+          ref_control_authorities: { select: { authority_id: true, name: true, code: true } },
+          ref_control_directions: { select: { direction_id: true, name: true, code: true } },
+          ref_inspection_types: { select: { id: true, name: true, code: true } },
+          orders: {
+            select: {
+              id: true,
+              order_number: true,
+              order_date: true,
+              status: true,
+              unit_id: true
+            }
+          },
+          briefings: {
+            select: {
+              id: true,
+              instruction_date: true,
+              status: true
+            }
+          },
+          prescriptions: {
+            select: {
+              id: true,
+              prescription_num: true,
+              date: true,
+              status: true
+            }
+          }
         } as any,
         orderBy: { year: 'desc' }
       })
@@ -127,31 +181,111 @@ export const planningService = {
 
   async getPlansForOrders() {
     const plans = await prisma.rev_plan_year.findMany({
-      include: {
+      select: {
+        plan_id: true,
+        plan_number: true,
+        year: true,
+        start_date: true,
+        end_date: true,
+        status: true,
+        inspection_direction_id: true,
+        inspection_type_id: true,
+        period_covered_start: true,
+        period_covered_end: true,
         ref_units: {
-          include: {
+          select: {
+            unit_id: true,
+            unit_code: true,
+            name: true,
             ref_areas: {
-              include: {
-                ref_regions: true
+              select: {
+                id: true,
+                name: true,
+                ref_regions: {
+                  select: {
+                    id: true,
+                    name: true
+                  }
+                }
               }
             },
             ref_military_districts: {
-              include: {
-                ref_areas: {
-                  include: {
-                    ref_regions: true
+              select: {
+                district_id: true,
+                name: true,
+                short_name: true
+              }
+            }
+          }
+        },
+        users_rev_plan_year_responsible_idTousers: {
+          select: {
+            user_id: true,
+            fullname: true,
+            rank: true,
+            position: true
+          }
+        },
+        ref_control_directions: { select: { direction_id: true, name: true, code: true } },
+        ref_inspection_types: { select: { id: true, name: true, code: true } },
+        orders: {
+          select: {
+            id: true,
+            order_number: true,
+            order_date: true,
+            status: true,
+            unit_id: true,
+            commission_members: {
+              select: {
+                id: true,
+                role: true,
+                is_responsible: true,
+                users: {
+                  select: {
+                    user_id: true,
+                    fullname: true,
+                    rank: true
+                  }
+                },
+                personnel: {
+                  select: {
+                    id: true,
+                    pnr: true,
+                    ref_physical_persons: {
+                      select: {
+                        id: true,
+                        first_name: true,
+                        last_name: true,
+                        middle_name: true
+                      }
+                    },
+                    ref_ranks: {
+                      select: {
+                        rank_id: true,
+                        name: true
+                      }
+                    }
                   }
                 }
               }
             }
           }
         },
-        users_rev_plan_year_responsible_idTousers: true,
-        ref_control_directions: true,
-        ref_inspection_types: true,
-        orders: { include: { commission_members: { include: { users: true } } } },
-        briefings: true,
-        prescriptions: true
+        briefings: {
+          select: {
+            id: true,
+            instruction_date: true,
+            status: true
+          }
+        },
+        prescriptions: {
+          select: {
+            id: true,
+            prescription_num: true,
+            date: true,
+            status: true
+          }
+        }
       } as any,
       orderBy: { year: 'desc' }
     })
@@ -164,7 +298,7 @@ export const planningService = {
       startDate: p.start_date,
       endDate: p.end_date,
       inspectionDirection: p.ref_control_directions?.name?.ru || (typeof p.ref_control_directions?.name === 'string' ? p.ref_control_directions.name : "") || p.ref_control_directions?.code || "",
-      inspectionType: p.ref_inspection_types?.name?.ru || (typeof p.ref_inspection_types?.name === 'string' ? p.ref_inspection_types.name : "") || p.ref_inspection_types?.code || "",
+      inspectionType: p.ref_inspection_types?.name?.ru || (typeof p.ref_inspection_types?.name === 'string' ? p.ref_inspection_types.name : "") || p.ref_inspection_types?.code || "2301",
       inspectionDirectionId: p.inspection_direction_id,
       inspectionTypeId: p.inspection_type_id,
       status: p.status,
@@ -180,21 +314,120 @@ export const planningService = {
   async getAnnualPlan(id: string) {
     const p = await prisma.rev_plan_year.findUnique({
       where: { plan_id: Number.parseInt(id) },
-      include: {
+      select: {
+        plan_id: true,
+        plan_number: true,
+        year: true,
+        start_date: true,
+        end_date: true,
+        status: true,
+        inspection_direction_id: true,
+        inspection_type_id: true,
+        control_authority_id: true,
+        period_covered_start: true,
+        period_covered_end: true,
         ref_units: {
-          include: {
-            ref_areas: { include: { ref_regions: true } },
-            ref_military_districts: true
+          select: {
+            unit_id: true,
+            unit_code: true,
+            name: true,
+            ref_areas: {
+              select: {
+                id: true,
+                name: true,
+                ref_regions: {
+                  select: {
+                    id: true,
+                    name: true
+                  }
+                }
+              }
+            },
+            ref_military_districts: {
+              select: {
+                district_id: true,
+                name: true,
+                short_name: true
+              }
+            }
           }
         },
-        users_rev_plan_year_responsible_idTousers: true,
-        users_rev_plan_year_approved_by_idTousers: true,
-        ref_control_authorities: true,
-        ref_control_directions: true,
-        ref_inspection_types: true,
-        orders: { include: { commission_members: { include: { users: true } } } },
-        briefings: true,
-        prescriptions: true
+        users_rev_plan_year_responsible_idTousers: {
+          select: {
+            user_id: true,
+            fullname: true,
+            rank: true,
+            position: true
+          }
+        },
+        users_rev_plan_year_approved_by_idTousers: {
+          select: {
+            user_id: true,
+            fullname: true,
+            rank: true,
+            position: true
+          }
+        },
+        ref_control_authorities: { select: { authority_id: true, name: true, code: true } },
+        ref_control_directions: { select: { direction_id: true, name: true, code: true } },
+        ref_inspection_types: { select: { id: true, name: true, code: true } },
+        orders: {
+          select: {
+            id: true,
+            order_number: true,
+            order_date: true,
+            unit_id: true,
+            commission_members: {
+              select: {
+                id: true,
+                role: true,
+                is_responsible: true,
+                users: {
+                  select: {
+                    user_id: true,
+                    fullname: true,
+                    rank: true
+                  }
+                },
+                personnel: {
+                  select: {
+                    id: true,
+                    pnr: true,
+                    ref_physical_persons: {
+                      select: {
+                        id: true,
+                        first_name: true,
+                        last_name: true,
+                        middle_name: true
+                      }
+                    },
+                    ref_ranks: {
+                      select: {
+                        rank_id: true,
+                        name: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        briefings: {
+          select: {
+            id: true,
+            instruction_date: true,
+            status: true
+          }
+        },
+        prescriptions: {
+          select: {
+            id: true,
+            prescription_num: true,
+            date: true,
+            status: true
+          }
+        }
       } as any
     })
 
@@ -431,39 +664,6 @@ export const planningService = {
     })
   },
 
-  // Document Templates
-  async getTemplates(type?: string) {
-    const where: any = {}
-    if (type) where.type = type
-    // @ts-ignore
-    return await prisma.document_templates.findMany({
-      where,
-      orderBy: { created_at: 'desc' }
-    })
-  },
-
-  async getTemplate(id: string) {
-    // @ts-ignore
-    return await prisma.document_templates.findUnique({
-      where: { id }
-    })
-  },
-
-  async upsertTemplate(id: string, data: any) {
-    // @ts-ignore
-    return await prisma.document_templates.upsert({
-      where: { id },
-      update: data,
-      create: { id, ...data }
-    })
-  },
-
-  async deleteTemplate(id: string) {
-    // @ts-ignore
-    await prisma.document_templates.delete({
-      where: { id }
-    })
-  },
 
   // Orders
   async getOrders(params?: any) {
@@ -675,7 +875,6 @@ export const planningService = {
         prescription_num: data.prescriptionNum,
         date: new Date(rawDate),
         issuer_id: Number(data.issuerId),
-        requirements: data.requirements,
         status: data.status || "issued",
         updated_at: new Date(),
       }
@@ -722,7 +921,6 @@ export const planningService = {
         plan_id: Number(data.planId),
         instructor_id: Number(data.instructorId),
         instruction_date: new Date(data.instructionDate),
-        content: data.content,
         safety_measures: data.safetyMeasures,
         status: data.status || "conducted",
         updated_at: new Date(),
@@ -749,7 +947,6 @@ export const planningService = {
     return await prisma.briefings.update({
       where: { id: Number(id) },
       data: {
-        content: data.content,
         safety_measures: data.safetyMeasures,
         status: data.status,
         instruction_date: data.instructionDate ? new Date(data.instructionDate) : undefined,
@@ -765,24 +962,37 @@ export const planningService = {
   async getUnplannedAuditsStats() { return { total: 0, inProgress: 0, completed: 0, cancelled: 0 } },
   async createUnplannedAudit(data: any) { return { id: "new", ...data } },
 
-  async findLastControlPeriod(unitName: string, authorityCode: string) {
-    if (!unitName || !authorityCode) return null;
+  async findLastControlPeriod(unitNameOrId: string | number, authorityCode: string) {
+    if (!unitNameOrId || !authorityCode) return null;
 
     try {
-      const unit = await prisma.ref_units.findFirst({
-        where: { name: { path: ['ru'], equals: unitName } } as any,
-      });
+      let unit_id: number | undefined;
 
-      const unit_id = unit?.unit_id;
+      if (typeof unitNameOrId === 'number') {
+        unit_id = unitNameOrId;
+      } else {
+        const unit = await prisma.ref_units.findFirst({
+          where: {
+            OR: [
+              { name: { path: ['ru'], equals: unitNameOrId } } as any,
+              { name: { path: ['uz'], equals: unitNameOrId } } as any,
+              { unit_code: unitNameOrId }
+            ]
+          },
+        });
+        unit_id = unit?.unit_id;
+      }
+
       if (!unit_id) return null;
 
-      const auth = await (prisma as any).ref_control_authorities.findUnique({
+      const auth = await prisma.ref_control_authorities.findUnique({
         where: { code: authorityCode }
       });
       const control_authority_id = auth?.authority_id;
 
       let latestPeriod = null;
 
+      // 1. Сначала ищем в реальных аудитах (выполненных)
       const lastAudit = await prisma.audits.findFirst({
         where: { unit_id, status: 'completed' },
         orderBy: { end_date: 'desc' }
@@ -796,14 +1006,22 @@ export const planningService = {
         };
       }
 
+      // 2. Если есть ID органа, ищем в утвержденных планах (может быть актуальнее)
       if (control_authority_id) {
         const lastPlan = await prisma.rev_plan_year.findFirst({
-          where: { unit_id, control_authority_id, status: 'approved' },
+          where: { 
+            unit_id, 
+            control_authority_id, 
+            status: { in: ['approved', 'completed', '101', '105'] } 
+          },
           orderBy: { year: 'desc' }
         });
 
         if (lastPlan && (lastPlan as any).period_covered_start && (lastPlan as any).period_covered_end) {
-          if (!latestPeriod || lastPlan.year >= (new Date(latestPeriod.end).getFullYear())) {
+          const planYear = lastPlan.year;
+          const auditYear = latestPeriod ? new Date(latestPeriod.end).getFullYear() : 0;
+          
+          if (!latestPeriod || planYear >= auditYear) {
             latestPeriod = {
               start: (lastPlan as any).period_covered_start,
               end: (lastPlan as any).period_covered_end,
@@ -862,7 +1080,7 @@ export const planningService = {
             year: p.year,
             unit_id: p.unitId,
             control_authority_id: p.controlAuthorityId,
-            control_direction_id: p.controlDirectionId,
+            inspection_direction_id: p.controlDirectionId,
             inspection_type_id: p.inspectionTypeId,
             start_date: p.startDate ? new Date(p.startDate) : null,
             end_date: p.endDate ? new Date(p.endDate) : null,

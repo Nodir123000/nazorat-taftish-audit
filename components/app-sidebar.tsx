@@ -126,7 +126,7 @@ const modules = [
   {
     titleKey: "sidebar.violations",
     icon: Icons.Alert,
-    href: "/violations",
+    href: "/violations/financial",
     tourId: "violations",
     id: "violations",
     submodules: [
@@ -158,10 +158,10 @@ const modules = [
         id: "personnel-units",
       },
       {
-        titleKey: "sidebar.personnel.list",
-        href: "/personnel/list",
-        tourId: "personnel-list",
-        id: "personnel-list",
+        titleKey: "sidebar.personnel.kru",
+        href: "/personnel/kru",
+        tourId: "personnel-kru",
+        id: "personnel-kru",
       },
       {
         titleKey: "sidebar.personnel.personnel",
@@ -425,7 +425,7 @@ export function AppSidebar({ user }: { user: User | null }) {
         // Ensure important submodules are visible
         const requiredSubmodules = [
           "annual-plan", "orders", "receivables", "personnel-units", 
-          "personnel-list", "personnel-personnel", "financial-violations", 
+          "personnel-kru", "personnel-personnel", "financial-violations", 
           "assets", "financial-audits", "law-enforcement", "service-investigations", 
           "metrology", "database-schema", "kpi-management", "report-generation"
         ]

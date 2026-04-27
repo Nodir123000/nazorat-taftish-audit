@@ -46,25 +46,6 @@ export async function createAnnualPlan(formData: {
   try {
     const newPlan = await planningService.createAnnualPlan(formData)
 
-    // Авто-создание приказа при утверждении плана
-    if (isApprovedStatus(formData.status ?? 101)) {
-      try {
-        await planningService.createOrder({
-          planId: newPlan.planId ?? (newPlan as any).id,
-          unitId: formData.unitId ? Number(formData.unitId) : (formData.unit ? Number(formData.unit) : null),
-          unit: formData.unit || null,
-          orderNumber: `Пр-${formData.planNumber || newPlan.planId || Date.now()}`,
-          orderDate: new Date().toISOString(),
-          orderType: "revision",
-          status: "draft",
-          orderText: null,
-          // issuerId не передаём — createOrder сам найдёт активного пользователя
-        })
-      } catch (orderErr) {
-        // Не блокируем создание плана из-за ошибки приказа — просто логируем
-        console.warn("[createAnnualPlan] Не удалось авто-создать приказ:", orderErr)
-      }
-    }
 
     revalidateTag("annual-plans", "default")
 
@@ -112,25 +93,6 @@ export async function updateAnnualPlan(
   try {
     const updatedPlan = await planningService.updateAnnualPlan(id, formData)
 
-    // Авто-создание приказа при утверждении плана (только если ещё нет ни одного приказа)
-    if (isApprovedStatus(formData.status)) {
-      try {
-        const existing = await planningService.getOrders({ plan_id: id })
-        if (!existing || existing.total === 0) {
-          await planningService.createOrder({
-            planId: id,
-            unitId: formData.unit ? Number(formData.unit) : null,
-            orderNumber: `Пр-${formData.planNumber || id}`,
-            orderDate: new Date().toISOString(),
-            orderType: "revision",
-            status: "draft",
-            orderText: null,
-          })
-        }
-      } catch (orderErr) {
-        console.warn("[updateAnnualPlan] Не удалось авто-создать приказ:", orderErr)
-      }
-    }
 
     revalidateTag("annual-plans", "default")
 
@@ -292,11 +254,17 @@ export async function bulkCreateAnnualPlans(plans: any[]) {
     const inspectionTypes = await prisma.ref_inspection_types.findMany()
 
     const preparedPlans = plans.map(p => {
-      const authId = authorities.find((a: any) => a.code === p.controlAuthority)?.id
+      const authId = authorities.find((a: any) => 
+        a.code === p.controlAuthority || 
+        (typeof a.name === 'string' && a.name === p.controlAuthority) ||
+        (typeof a.name === 'object' && ((a.name as any)?.ru === p.controlAuthority || (a.name as any)?.uz === p.controlAuthority))
+      )?.authority_id
+      
       const dirId = directions.find((d: any) => 
+        d.code === p.inspectionDirection ||
         (typeof d.name === 'string' && d.name === p.inspectionDirection) || 
-        (typeof d.name === 'object' && (d.name as any)?.ru === p.inspectionDirection)
-      )?.id
+        (typeof d.name === 'object' && ((d.name as any)?.ru === p.inspectionDirection || (d.name as any)?.uz === p.inspectionDirection))
+      )?.direction_id
       const typeId = inspectionTypes.find((t: any) => 
         (typeof t.name === 'string' && t.name.includes("Плановая")) || 
         (typeof t.name === 'object' && (t.name as any)?.ru?.includes("Плановая"))

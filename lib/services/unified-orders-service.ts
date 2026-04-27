@@ -19,7 +19,6 @@ export const unifiedOrdersService = {
       where.OR = [
         { orderNumber: { contains: filters.search, mode: 'insensitive' } },
         { orderType: { contains: filters.search, mode: 'insensitive' } },
-        { orderText: { contains: filters.search, mode: 'insensitive' } },
       ]
     }
 
@@ -57,7 +56,6 @@ export const unifiedOrdersService = {
         unitId: data.unit_id,
         orderType: data.audit_type,
         status: data.status || "issued",
-        orderText: data.order_text,
       }
     });
 

@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, Edit, Trash2, User, ShieldCheck, Landmark, MoreHorizontal, UserCheck, MapPin, CheckCircle2, XCircle, Clock, Check, ChevronsUpDown, Eye } from "lucide-react"
+import { Plus, Search, Edit, Trash2, User, Users, ShieldCheck, Landmark, MoreHorizontal, UserCheck, MapPin, CheckCircle2, XCircle, Clock, Check, ChevronsUpDown, Eye } from "lucide-react"
 import { TechnicalNameBadge } from "./technical-name-badge"
 import {
   Dialog,
@@ -42,6 +42,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { PersonnelEditDialog } from "./personnel-edit-dialog"
 import { MilitaryPersonnel } from "./personnel-data"
 import { useI18n } from "@/lib/i18n/context"
 import { cn, maskPINFL } from "@/lib/utils"
@@ -60,6 +62,10 @@ const personnelSchema = z.object({
   vusId: z.string().min(1, { message: "Выберите ВУС" }),
   category: z.string().min(1, { message: "Выберите категорию" }),
   status: z.enum(["active", "reserve", "retired"]).optional().default("active"),
+  serviceNumber: z.string().optional(),
+  clearanceLevel: z.string().optional(),
+  emergencyContact: z.string().optional(),
+  emergencyPhone: z.string().optional(),
 })
 
 interface PhysicalPerson {
@@ -74,6 +80,9 @@ interface PersonnelProps {
   lockedUnitId?: string;
   hideHeader?: boolean;
   navigateOnView?: boolean;
+  initialShowOnlyInspectors?: boolean
+  hideToggle?: boolean
+  hideRegionalColumns?: boolean
 }
 
 interface PersonnelMember {
@@ -110,9 +119,14 @@ import type {
   MRT_ColumnFiltersState
 } from "material-react-table"
 
-// ... (schema remains same)
-
-export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: PersonnelProps) {
+export function Personnel({ 
+  lockedUnitId, 
+  hideHeader, 
+  navigateOnView = false,
+  initialShowOnlyInspectors = false,
+  hideToggle = false,
+  hideRegionalColumns = false
+}: PersonnelProps) {
   const { locale } = useI18n()
   const [personnel, setPersonnel] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState("")
@@ -128,6 +142,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
   const [sorting, setSorting] = useState<MRT_SortingState>([{ id: 'unit.unitId', desc: false }])
   const [columnFilters, setColumnFilters] = useState<MRT_ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = useState("")
+  const [showOnlyInspectors, setShowOnlyInspectors] = useState(initialShowOnlyInspectors)
 
   const columnFiltersObj = useMemo(() => {
     const filters: Record<string, any> = {}
@@ -186,7 +201,26 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
     positionId: "",
     vusId: "",
     category: "Офицер",
-    status: "active" as "active" | "reserve" | "retired"
+    status: "active" as "active" | "reserve" | "retired",
+    serviceNumber: "",
+    clearanceLevel: "",
+    emergencyContact: "",
+    emergencyPhone: "",
+    // New fields
+    firstName: "",
+    lastName: "",
+    middleName: "",
+    pinfl: "",
+    passportSeries: "",
+    passportNumber: "",
+    passportIssuedBy: "",
+    passportExpiryDate: "",
+    birthPlace: "",
+    actualAddress: "",
+    registrationAddress: "",
+    biography: "",
+    contactPhone: "",
+    email: ""
   })
 
   // --- Helpers & Handlers ---
@@ -294,6 +328,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
       params.set('limit', pagination.pageSize.toString())
 
       if (globalFilter) params.set('search', globalFilter)
+      if (showOnlyInspectors) params.set('isInspector', 'true')
       if (sorting.length > 0) {
         params.set('sort', sorting[0].id)
         params.set('order', sorting[0].desc ? 'desc' : 'asc')
@@ -368,20 +403,50 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
     }
   }, [navigateOnView, router])
 
-  const handleEditInit = useCallback((member: any) => {
+  const handleEditInit = useCallback(async (member: any) => {
     setCurrentMember(member)
     setFormErrors({})
-    setForm({
-      personId: member.physicalPersonId?.toString() || member.personId?.toString(),
-      pnr: member.pnr,
-      rankId: member.rankId?.toString() || "",
-      unitId: member.unitId?.toString() || "",
-      positionId: member.positionId?.toString() || "",
-      vusId: member.vusId?.toString() || "",
-      category: member.category,
-      status: member.status
-    })
-    setIsEditOpen(true)
+    setIsLoading(true)
+    try {
+      const response = await fetch(`/api/personnel/${member.id}`)
+      const fullData = await response.json()
+      
+      setForm({
+        personId: fullData.physical_person_id?.toString() || member.physicalPersonId?.toString() || "",
+        pnr: fullData.pnr || member.pnr || "",
+        rankId: fullData.rank_id?.toString() || fullData.rankId?.toString() || "",
+        unitId: fullData.unit_id?.toString() || fullData.unitId?.toString() || "",
+        positionId: fullData.position_id?.toString() || fullData.positionId?.toString() || "",
+        vusId: fullData.vus_id?.toString() || fullData.vusId?.toString() || "",
+        category: fullData.category || member.category || "Офицер",
+        status: fullData.status || member.status || "active",
+        serviceNumber: fullData.serviceNumber || "",
+        clearanceLevel: fullData.clearanceLevel || "",
+        emergencyContact: fullData.emergencyContact || "",
+        emergencyPhone: fullData.emergencyPhone || "",
+        // Biographical fields
+        firstName: fullData.firstName || "",
+        lastName: fullData.lastName || "",
+        middleName: fullData.patronymic || "",
+        pinfl: fullData.pin || "",
+        passportSeries: fullData.passport?.series || "",
+        passportNumber: fullData.passport?.number || "",
+        passportIssuedBy: fullData.passportIssuedBy || "",
+        passportExpiryDate: fullData.passportExpiryDate ? fullData.passportExpiryDate.split('T')[0] : "",
+        birthPlace: fullData.birthPlace || "",
+        actualAddress: fullData.actualAddress || "",
+        registrationAddress: fullData.registrationAddress || "",
+        biography: fullData.biography || "",
+        contactPhone: fullData.contactPhone || "",
+        email: fullData.email || ""
+      })
+      setIsEditOpen(true)
+    } catch (error) {
+      console.error("Failed to fetch full personnel data", error)
+      toast.error("Ошибка при загрузке полных данных")
+    } finally {
+      setIsLoading(false)
+    }
   }, [])
 
   const handleDelete = useCallback(async (id: number) => {
@@ -400,7 +465,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
 
   useEffect(() => {
     fetchPersonnel()
-  }, [fetchPersonnel])
+  }, [fetchPersonnel, showOnlyInspectors])
 
   // Fetch Physical Persons (debounced or on open)
   const fetchPhysicalPersons = async (query: string = "") => {
@@ -437,13 +502,31 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
       personId: "",
       pnr: "",
       rankId: "",
-      unitId: "",
+      unitId: lockedUnitId || "",
       positionId: "",
       vusId: "",
       category: "Офицер",
-      status: "active" as "active" | "reserve" | "retired"
+      status: "active" as "active" | "reserve" | "retired",
+      serviceNumber: "",
+      clearanceLevel: "",
+      emergencyContact: "",
+      emergencyPhone: "",
+      firstName: "",
+      lastName: "",
+      middleName: "",
+      pinfl: "",
+      passportSeries: "",
+      passportNumber: "",
+      passportIssuedBy: "",
+      passportExpiryDate: "",
+      birthPlace: "",
+      actualAddress: "",
+      registrationAddress: "",
+      biography: "",
+      contactPhone: "",
+      email: ""
     })
-  }, [])
+  }, [lockedUnitId])
 
   const handleAdd = useCallback(async () => {
     const result = personnelSchema.safeParse(form)
@@ -461,9 +544,12 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
         rankId: form.rankId,
         unitId: form.unitId,
         positionId: form.positionId,
-        vusId: form.vusId,
         category: form.category,
         status: form.status,
+        serviceNumber: form.serviceNumber,
+        clearanceLevel: form.clearanceLevel,
+        emergencyContact: form.emergencyContact,
+        emergencyPhone: form.emergencyPhone,
       });
 
       setIsAddOpen(false)
@@ -479,13 +565,6 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
   }, [form, t, resetForm, fetchPersonnel])
 
   const handleEditSave = useCallback(async () => {
-    const result = personnelSchema.safeParse(form)
-    if (!result.success) {
-      setFormErrors(result.error.format())
-      toast.error(t("Проверьте правильность заполнения полей", "Maydonlarni to'ldirishda xatolik", "Майдонларни тўлдиришда хатолик"))
-      return
-    }
-
     if (!currentMember?.id) {
       toast.error("Invalid personnel item");
       return;
@@ -493,17 +572,19 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
 
     setIsLoading(true);
     try {
-      await savePersonnel({
-        id: currentMember.id,
-        pnr: form.pnr,
-        personId: form.personId,
-        rankId: form.rankId,
-        unitId: form.unitId,
-        positionId: form.positionId,
-        vusId: form.vusId,
-        category: form.category,
-        status: form.status,
+      const response = await fetch(`/api/personnel/${currentMember.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(form),
       });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Ошибка при сохранении");
+      }
 
       toast.success(t("Данные успешно обновлены", "Ma'lumotlar muvaffaqiyatli yangilandi", "Маълумотлар муваффақиятли янгиланди"))
       setIsEditOpen(false)
@@ -565,6 +646,35 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                     : t("Реестр личного состава", "Shaxsiy tarkib reyestri", "Шахсий таркиб реестри")}
                 </CardTitle>
               </div>
+
+              {!hideToggle && (
+                <div className="flex items-center bg-muted/30 rounded-xl p-1 ml-4">
+                  <Button
+                    variant={!showOnlyInspectors ? "secondary" : "ghost"}
+                    size="sm"
+                    onClick={() => setShowOnlyInspectors(false)}
+                    className={cn(
+                      "rounded-lg text-[10px] font-black uppercase tracking-widest h-8 px-3 transition-all",
+                      !showOnlyInspectors ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Users className="h-3 w-3 mr-1.5" />
+                    Все
+                  </Button>
+                  <Button
+                    variant={showOnlyInspectors ? "secondary" : "ghost"}
+                    size="sm"
+                    onClick={() => setShowOnlyInspectors(true)}
+                    className={cn(
+                      "rounded-lg text-[10px] font-black uppercase tracking-widest h-8 px-3 transition-all",
+                      showOnlyInspectors ? "bg-white shadow-sm text-blue-600" : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <ShieldCheck className="h-3 w-3 mr-1.5" />
+                    Инспекторы КРУ
+                  </Button>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-4 flex-1 justify-end">
@@ -991,6 +1101,59 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
                         <p className="text-sm text-destructive mt-1 ml-1 font-medium">{formErrors.status._errors[0]}</p>
                       )}
                     </div>
+
+                    <div className="pt-4 border-t border-border/50">
+                      <div className="text-[11px] font-black uppercase tracking-widest text-primary mb-4 flex items-center gap-2">
+                        <span className="h-1 w-8 bg-primary rounded-full" />
+                        {t("Дополнительные служебные данные", "Qo'shimcha xizmat ma'lumotlari", "Қўшимча хизмат маълумотлари")}
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2.5">
+                          <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{t("Личный номер (Жетон)", "Shaxsiy raqam (Jeton)", "Шахсий рақам (Жетон)")}</Label>
+                          <Input
+                            placeholder="AB-123456"
+                            value={form.serviceNumber}
+                            onChange={(e) => setForm({ ...form, serviceNumber: e.target.value })}
+                            className="h-12 rounded-xl bg-muted/30 border-none font-mono"
+                          />
+                        </div>
+                        <div className="space-y-2.5">
+                          <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{t("Уровень допуска (Форма)", "Ruxsat darajasi", "Рухсат даражаси")}</Label>
+                          <Select value={form.clearanceLevel} onValueChange={(v) => setForm({ ...form, clearanceLevel: v })}>
+                            <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-none">
+                              <SelectValue placeholder={t("Выберите форму", "Shaklni tanlang", "Шаклни танланг")} />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-none shadow-2xl">
+                              <SelectItem value="1">Форма 1 (Особая важность)</SelectItem>
+                              <SelectItem value="2">Форма 2 (Совершенно секретно)</SelectItem>
+                              <SelectItem value="3">Форма 3 (Секретно)</SelectItem>
+                              <SelectItem value="none">Без допуска</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div className="space-y-2.5">
+                          <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{t("Контакт для ЧС", "Favqulodda vaziyat kontakti", "Фавқулодда вазият контакти")}</Label>
+                          <Input
+                            placeholder={t("ФИО родственника", "Qarindosh FIO", "Қариндош ФИО")}
+                            value={form.emergencyContact}
+                            onChange={(e) => setForm({ ...form, emergencyContact: e.target.value })}
+                            className="h-12 rounded-xl bg-muted/30 border-none"
+                          />
+                        </div>
+                        <div className="space-y-2.5">
+                          <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{t("Телефон для ЧС", "Favqulodda vaziyat telefoni", "Фавқулодда вазият телефони")}</Label>
+                          <Input
+                            placeholder="+998"
+                            value={form.emergencyPhone}
+                            onChange={(e) => setForm({ ...form, emergencyPhone: e.target.value })}
+                            className="h-12 rounded-xl bg-muted/30 border-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="flex justify-end gap-3 pt-6">
@@ -1025,390 +1188,21 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
             onMove={handleMoveInit}
             onDelete={handleDelete}
             rankOptions={rankOptions}
+            hideRegionalColumns={hideRegionalColumns}
           />
         </CardContent>
       </Card>
 
       {/* Edit Dialog */}
-      <Dialog open={isEditOpen} onOpenChange={(val) => { setIsEditOpen(val); if (!val) resetForm(); }}>
-        <DialogContent className="max-w-2xl rounded-3xl border-none shadow-2xl backdrop-blur-2xl bg-white/95 z-9999">
-          <DialogHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-xl bg-blue-100 text-blue-600">
-                <Edit className="h-5 w-5" />
-              </div>
-              <DialogTitle className="text-2xl font-bold">{t("Редактирование данных", "Ma'lumotlarni tahrirlash", "Маълумотларни таҳрирлаш")}</DialogTitle>
-            </div>
-            <DialogDescription className="text-base font-medium">
-              {currentMember?.person?.lastName} {currentMember?.person?.firstName} {currentMember?.person?.middleName}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-6 py-6 font-medium">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2.5">
-                <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{t("Личный номер", "Shaxsiy raqam", "Шахсий рақам")}</Label>
-                <Input
-                  value={form.pnr}
-                  onChange={(e) => setForm({ ...form, pnr: e.target.value })}
-                  className="h-12 rounded-xl bg-muted/30 border-none font-bold font-mono text-slate-900"
-                />
-                {formErrors?.pnr && (
-                  <p className="text-sm text-destructive mt-1 ml-1 font-medium">{formErrors.pnr._errors[0]}</p>
-                )}
-              </div>
-              <div className="space-y-2.5">
-                <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{t("Воинское звание", "Harbiy unvon", "Ҳарбий унвон")}</Label>
-                <Popover open={openEditRankSelect} onOpenChange={setOpenEditRankSelect}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={openEditRankSelect}
-                      className="w-full justify-between h-12 rounded-xl bg-muted/30 border-none font-normal hover:bg-muted/50"
-                    >
-                      {form.rankId ? getLocalizedName(rankOptions.find((r: any) => (r.rank_id || r.rankId || r.id)?.toString() === form.rankId)) : <span className="text-muted-foreground">{t("Выберите звание", "Unvonni tanlang", "Унвонни танланг")}</span>}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-50 p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder={t("Поиск звания...", "Unvon qidirish...", "Унвон қидириш...")} />
-                      <CommandList>
-                        <CommandEmpty>{t("Звание не найдено", "Unvon topilmadi", "Унвон топилмади")}</CommandEmpty>
-                        <CommandGroup>
-                          {rankOptions.map((r: any) => (
-                            <CommandItem
-                              key={r.rank_id || r.rankId || r.id || r.code}
-                              value={getLocalizedName(r)}
-                              onSelect={() => {
-                                setForm({ ...form, rankId: (r.rank_id || r.rankId || r.id)?.toString() || "" })
-                                setOpenEditRankSelect(false)
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  form.rankId === (r.rank_id || r.rankId || r.id)?.toString() ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {getLocalizedName(r)}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                {formErrors?.rank && (
-                  <p className="text-sm text-destructive mt-1 ml-1 font-medium">{formErrors.rank._errors[0]}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2.5">
-                <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{t("Категория", "Toifa", "Категория")}</Label>
-                <Popover open={openEditCategorySelect} onOpenChange={setOpenEditCategorySelect}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={openEditCategorySelect}
-                      className="w-full justify-between h-12 rounded-xl bg-muted/30 border-none font-normal hover:bg-muted/50"
-                    >
-                      {form.category ? form.category : <span className="text-muted-foreground">{t("Выберите категорию", "Toifani tanlang", "Тоифани танланг")}</span>}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-50 p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder={t("Поиск категории...", "Toifa qidirish...", "Тоифа қидириш...")} />
-                      <CommandList>
-                        <CommandEmpty>{t("Категория не найдена", "Toifa topilmadi", "Тоифа топилмади")}</CommandEmpty>
-                        <CommandGroup>
-                          {["Офицер", "Сержант", "Рядовой"].map((cat) => (
-                            <CommandItem
-                              key={cat}
-                              value={cat}
-                              onSelect={(currentValue) => {
-                                setForm({ ...form, category: currentValue })
-                                setOpenEditCategorySelect(false)
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  form.category === cat ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {cat}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                {formErrors?.category && (
-                  <p className="text-sm text-destructive mt-1 ml-1 font-medium">{formErrors.category._errors[0]}</p>
-                )}
-              </div>
-              <div className="space-y-2.5">
-                <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{t("ВУС", "HHRM", "ВУС")}</Label>
-                <Popover open={openEditVusSelect} onOpenChange={setOpenEditVusSelect}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={openEditVusSelect}
-                      className="w-full justify-between h-12 rounded-xl bg-muted/30 border-none font-normal hover:bg-muted/50"
-                    >
-                      {form.vusId ? (
-                        (() => {
-                          const v = vusOptions.find((v: any) => v.code === form.vusId || v.id?.toString() === form.vusId)
-                          return v ? v.code : form.vusId
-                        })()
-                      ) : (
-                        <span className="text-muted-foreground">{t("Выберите ВУС", "HHRMni tanlang", "ВУСни танланг")}</span>
-                      )}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-75 p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder={t("Поиск ВУС...", "HHRM qidirish...", "ВУС қидириш...")} />
-                      <CommandList>
-                        <CommandEmpty>{t("ВУС не найден", "HHRM topilmadi", "ВУС топилмади")}</CommandEmpty>
-                        <CommandGroup>
-                          {vusOptions.map((v: any) => (
-                            <CommandItem
-                              key={v.id || v.code}
-                              value={`${v.code} ${getLocalizedName(v)}`}
-                              onSelect={() => {
-                                setForm({ ...form, vusId: v.id?.toString() || "" })
-                                setOpenEditVusSelect(false)
-                              }}
-                              className="flex flex-col items-start gap-1 py-2"
-                            >
-                              <div className="flex items-center gap-2 w-full">
-                                <Check
-                                  className={cn(
-                                    "h-4 w-4 shrink-0",
-                                    form.vusId === (v.code || v.id?.toString()) ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                <span className="font-bold font-mono">{v.code}</span>
-                              </div>
-                              <span className="text-xs text-muted-foreground pl-6 line-clamp-2">
-                                {getLocalizedName(v)}
-                              </span>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                {formErrors?.vus && (
-                  <p className="text-sm text-destructive mt-1 ml-1 font-medium">{formErrors.vus._errors[0]}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2.5">
-                <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{t("Воинская часть", "Harbiy qism", "Ҳарбий қисм")}</Label>
-                <Popover open={openEditUnitSelect} onOpenChange={setOpenEditUnitSelect}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={openEditUnitSelect}
-                      className="w-full justify-between h-12 rounded-xl bg-muted/30 border-none font-normal hover:bg-muted/50"
-                    >
-                      {form.unitId ? (
-                        <div className="flex items-center gap-2 truncate">
-                          <span className="font-bold text-primary">{form.unitId}</span>
-                          <span className="text-xs text-muted-foreground truncate">
-                            {(() => {
-                              const u = unitOptions.find((u: any) => (u.unit_id || u.unitId)?.toString() === form.unitId)
-                              return u ? getUnitName(u) : ""
-                            })()}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">{t("Выберите часть", "Qismni tanlang", "Қисмни танланг")}</span>
-                      )}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-75 p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder={t("Поиск части...", "Qism qidirish...", "Қисм қидириш...")} />
-                      <CommandList>
-                        <CommandEmpty>{t("Часть не найдена", "Qism topilmadi", "Қисм топилмади")}</CommandEmpty>
-                        <CommandGroup>
-                          {unitOptions.slice(0, 50).map((u: any) => (
-                            <CommandItem
-                              key={u.unit_id || u.unitId || u.id}
-                              value={`${u.unitId || u.unit_code} ${getUnitName(u)}`}
-                              onSelect={() => {
-                                setForm({ ...form, unitId: (u.unit_id || u.unitId)?.toString() || "" })
-                                setOpenEditUnitSelect(false)
-                              }}
-                              className="flex flex-col items-start gap-1 py-2"
-                            >
-                              <div className="flex items-center gap-2 w-full">
-                                <Check
-                                  className={cn(
-                                    "h-4 w-4 shrink-0",
-                                    form.unitId === (u.unit_id || u.unitId)?.toString() ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                <span className="font-bold text-primary">{u.unitId}</span>
-                                <span className="truncate flex-1">{getUnitName(u)}</span>
-                              </div>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                {formErrors?.unitStateId && (
-                  <p className="text-sm text-destructive mt-1 ml-1 font-medium">{formErrors.unitStateId._errors[0]}</p>
-                )}
-              </div>
-              <div className="space-y-2.5">
-                <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{t("Текущая должность", "Joriy lavozim", "Жорий лавозим")}</Label>
-                <Popover open={openEditPositionSelect} onOpenChange={setOpenEditPositionSelect}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={openEditPositionSelect}
-                      className="w-full justify-between h-12 rounded-xl bg-muted/30 border-none font-normal hover:bg-muted/50"
-                    >
-                      {form.positionId ? (
-                        (() => {
-                          const p = positionOptions.find((p: any) => p.id?.toString() === form.positionId)
-                          return p ? getLocalizedName(p) : form.positionId
-                        })()
-                      ) : (
-                        <span className="text-muted-foreground">{t("Выберите должность", "Lavozimni tanlang", "Лавозимни танланг")}</span>
-                      )}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-75 p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder={t("Поиск должности...", "Lavozim qidirish...", "Лавозим қидириш...")} />
-                      <CommandList>
-                        <CommandEmpty>{t("Должность не найдена", "Lavozim topilmadi", "Лавозим топилмади")}</CommandEmpty>
-                        <CommandGroup>
-                          {positionOptions.map((p: any) => (
-                            <CommandItem
-                              key={p.id}
-                              value={getLocalizedName(p)}
-                              onSelect={() => {
-                                setForm({ ...form, positionId: p.id?.toString() || "" })
-                                setOpenEditPositionSelect(false)
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  form.positionId === p.id?.toString() ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {getLocalizedName(p)}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                {formErrors?.position && (
-                  <p className="text-sm text-destructive mt-1 ml-1 font-medium">{formErrors.position._errors[0]}</p>
-                )}
-              </div>
-              <div className="space-y-2.5">
-                <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{t("Статус", "Status", "Статус")}</Label>
-                <Popover open={openEditStatusSelect} onOpenChange={setOpenEditStatusSelect}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={openEditStatusSelect}
-                      className="w-full justify-between h-12 rounded-xl bg-muted/30 border-none font-normal hover:bg-muted/50"
-                    >
-                      {form.status ? (
-                        (() => {
-                          const statuses = [
-                            { val: "active", label: t("Активен", "Faol", "Актив") },
-                            { val: "reserve", label: t("В запасе", "Zaxirada", "Захирада") },
-                            { val: "retired", label: t("В отставке", "Iste'fodagi", "Истеъфодаги") },
-                          ]
-                          return statuses.find((s: any) => s.val === form.status)?.label || form.status
-                        })()
-                      ) : (
-                        <span className="text-muted-foreground">{t("Выберите статус", "Statusni tanlang", "Статусни танланг")}</span>
-                      )}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-50 p-0" align="start">
-                    <Command>
-                      <CommandList>
-                        <CommandGroup>
-                          {[
-                            { val: "active", label: t("Активен", "Faol", "Актив") },
-                            { val: "reserve", label: t("В запасе", "Zaxirada", "Захирада") },
-                            { val: "retired", label: t("В отставке", "Iste'fodagi", "Истеъфодаги") },
-                          ].map((s: any) => (
-                            <CommandItem
-                              key={s.val}
-                              value={s.label}
-                              onSelect={() => {
-                                setForm({ ...form, status: s.val as any })
-                                setOpenEditStatusSelect(false)
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  form.status === s.val ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {s.label}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                {formErrors?.status && (
-                  <p className="text-sm text-destructive mt-1 ml-1 font-medium">{formErrors.status._errors[0]}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-4">
-              <Button variant="ghost" onClick={() => setIsEditOpen(false)} className="rounded-xl h-11 px-6 font-bold">
-                {t("Отмена", "Bekor qilish", "Бекор қилиш")}
-              </Button>
-              <Button onClick={handleEditSave} className="rounded-xl h-11 px-8 shadow-lg shadow-primary/20 font-bold transition-all hover:scale-[1.02] active:scale-[0.98]">
-                {t("Сохранить изменения", "O'zgarishlarni saqlash", "Ўзгаришларни сақлаш")}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog >
+      <PersonnelEditDialog 
+        isOpen={isEditOpen} 
+        onOpenChange={setIsEditOpen} 
+        personnelId={currentMember?.id}
+        onSuccess={fetchPersonnel}
+      />
 
       {/* Move Dialog */}
-      < Dialog open={isMoveOpen} onOpenChange={setIsMoveOpen} >
+      <Dialog open={isMoveOpen} onOpenChange={setIsMoveOpen}>
         <DialogContent className="max-w-md rounded-3xl border-none shadow-2xl backdrop-blur-2xl bg-white/95 z-9999">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
@@ -1528,7 +1322,7 @@ export function Personnel({ lockedUnitId, hideHeader, navigateOnView }: Personne
             </div>
           </div>
         </DialogContent>
-      </Dialog >
+      </Dialog>
       <Dialog open={isCardOpen} onOpenChange={setIsCardOpen}>
         <DialogContent className="max-w-3xl rounded-3xl border-none shadow-2xl backdrop-blur-2xl bg-white/95 z-9999 p-0 overflow-hidden text-slate-900">
           <div className="relative h-32 bg-linear-to-r from-primary/10 to-primary/5">

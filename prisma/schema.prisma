@@ -63,7 +63,6 @@ model briefings {
   plan_id          Int
   instructor_id    Int
   instruction_date DateTime      @db.Date
-  content          String?
   safety_measures  String?
   status           String        @default("conducted")
   created_at       DateTime      @default(now())
@@ -114,17 +113,6 @@ model doc_view_logs {
   users         users         @relation(fields: [user_id], references: [user_id])
 }
 
-model document_templates {
-  id         String   @id @db.VarChar(50)
-  type       String   @db.VarChar(50)
-  title      String   @db.VarChar(255)
-  content    String
-  locale     String   @default("ru")
-  is_active  Boolean  @default(true)
-  created_at DateTime @default(now())
-  updated_at DateTime
-  orders     orders[]
-}
 
 model documents {
   id           Int       @id @default(autoincrement())
@@ -241,15 +229,12 @@ model orders {
   unit_id            Int?
   order_type         String?              @db.VarChar(50)
   status             String               @default("issued") @db.VarChar(50)
-  order_text         String?
   created_at         DateTime?            @default(now())
   updated_at         DateTime?            @default(now())
-  template_id        String?              @db.VarChar(50)
   audits             audits[]
   commission_members commission_members[]
   users              users                @relation(fields: [issuer_id], references: [user_id])
   rev_plan_year      rev_plan_year?       @relation(fields: [plan_id], references: [plan_id])
-  document_templates document_templates?  @relation(fields: [template_id], references: [id])
   ref_units          ref_units?           @relation(fields: [unit_id], references: [unit_id])
 }
 
@@ -280,6 +265,8 @@ model personnel {
   ref_ranks               ref_ranks?                @relation(fields: [rank_id], references: [rank_id])
   ref_units               ref_units?                @relation(fields: [unit_id], references: [unit_id])
   ref_vus_list            ref_vus_list?             @relation(fields: [vus_id], references: [id])
+  contracts               personnel_contracts[]
+  service_history         personnel_service_history[]
 }
 
 model plan_change_log {
@@ -298,7 +285,6 @@ model prescriptions {
   prescription_num String        @unique @db.VarChar(50)
   date             DateTime      @db.Date
   issuer_id        Int
-  requirements     String?
   status           String        @default("issued")
   created_at       DateTime      @default(now())
   updated_at       DateTime
@@ -519,6 +505,11 @@ model ref_physical_persons {
   photo             String?            @db.VarChar(500)
   contact_phone     String?            @db.VarChar(50)
   email             String?            @db.VarChar(255)
+  passport_issued_by String?           @db.VarChar(255)
+  passport_expiry_date DateTime?       @db.Date
+  birth_place       String?            @db.VarChar(255)
+  actual_address    String?            @db.VarChar(500)
+  biography         String?            @db.Text
   created_at        DateTime?          @default(now())
   updated_at        DateTime?          @default(now())
   personnel         personnel[]
@@ -913,4 +904,26 @@ model user_kpi_scores {
   period_end   DateTime    @db.Date
   kpi_metrics  kpi_metrics @relation(fields: [metric_id], references: [id])
   users        users       @relation(fields: [user_id], references: [user_id])
+}
+
+model personnel_contracts {
+  id               Int       @id @default(autoincrement())
+  personnel_id     Int
+  series_number    String    @db.VarChar(50)
+  start_date       DateTime  @db.Date
+  end_date         DateTime  @db.Date
+  status           String    @default("active") @db.VarChar(20)
+  created_at       DateTime? @default(now())
+  personnel        personnel @relation(fields: [personnel_id], references: [id])
+}
+
+model personnel_service_history {
+  id               Int       @id @default(autoincrement())
+  personnel_id     Int
+  unit             String    @db.VarChar(255)
+  position         String    @db.VarChar(255)
+  start_date       DateTime  @db.Date
+  end_date         DateTime? @db.Date
+  created_at       DateTime? @default(now())
+  personnel        personnel @relation(fields: [personnel_id], references: [id])
 }

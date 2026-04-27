@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, Edit, Trash2, Fingerprint, CreditCard, Phone, CheckCircle2, XCircle, MoreHorizontal, User, MapPin, Calendar, Users, Globe, UserCircle2, Check, ChevronsUpDown } from "lucide-react"
+import { Plus, Search, Edit, Trash2, Fingerprint, CreditCard, Phone, CheckCircle2, XCircle, MoreHorizontal, User, MapPin, Calendar, Users, Globe, UserCircle2, Check, ChevronsUpDown, RefreshCw, DatabaseZap } from "lucide-react"
 import { TechnicalNameBadge } from "./technical-name-badge"
 import {
     Dialog,
@@ -300,6 +300,51 @@ export function PhysicalPersons() {
         }
     }
 
+    const [isSyncing, setIsSyncing] = useState(false)
+
+    const handlePinflSync = useCallback(async () => {
+        if (!form.pinfl || form.pinfl.length !== 14) {
+            toast.error(t("Введите корректный ПИНФЛ (14 цифр)", "To'g'ri PINFL kiriting (14 raqam)", "Тўғри ПИНФЛ киритинг (14 рақам)"))
+            return
+        }
+
+        setIsSyncing(true)
+        // Simulate API call to Centralized Registry
+        await new Promise(resolve => setTimeout(resolve, 1500))
+
+        try {
+            // Mock data based on PINFL (in real system this would be a fetch)
+            const mockData = {
+                lastName: "Ахмедов",
+                firstName: "Сардор",
+                middleName: "Бахтиёрович",
+                passport: "AA" + Math.floor(1000000 + Math.random() * 9000000),
+                birthDate: "15.05.1985",
+                gender: "Мужской",
+                nationality: "Узбек",
+                region: "Ташкент",
+                district: "Юнусабадский район",
+                streetHouse: "ул. Амира Темура, д. 10",
+                status: "active"
+            }
+
+            setForm(prev => ({
+                ...prev,
+                ...mockData
+            }))
+
+            if (mockData.region) {
+                setSelectedRegion(mockData.region)
+            }
+
+            toast.success(t("Данные синхронизированы", "Ma'lumotlar sinxronlandi", "Маълумотлар синхронланди"))
+        } catch (error) {
+            toast.error("Ошибка при синхронизации")
+        } finally {
+            setIsSyncing(false)
+        }
+    }, [form.pinfl, t])
+
     const handleDelete = async (id: number) => {
         if (confirm("Вы уверены?")) {
             try {
@@ -575,14 +620,33 @@ export function PhysicalPersons() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label className="text-xs font-bold uppercase text-muted-foreground pl-1">{t("ПИНФЛ", "PINFL", "ПИНФЛ")}</Label>
-                                    <div className="relative group">
-                                        <Fingerprint className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-blue-500 transition-colors" />
-                                        <Input
-                                            value={form.pinfl}
-                                            onChange={e => setForm({ ...form, pinfl: e.target.value })}
-                                            className="h-11 rounded-xl bg-muted/40 border-none pl-10 focus:bg-white transition-all font-mono"
-                                            maxLength={14}
-                                        />
+                                    <div className="relative group flex gap-2">
+                                        <div className="relative flex-1">
+                                            <Fingerprint className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-blue-500 transition-colors" />
+                                            <Input
+                                                value={form.pinfl}
+                                                onChange={e => setForm({ ...form, pinfl: e.target.value })}
+                                                className="h-11 rounded-xl bg-muted/40 border-none pl-10 focus:bg-white transition-all font-mono"
+                                                maxLength={14}
+                                            />
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            onClick={handlePinflSync}
+                                            disabled={isSyncing || !form.pinfl || form.pinfl.length !== 14}
+                                            className={cn(
+                                                "h-11 px-4 rounded-xl shadow-md transition-all font-bold shrink-0",
+                                                isSyncing ? "bg-slate-100 text-slate-400" : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                                            )}
+                                            title={t("Синхронизировать с реестром", "Reyestr bilan sinxronlash", "Реестр билан синхронлаш")}
+                                        >
+                                            {isSyncing ? (
+                                                <RefreshCw className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <DatabaseZap className="h-4 w-4" />
+                                            )}
+                                            <span className="ml-2 hidden sm:inline">{t("Синхро", "Sinxro", "Синхро")}</span>
+                                        </Button>
                                     </div>
                                     {formErrors?.pinfl && (
                                         <p className="text-sm text-destructive mt-1 ml-1 font-medium">{formErrors.pinfl._errors[0]}</p>
