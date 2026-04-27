@@ -491,7 +491,7 @@ export function Classifiers() {
 
       <div className="grid gap-8 lg:grid-cols-2">
         {dynamicClassifiers.map((classifier) => (
-          <Card key={classifier.id} className="border-none shadow-2xl shadow-slate-200/50 bg-white/80 backdrop-blur-xl rounded-[32px] overflow-hidden group hover:ring-2 hover:ring-indigo-500/20 transition-all duration-500">
+          <Card key={classifier.id} className="border-none shadow-2xl shadow-slate-200/50 bg-white/80 backdrop-blur-xl rounded-4xl overflow-hidden group hover:ring-2 hover:ring-indigo-500/20 transition-all duration-500">
             <CardHeader className="p-8 pb-6 border-b border-slate-100 bg-white/40">
               <div className="flex items-start justify-between">
                 <div className="space-y-3 flex-1">
@@ -521,11 +521,11 @@ export function Classifiers() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+              <div className="max-h-100 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-slate-50/50 border-b border-slate-100 h-14">
-                      <TableHead className="w-[100px] px-8 font-black text-[10px] uppercase tracking-widest text-slate-400 text-center">ID</TableHead>
+                      <TableHead className="w-25 px-8 font-black text-[10px] uppercase tracking-widest text-slate-400 text-center">ID</TableHead>
                       <TableHead className="px-4 font-black text-[10px] uppercase tracking-widest text-slate-400">Значение</TableHead>
                       <TableHead className="px-8 font-black text-[10px] uppercase tracking-widest text-slate-400">Переводы</TableHead>
                     </TableRow>
@@ -541,7 +541,7 @@ export function Classifiers() {
                         <TableCell className="px-4 font-bold text-[14px] text-slate-700">
                           {getLocalizedName(v)}
                         </TableCell>
-                        <TableCell className="px-8 flex items-center gap-2 min-h-[64px]">
+                        <TableCell className="px-8 flex items-center gap-2 min-h-16">
                           <div className="text-[10px] font-bold text-slate-300 italic group-hover/row:text-slate-400 transition-colors">
                             {getSubtextNames(v)}
                           </div>
@@ -568,8 +568,8 @@ export function Classifiers() {
         ))}
 
         {/* Placeholder for adding more classifiers */}
-        <button className="flex flex-col items-center justify-center p-12 border-4 border-dashed border-slate-200 rounded-[32px] hover:border-indigo-500/40 hover:bg-indigo-500/5 transition-all group">
-          <div className="p-5 rounded-[24px] bg-slate-100 text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-inner mb-4">
+        <button className="flex flex-col items-center justify-center p-12 border-4 border-dashed border-slate-200 rounded-4xl hover:border-indigo-500/40 hover:bg-indigo-500/5 transition-all group">
+          <div className="p-5 rounded-3xl bg-slate-100 text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-inner mb-4">
             <LayoutGrid className="h-10 w-10" />
           </div>
           <span className="text-xl font-black text-slate-400 group-hover:text-indigo-600 transition-colors">Добавить классификатор</span>

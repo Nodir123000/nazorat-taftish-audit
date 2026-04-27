@@ -89,7 +89,7 @@ interface UnifiedRegistryItem {
     periodConducted: string
     responsible: string
     status: string
-    statusVariant: "default" | "secondary" | "outline" | "destructive"
+    statusVariant: "default" | "secondary" | "outline" | "destructive" | "success"
     legalBasis?: string
     planId?: string
     orderId?: number | string | null
@@ -770,8 +770,8 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                                                                         {(() => {
                                                                             const plan = item.originalPlan;
                                                                             const data = getAreaRegionData(plan);
-                                                                            const areaName = data?.area ? getLocalizedName(data.area, locale) : (getLocationDisplay(plan, locale).includes(",") ? getLocationDisplay(plan, locale).split(",")[0].trim() : "—");
-                                                                            const regionName = data?.region ? getLocalizedName(data.region, locale) : (getLocationDisplay(plan, locale).includes(",") ? getLocationDisplay(plan, locale).split(",")[1].trim() : "");
+                                                                            const areaName = data?.area ? getLocalizedName(data.area, locale) : (getLocationDisplay(plan, locale).includes(",") ? getLocationDisplay(plan, locale).split(",")[1].trim() : "—");
+                                                                            const regionName = data?.region ? getLocalizedName(data.region, locale) : (getLocationDisplay(plan, locale).includes(",") ? getLocationDisplay(plan, locale).split(",")[0].trim() : "");
                                                                             return regionName ? `${regionName}, ${areaName}` : areaName;
                                                                         })()}
                                                                     </span>
@@ -861,7 +861,7 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                                                                              days <= 30 ? "bg-blue-500/10 text-blue-600 border-blue-200" : 
                                                                              "bg-amber-500/10 text-amber-600 border-amber-200";
                                                             return (
-                                                                <Badge variant="outline" className={cn("text-[9px] font-black h-7 flex flex-col justify-center px-1.5 border leading-none min-w-[32px] text-center", colorClass)}>
+                                                                <Badge variant="outline" className={cn("text-[9px] font-black h-7 flex flex-col justify-center px-1.5 border leading-none min-w-8 text-center", colorClass)}>
                                                                     <span>{days}</span>
                                                                     <span className="text-[7px] uppercase tracking-tighter opacity-70 mt-0.5">
                                                                         {locale === 'ru' ? 'дн' : 'kun'}
