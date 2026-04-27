@@ -14,7 +14,7 @@ const controlAuthorities = {
         name_uz_latn: "O'zR QK Bosh shtabi Jangovar tayyorgarlik bosh boshqarmasi",
         name_uz_cyrl: "ЎзР ҚК Бош штаби Жанговар тайёргарлик бош бошқармаси"
     },
-    "ВОЙСКА ПВО К ВПВО И ВВС МО РУ": {
+    "К ВПВО И ВВС": {
         name: "Войска противовоздушной обороны командования Войск ПВО и ВВС МО РУ",
         name_uz_latn: "O'zR MV HHM va HHK qo'mondonligining Havo hujumidan mudofaa qo'shinlari",
         name_uz_cyrl: "ЎзР МВ ҲҲМ ва ҲҲК қўмондонлигининг Ҳаво ҳужумидан мудофаа қўшинлари"

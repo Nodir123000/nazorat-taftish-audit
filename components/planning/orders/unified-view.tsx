@@ -3,10 +3,21 @@
 import { Icons } from "@/components/icons"
 import { StatsCardsGrid } from "@/components/ui/stats-card"
 import { useTranslation } from "@/lib/i18n/hooks"
+import { useI18n } from "@/lib/i18n/context"
 import { UniversalOrdersRegistry } from "./universal-registry"
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Button } from "@/components/ui/button"
 
 export function UnifiedOrdersView({ initialPlans = [] }: { initialPlans?: any[] }) {
     const { t } = useTranslation()
+    const { locale } = useI18n()
 
     // Статистика вычисляется из реальных данных БД (rev_plan_year с JOIN)
     const totalOrders = initialPlans.reduce(
@@ -88,7 +99,36 @@ export function UnifiedOrdersView({ initialPlans = [] }: { initialPlans?: any[] 
     ]
 
     return (
-        <div className="space-y-6">
+        <div className="flex-1 p-6 space-y-6">
+            <Breadcrumb>
+                <BreadcrumbList>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink href="/">{t("common.home")}</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                        <BreadcrumbLink href="/planning">{t("nav.planning")}</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>{t("sidebar.planning.orders")}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                </BreadcrumbList>
+            </Breadcrumb>
+
+            <div className="flex justify-between items-center border-l-4 border-primary pl-6 py-2">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight bg-linear-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                        {t("sidebar.planning.orders")}
+                    </h1>
+                    <p className="text-muted-foreground">
+                        {locale === "ru" 
+                            ? "Управление приказами и назначениями на проведение контрольных мероприятий" 
+                            : "Nazorat tadbirlarini o'tkazish bo'yicha buyruq va tayinlovlarni boshqarish"}
+                    </p>
+                </div>
+            </div>
+
             <StatsCardsGrid cards={combinedStats} />
             <UniversalOrdersRegistry initialPlans={initialPlans} />
         </div>

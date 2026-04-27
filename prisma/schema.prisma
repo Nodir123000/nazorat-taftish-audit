@@ -113,7 +113,6 @@ model doc_view_logs {
   users         users         @relation(fields: [user_id], references: [user_id])
 }
 
-
 model documents {
   id           Int       @id @default(autoincrement())
   file_name    String    @db.VarChar(255)
@@ -239,32 +238,32 @@ model orders {
 }
 
 model personnel {
-  id                      Int                       @id @default(autoincrement())
+  id                      Int                         @id @default(autoincrement())
   physical_person_id      Int
-  service_number          String?                   @unique @db.VarChar(50)
-  pnr                     String?                   @unique @db.VarChar(50)
+  service_number          String?                     @unique @db.VarChar(50)
+  pnr                     String?                     @unique @db.VarChar(50)
   rank_id                 Int?
   unit_id                 Int?
   position_id             Int?
   vus_id                  Int?
   category_id             Int?
-  status                  String?                   @default("active") @db.VarChar(50)
-  service_start_date      DateTime?                 @db.Date
-  service_end_date        DateTime?                 @db.Date
-  clearance_level         String?                   @db.VarChar(50)
-  emergency_contact       String?                   @db.VarChar(255)
-  emergency_phone         String?                   @db.VarChar(50)
+  status                  String?                     @default("active") @db.VarChar(50)
+  service_start_date      DateTime?                   @db.Date
+  service_end_date        DateTime?                   @db.Date
+  clearance_level         String?                     @db.VarChar(50)
+  emergency_contact       String?                     @db.VarChar(255)
+  emergency_phone         String?                     @db.VarChar(50)
   full_name               String?
-  created_at              DateTime?                 @default(now())
-  updated_at              DateTime?                 @default(now())
+  created_at              DateTime?                   @default(now())
+  updated_at              DateTime?                   @default(now())
   commission_members      commission_members[]
   financial_audits        financial_audits[]
   internal_investigations internal_investigations[]
-  ref_physical_persons    ref_physical_persons      @relation(fields: [physical_person_id], references: [id])
-  ref_positions           ref_positions?            @relation(fields: [position_id], references: [id])
-  ref_ranks               ref_ranks?                @relation(fields: [rank_id], references: [rank_id])
-  ref_units               ref_units?                @relation(fields: [unit_id], references: [unit_id])
-  ref_vus_list            ref_vus_list?             @relation(fields: [vus_id], references: [id])
+  ref_physical_persons    ref_physical_persons        @relation(fields: [physical_person_id], references: [id])
+  ref_positions           ref_positions?              @relation(fields: [position_id], references: [id])
+  ref_ranks               ref_ranks?                  @relation(fields: [rank_id], references: [rank_id])
+  ref_units               ref_units?                  @relation(fields: [unit_id], references: [unit_id])
+  ref_vus_list            ref_vus_list?               @relation(fields: [vus_id], references: [id])
   contracts               personnel_contracts[]
   service_history         personnel_service_history[]
 }
@@ -375,13 +374,16 @@ model ref_control_authorities {
 }
 
 model ref_control_directions {
-  direction_id  Int             @id @default(autoincrement())
-  code          String          @unique @db.VarChar(50)
-  name          Json
-  description   String?
-  status        String?         @default("active") @db.VarChar(50)
-  created_at    DateTime?       @default(now())
-  rev_plan_year rev_plan_year[]
+  direction_id         Int             @id @default(autoincrement())
+  code                 String          @unique @db.VarChar(50)
+  name                 Json
+  description          String?
+  status               String?         @default("active") @db.VarChar(50)
+  abbreviation         String?         @db.VarChar(20)
+  abbreviation_uz_latn String?         @db.VarChar(20)
+  abbreviation_uz_cyrl String?         @db.VarChar(20)
+  created_at           DateTime?       @default(now())
+  rev_plan_year        rev_plan_year[]
 }
 
 model ref_control_types {
@@ -401,12 +403,15 @@ model ref_decision_statuses {
 }
 
 model ref_document_types {
-  id         Int       @id @default(autoincrement())
-  code       String?   @unique @db.VarChar(50)
-  name       Json
-  category   String?   @db.VarChar(100)
-  status     String?   @default("active") @db.VarChar(20)
-  created_at DateTime? @default(now())
+  id                   Int       @id @default(autoincrement())
+  code                 String?   @unique @db.VarChar(50)
+  name                 Json
+  category             String?   @db.VarChar(100)
+  status               String?   @default("active") @db.VarChar(20)
+  abbreviation         String?   @db.VarChar(20)
+  abbreviation_uz_latn String?   @db.VarChar(20)
+  abbreviation_uz_cyrl String?   @db.VarChar(20)
+  created_at           DateTime? @default(now())
 }
 
 model ref_education_levels {
@@ -489,34 +494,34 @@ model ref_nationalities {
 }
 
 model ref_physical_persons {
-  id                Int                @id @default(autoincrement())
-  pinfl             String             @unique @db.VarChar(14)
-  passport_series   String?            @db.VarChar(10)
-  passport_number   String?            @db.VarChar(20)
-  last_name         String             @db.VarChar(100)
-  first_name        String             @db.VarChar(100)
-  middle_name       String?            @db.VarChar(100)
-  birth_date        DateTime?          @db.Date
-  gender_id         Int?
-  nationality_id    Int?
-  region_id         Int?
-  district_id       Int?
-  address           String?            @db.VarChar(500)
-  photo             String?            @db.VarChar(500)
-  contact_phone     String?            @db.VarChar(50)
-  email             String?            @db.VarChar(255)
-  passport_issued_by String?           @db.VarChar(255)
-  passport_expiry_date DateTime?       @db.Date
-  birth_place       String?            @db.VarChar(255)
-  actual_address    String?            @db.VarChar(500)
-  biography         String?            @db.Text
-  created_at        DateTime?          @default(now())
-  updated_at        DateTime?          @default(now())
-  personnel         personnel[]
-  ref_areas         ref_areas?         @relation(fields: [district_id], references: [id])
-  ref_genders       ref_genders?       @relation(fields: [gender_id], references: [id])
-  ref_nationalities ref_nationalities? @relation(fields: [nationality_id], references: [id])
-  ref_regions       ref_regions?       @relation(fields: [region_id], references: [id])
+  id                   Int                @id @default(autoincrement())
+  pinfl                String             @unique @db.VarChar(14)
+  passport_series      String?            @db.VarChar(10)
+  passport_number      String?            @db.VarChar(20)
+  last_name            String             @db.VarChar(100)
+  first_name           String             @db.VarChar(100)
+  middle_name          String?            @db.VarChar(100)
+  birth_date           DateTime?          @db.Date
+  gender_id            Int?
+  nationality_id       Int?
+  region_id            Int?
+  district_id          Int?
+  address              String?            @db.VarChar(500)
+  photo                String?            @db.VarChar(500)
+  contact_phone        String?            @db.VarChar(50)
+  email                String?            @db.VarChar(255)
+  created_at           DateTime?          @default(now())
+  updated_at           DateTime?          @default(now())
+  actual_address       String?            @db.VarChar(500)
+  biography            String?
+  birth_place          String?            @db.VarChar(255)
+  passport_expiry_date DateTime?          @db.Date
+  passport_issued_by   String?            @db.VarChar(255)
+  personnel            personnel[]
+  ref_areas            ref_areas?         @relation(fields: [district_id], references: [id])
+  ref_genders          ref_genders?       @relation(fields: [gender_id], references: [id])
+  ref_nationalities    ref_nationalities? @relation(fields: [nationality_id], references: [id])
+  ref_regions          ref_regions?       @relation(fields: [region_id], references: [id])
 }
 
 model ref_positions {
@@ -907,23 +912,23 @@ model user_kpi_scores {
 }
 
 model personnel_contracts {
-  id               Int       @id @default(autoincrement())
-  personnel_id     Int
-  series_number    String    @db.VarChar(50)
-  start_date       DateTime  @db.Date
-  end_date         DateTime  @db.Date
-  status           String    @default("active") @db.VarChar(20)
-  created_at       DateTime? @default(now())
-  personnel        personnel @relation(fields: [personnel_id], references: [id])
+  id            Int       @id @default(autoincrement())
+  personnel_id  Int
+  series_number String    @db.VarChar(50)
+  start_date    DateTime  @db.Date
+  end_date      DateTime  @db.Date
+  status        String    @default("active") @db.VarChar(20)
+  created_at    DateTime? @default(now())
+  personnel     personnel @relation(fields: [personnel_id], references: [id])
 }
 
 model personnel_service_history {
-  id               Int       @id @default(autoincrement())
-  personnel_id     Int
-  unit             String    @db.VarChar(255)
-  position         String    @db.VarChar(255)
-  start_date       DateTime  @db.Date
-  end_date         DateTime? @db.Date
-  created_at       DateTime? @default(now())
-  personnel        personnel @relation(fields: [personnel_id], references: [id])
+  id           Int       @id @default(autoincrement())
+  personnel_id Int
+  unit         String    @db.VarChar(255)
+  position     String    @db.VarChar(255)
+  start_date   DateTime  @db.Date
+  end_date     DateTime? @db.Date
+  created_at   DateTime? @default(now())
+  personnel    personnel @relation(fields: [personnel_id], references: [id])
 }

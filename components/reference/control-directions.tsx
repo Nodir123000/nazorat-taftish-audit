@@ -243,7 +243,7 @@ export function ControlDirections() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-20 text-muted-foreground animate-pulse font-medium">
+                    <TableCell colSpan={6} className="text-center py-20 text-muted-foreground animate-pulse font-medium">
                       {t("Загрузка...", "Yuklanmoqda...")}
                     </TableCell>
                   </TableRow>
@@ -255,7 +255,7 @@ export function ControlDirections() {
                       </TableCell>
                       <TableCell className="px-6">
                         <Badge variant="outline" className="bg-indigo-50/50 text-indigo-600 border-indigo-200 font-mono text-xs px-2.5 py-0.5 rounded-lg shadow-sm">
-                          {dir.code}
+                          {(locale === "ru" ? dir.abbreviation : locale === "uzLatn" ? dir.abbreviation_uz_latn : dir.abbreviation_uz_cyrl) || dir.code}
                         </Badge>
                       </TableCell>
                       <TableCell className="px-6">
@@ -275,7 +275,7 @@ export function ControlDirections() {
                       </TableCell>
                       <TableCell className="px-6">
                         <Badge variant="outline" className="bg-indigo-50/50 text-indigo-600 border-indigo-200 font-mono text-xs px-2.5 py-0.5 rounded-lg shadow-sm">
-                          {locale === "ru" ? dir.abbreviation : locale === "uzLatn" ? dir.abbreviation_uz_latn : dir.abbreviation_uz_cyrl || "—"}
+                          {(locale === "ru" ? dir.abbreviation : locale === "uzLatn" ? dir.abbreviation_uz_latn : dir.abbreviation_uz_cyrl) || "—"}
                         </Badge>
                       </TableCell>
                       <TableCell className="px-6">
@@ -358,7 +358,7 @@ export function ControlDirections() {
                   <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">{t("Код направления *", "Yo'nalish kodi *")}</Label>
                   <div className="relative group">
                     <FileText className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60 group-focus-within:text-indigo-600 transition-colors" />
-                    <Input value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} maxLength={5} placeholder="FIN" className="h-12 rounded-2xl bg-muted/40 border-none pl-11 focus:bg-white transition-all font-mono font-bold" />
+                    <Input value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} maxLength={5} placeholder={t("ФХД", "MXF")} className="h-12 rounded-2xl bg-muted/40 border-none pl-11 focus:bg-white transition-all font-mono font-bold" />
                   </div>
                   {formErrors?.code && (
                     <p className="text-sm text-destructive mt-1 font-bold ml-1">{formErrors.code?._errors?.[0] || "Ошибка"}</p>

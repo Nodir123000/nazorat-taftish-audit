@@ -123,7 +123,7 @@ export const planningService = {
             }
           },
           ref_control_authorities: { select: { authority_id: true, name: true, code: true } },
-          ref_control_directions: { select: { direction_id: true, name: true, code: true } },
+          ref_control_directions: { select: { direction_id: true, name: true, code: true, abbreviation: true, abbreviation_uz_latn: true, abbreviation_uz_cyrl: true } },
           ref_inspection_types: { select: { id: true, name: true, code: true } },
           orders: {
             select: {
@@ -164,6 +164,10 @@ export const planningService = {
         responsibleId: p.responsible_id,
         controlAuthority: p.ref_control_authorities?.code || "",
         inspectionDirection: p.ref_control_directions?.name?.ru || (typeof p.ref_control_directions?.name === 'string' ? p.ref_control_directions.name : "") || p.ref_control_directions?.code || "",
+        inspectionAbbreviation: p.ref_control_directions?.abbreviation || "",
+        inspectionAbbreviationUzLatn: p.ref_control_directions?.abbreviation_uz_latn || "",
+        inspectionAbbreviationUzCyrl: p.ref_control_directions?.abbreviation_uz_cyrl || "",
+        inspectionDirectionName: p.ref_control_directions?.name || null,
         inspectionType: p.ref_inspection_types?.name?.ru || (typeof p.ref_inspection_types?.name === 'string' ? p.ref_inspection_types.name : "") || p.ref_inspection_types?.code || "2301",
         periodConducted: p.period_covered_start ? getQuarter(p.period_covered_start) : "",
         periodCoveredStart: p.period_covered_start,
@@ -226,7 +230,8 @@ export const planningService = {
             position: true
           }
         },
-        ref_control_directions: { select: { direction_id: true, name: true, code: true } },
+        ref_control_authorities: { select: { authority_id: true, name: true, code: true } },
+        ref_control_directions: { select: { direction_id: true, name: true, code: true, abbreviation: true, abbreviation_uz_latn: true, abbreviation_uz_cyrl: true } },
         ref_inspection_types: { select: { id: true, name: true, code: true } },
         orders: {
           select: {
@@ -298,7 +303,12 @@ export const planningService = {
       startDate: p.start_date,
       endDate: p.end_date,
       inspectionDirection: p.ref_control_directions?.name?.ru || (typeof p.ref_control_directions?.name === 'string' ? p.ref_control_directions.name : "") || p.ref_control_directions?.code || "",
+      inspectionAbbreviation: p.ref_control_directions?.abbreviation || "",
+      inspectionAbbreviationUzLatn: p.ref_control_directions?.abbreviation_uz_latn || "",
+      inspectionAbbreviationUzCyrl: p.ref_control_directions?.abbreviation_uz_cyrl || "",
+      inspectionDirectionName: p.ref_control_directions?.name || null,
       inspectionType: p.ref_inspection_types?.name?.ru || (typeof p.ref_inspection_types?.name === 'string' ? p.ref_inspection_types.name : "") || p.ref_inspection_types?.code || "2301",
+      controlAuthority: p.ref_control_authorities?.code || "",
       inspectionDirectionId: p.inspection_direction_id,
       inspectionTypeId: p.inspection_type_id,
       status: p.status,
@@ -444,6 +454,9 @@ export const planningService = {
       responsibleId: (p as any).responsible_id,
       controlAuthority: (p as any).ref_control_authorities?.code || "",
       inspectionDirection: (p as any).ref_control_directions?.name?.ru || (typeof (p as any).ref_control_directions?.name === 'string' ? (p as any).ref_control_directions.name : "") || (p as any).ref_control_directions?.code || "",
+      inspectionAbbreviation: (p as any).ref_control_directions?.abbreviation || "",
+      inspectionAbbreviationUzLatn: (p as any).ref_control_directions?.abbreviation_uz_latn || "",
+      inspectionAbbreviationUzCyrl: (p as any).ref_control_directions?.abbreviation_uz_cyrl || "",
       inspectionType: (p as any).ref_inspection_types?.name?.ru || (typeof (p as any).ref_inspection_types?.name === 'string' ? (p as any).ref_inspection_types.name : "") || (p as any).ref_inspection_types?.code || "2301",
       periodConducted: (p as any).period_covered_start ? getQuarter((p as any).period_covered_start) : "",
       periodCoveredStart: (p as any).period_covered_start,
@@ -962,25 +975,16 @@ export const planningService = {
   async getUnplannedAuditsStats() { return { total: 0, inProgress: 0, completed: 0, cancelled: 0 } },
   async createUnplannedAudit(data: any) { return { id: "new", ...data } },
 
-  async findLastControlPeriod(unitNameOrId: string | number, authorityCode: string) {
-    if (!unitNameOrId || !authorityCode) return null;
-
+  async findLastControlPeriod(unitRef: number | string, authorityCode: string, directionCode?: string) {
     try {
-      let unit_id: number | undefined;
-
-      if (typeof unitNameOrId === 'number') {
-        unit_id = unitNameOrId;
+      let unit_id: number | null = null;
+      if (typeof unitRef === 'number') {
+        unit_id = unitRef;
       } else {
         const unit = await prisma.ref_units.findFirst({
-          where: {
-            OR: [
-              { name: { path: ['ru'], equals: unitNameOrId } } as any,
-              { name: { path: ['uz'], equals: unitNameOrId } } as any,
-              { unit_code: unitNameOrId }
-            ]
-          },
+          where: { OR: [{ name: { path: ['ru'], equals: unitRef } }, { unit_code: unitRef }] }
         });
-        unit_id = unit?.unit_id;
+        unit_id = unit?.unit_id || null;
       }
 
       if (!unit_id) return null;
@@ -990,11 +994,23 @@ export const planningService = {
       });
       const control_authority_id = auth?.authority_id;
 
+      let direction_id: number | undefined;
+      if (directionCode) {
+        const dir = await prisma.ref_control_directions.findFirst({
+          where: { code: directionCode }
+        });
+        direction_id = dir?.direction_id;
+      }
+
       let latestPeriod = null;
 
       // 1. Сначала ищем в реальных аудитах (выполненных)
       const lastAudit = await prisma.audits.findFirst({
-        where: { unit_id, status: 'completed' },
+        where: { 
+            unit_id, 
+            status: 'completed',
+            ...(direction_id ? { inspection_direction_id: direction_id } : {})
+        },
         orderBy: { end_date: 'desc' }
       });
 
@@ -1012,7 +1028,8 @@ export const planningService = {
           where: { 
             unit_id, 
             control_authority_id, 
-            status: { in: ['approved', 'completed', '101', '105'] } 
+            status: { in: ['approved', 'completed', '101', '105'] },
+            ...(direction_id ? { inspection_direction_id: direction_id } : {})
           },
           orderBy: { year: 'desc' }
         });

@@ -61,6 +61,24 @@ export async function PUT(
       }
     })
 
+    // If status is "Завершено", update parent plan status to 104
+    if (body.status === "Завершено" && updated.prescription_id) {
+      try {
+        const presc = await prisma.prescriptions.findUnique({
+          where: { id: updated.prescription_id }
+        });
+        if (presc && presc.plan_id) {
+          await prisma.rev_plan_year.update({
+            where: { plan_id: presc.plan_id },
+            data: { status: "104" }
+          });
+          console.log(`[Audit-API] Automatically completed parent plan ID: ${presc.plan_id}`);
+        }
+      } catch (e) {
+        console.error("[Audit-API] Failed to auto-update parent plan status:", e);
+      }
+    }
+
     return NextResponse.json(updated)
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
@@ -103,6 +121,24 @@ export async function PATCH(
       where: { id },
       data: updateData
     })
+
+    // If status is updated to "Завершено", update parent plan status to 104
+    if (updateData.status === "Завершено" && updated.prescription_id) {
+      try {
+        const presc = await prisma.prescriptions.findUnique({
+          where: { id: updated.prescription_id }
+        });
+        if (presc && presc.plan_id) {
+          await prisma.rev_plan_year.update({
+            where: { plan_id: presc.plan_id },
+            data: { status: "104" }
+          });
+          console.log(`[Audit-API-PATCH] Automatically completed parent plan ID: ${presc.plan_id}`);
+        }
+      } catch (e) {
+        console.error("[Audit-API-PATCH] Failed to auto-update parent plan status:", e);
+      }
+    }
 
     return NextResponse.json(updated)
   } catch (error: any) {

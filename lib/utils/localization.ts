@@ -163,7 +163,7 @@ export const getLocalizedAuthorityName = (code: string, locale: Locale, supplyDe
     return toSafeString(result, locale)
 }
 
-export const getLocalizedDirectionName = (directionId: string | number | undefined | null, locale: Locale) => {
+export const getLocalizedDirectionName = (directionId: string | number | undefined | null, locale: Locale, mode: 'full' | 'short' = 'full') => {
     if (directionId === undefined || directionId === null) return ""
     const dir = controlDirections.find(d =>
         d.id?.toString() === directionId.toString() ||
@@ -175,11 +175,21 @@ export const getLocalizedDirectionName = (directionId: string | number | undefin
     if (!dir) return directionId.toString()
     
     let result: any = ""
-    if (locale === "uzLatn") result = dir.name_uz_latn || dir.name
-    else if (locale === "uzCyrl") result = dir.name_uz_cyrl || dir.name
-    else result = dir.name
+    if (mode === 'short') {
+        if (locale === "uzLatn") result = dir.abbreviation_uz_latn || dir.abbreviation || dir.name_uz_latn || dir.name
+        else if (locale === "uzCyrl") result = dir.abbreviation_uz_cyrl || dir.abbreviation || dir.name_uz_cyrl || dir.name
+        else result = dir.abbreviation || dir.name
+    } else {
+        if (locale === "uzLatn") result = dir.name_uz_latn || dir.name
+        else if (locale === "uzCyrl") result = dir.name_uz_cyrl || dir.name
+        else result = dir.name
+    }
 
     return toSafeString(result, locale)
+}
+
+export const getLocalizedDirectionAbbr = (directionId: string | number | undefined | null, locale: Locale) => {
+    return getLocalizedDirectionName(directionId, locale, 'short')
 }
 
 export const getPersonnelName = (personId: any, militaryPersonnel: any[] = [], physicalPersons: any[] = []) => {

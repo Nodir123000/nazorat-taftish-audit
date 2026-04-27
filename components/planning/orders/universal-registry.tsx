@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useMemo, useEffect, useRef } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import React, { useState, useMemo, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -27,7 +27,13 @@ import {
     Plus,
     Search,
     Trash2,
-    Eye
+    Eye,
+    Table as TableIcon,
+    Filter as FilterIcon,
+    ChevronDown,
+    ChevronRight,
+    MoreVertical,
+    RefreshCw
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -56,8 +62,12 @@ import { toast } from "sonner"
 import {
     getLocalizedDirectionName,
     getInspectionTypeLabel,
-    getStatusLabel
+    getStatusLabel,
+    getLocalizedAuthorityName,
+    getLocalizedDistrictName,
+    toSafeString
 } from "@/lib/utils/localization"
+import { loadSupplyDepartments } from "@/lib/api/reference-service"
 
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
@@ -76,6 +86,7 @@ interface UnifiedRegistryItem {
     date: string
     entity: string
     period: string
+    periodConducted: string
     responsible: string
     status: string
     statusVariant: "default" | "secondary" | "outline" | "destructive"
@@ -96,7 +107,48 @@ interface UnifiedRegistryItem {
     commissionCount?: number
     commissionMembers?: CommissionMember[]
     commissionMembersData?: string
+    inspectionAbbreviation?: string
+    inspectionAbbreviationUzLatn?: string
+    inspectionAbbreviationUzCyrl?: string
+    inspectionDirectionName?: any
+    controlAuthority?: string
     subordinateUnits?: Array<{ unitCode: string; unitName: string; allowanceType: string }>
+    originalPlan?: any
+}
+
+function getLocalizedName(obj: any, locale: any): string {
+    if (!obj) return ""
+    const nameData = typeof obj.name === 'object' ? obj.name : obj
+    if (typeof nameData === 'string') return nameData
+    const langKey = locale === "uzLatn" ? "uz" : (locale === "uzCyrl" ? "uzk" : "ru")
+    return nameData[langKey] || nameData["ru"] || nameData["uz"] || ""
+}
+
+function getAreaRegionData(plan: any) {
+    if (!plan) return null
+    if (plan.unit?.ref_areas) {
+        return { 
+            area: plan.unit.ref_areas, 
+            region: plan.unit.ref_areas.ref_regions 
+        }
+    }
+    if (plan.unit?.ref_military_districts?.ref_areas) {
+        return { 
+            area: plan.unit.ref_military_districts.ref_areas, 
+            region: plan.unit.ref_military_districts.ref_areas.ref_regions 
+        }
+    }
+    return null
+}
+
+function getLocationDisplay(plan: any, locale: any): string {
+    const data = getAreaRegionData(plan)
+    if (data) {
+        const areaName = getLocalizedName(data.area, locale)
+        const regionName = data.region ? getLocalizedName(data.region, locale) : ""
+        return regionName ? `${regionName}, ${areaName}` : areaName
+    }
+    return plan.controlObjectSubtitle || "—"
 }
 
 
@@ -114,6 +166,11 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
     const [selectedItemForHistory, setSelectedItemForHistory] = useState<UnifiedRegistryItem | null>(null)
     const [historyLogs, setHistoryLogs] = useState<Array<{ id: number; action: string; details: string; date: string }>>([])
     const [historyLoading, setHistoryLoading] = useState(false)
+    const [hasMounted, setHasMounted] = useState(false)
+
+    useEffect(() => {
+        setHasMounted(true)
+    }, [])
 
     // Новые стейты для работы с реальными данными
     // Search states for Step 3
@@ -150,6 +207,16 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
     const [isSaving, setIsSaving] = useState(false)
     const [currentStep, setCurrentStep] = useState(1)
     const totalSteps = 3
+    const [viewMode, setViewMode] = useState<'list' | 'regions' | 'districts' | 'authorities'>('list')
+    const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
+    const [supplyDepartments, setSupplyDepartments] = useState<any[]>([])
+
+    // Load supply departments for localization
+    useEffect(() => {
+        loadSupplyDepartments().then(data => {
+            if (isMounted.current) setSupplyDepartments(data)
+        }).catch(console.error)
+    }, [])
 
     // Cache helper
     const cachePersonnel = (items: any[]) => {
@@ -160,7 +227,7 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
         })
     }
 
-    const isMounted = useRef(true)
+    const isMounted = useRef(false)
     useEffect(() => {
         isMounted.current = true
         return () => { isMounted.current = false }
@@ -256,13 +323,6 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
         return `${year}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`
     }
 
-    const getLocalizedName = (obj: any, locale: any): string => {
-        if (!obj?.name) return ""
-        if (typeof obj.name === 'string') return obj.name
-        if (locale === "uzLatn") return obj.name.uz || obj.name.ru
-        if (locale === "uzCyrl") return obj.name.uzk || obj.name.ru
-        return obj.name.ru || obj.name.uz
-    }
 
     const allData = useMemo(() => {
         const items: UnifiedRegistryItem[] = []
@@ -284,19 +344,26 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                     period: p.periodCoveredStart && p.periodCoveredEnd
                         ? `${new Date(p.periodCoveredStart).toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'uz-UZ')} - ${new Date(p.periodCoveredEnd).toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'uz-UZ')}`
                         : "—",
+                    periodConducted: p.startDate && p.endDate
+                        ? `${new Date(p.startDate).toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'uz-UZ')} - ${new Date(p.endDate).toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'uz-UZ')}`
+                        : "—",
                     responsible: JSON.stringify({
                         name: p.responsible?.fullname || p.responsible?.full_name || "Не назначен",
                         position: p.responsible?.rank || "—"
                     }),
                     status: getStatusLabel(p.status, locale as any),
-                    statusVariant: p.status === "approved" || p.status === "101" ? "default" : "secondary",
+                    statusVariant: (p.status === "approved" || p.status === "101") ? "default" : 
+                                   (p.status === "completed" || p.status === "104") ? "success" :
+                                   (p.status === "draft" || p.status === "106") ? "outline" : "secondary",
                     planId: String(p.planId || index + 1),
                     controlObject: p.unit ? getLocalizedName(p.unit, locale) : (p.controlObject || "—"),
-                    controlObjectSubtitle: p.unit?.ref_military_districts?.short_name
-                        ? (typeof p.unit.ref_military_districts.short_name === 'string' ? p.unit.ref_military_districts.short_name : p.unit.ref_military_districts.short_name.ru)
-                        : "",
-                    inspectionDirection: getLocalizedDirectionName(p.inspectionDirectionId || p.inspectionDirection, locale as any) || (locale === "ru" ? "Направление не указано" : "Yo'nalish ko'rsatilmagan"),
-                    inspectionDirectionSubtitle: getInspectionTypeLabel(p.inspectionTypeId || p.inspectionType, locale as any) || (locale === "ru" ? "Плановая инспекция" : "Rejali inspektsiya"),
+                    controlObjectSubtitle: getLocationDisplay(p, locale),
+                    inspectionDirection: p.inspectionDirection,
+                    inspectionDirectionSubtitle: p.inspectionType,
+                    inspectionDirectionName: p.inspectionDirectionName,
+                    inspectionAbbreviation: p.inspectionAbbreviation,
+                    inspectionAbbreviationUzLatn: p.inspectionAbbreviationUzLatn,
+                    inspectionAbbreviationUzCyrl: p.inspectionAbbreviationUzCyrl,
                     commissionCount: latestOrder?.commission_members?.length || 0,
                     commissionMembers: latestOrder?.commission_members?.map((m: any) => ({
                         id: m.user_id || m.userId,
@@ -312,18 +379,44 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                     prescriptionDate: latestPrescription?.date || latestPrescription?.issueDate || null,
                     prescriptionId: latestPrescription?.id || null,
                     orderId: latestOrder?.id || null,
+                    controlAuthority: p.controlAuthority,
                     commissionMembersData: latestOrder?.commission_members?.map((m: any) => {
                         const rank = m.users?.rank || ""
                         const name = m.users?.fullname || m.memberId
                         const role = m.role ? `(${m.role})` : ""
                         return `${rank} ${name} ${role}`.trim()
                     }).join(", ") || "",
+                    originalPlan: p,
                 })
             })
         }
 
         return items
     }, [t, initialPlans, locale])
+
+    // Grouping helper
+    const getRegionDisplay = (item: UnifiedRegistryItem) => {
+        if (item.controlObjectSubtitle && item.controlObjectSubtitle.includes(",")) {
+            // "Region, Area" -> split(",")[0] is Region
+            return item.controlObjectSubtitle.split(",")[0].trim()
+        }
+        return item.controlObjectSubtitle || (locale === 'ru' ? 'Без области' : 'Viloyatsiz')
+    }
+
+    const getDistrictDisplay = (item: UnifiedRegistryItem) => {
+        if (item.controlObjectSubtitle && item.controlObjectSubtitle.includes(",")) {
+            // "Region, Area" -> split(",")[1] is Area
+            return item.controlObjectSubtitle.split(",")[1].trim()
+        }
+        return locale === 'ru' ? 'Без района' : 'Tumansiz'
+    }
+
+    const toggleGroup = (group: string) => {
+        setExpandedGroups(prev => ({
+            ...prev,
+            [group]: !prev[group]
+        }))
+    }
 
     const handleOpenManage = (item: UnifiedRegistryItem) => {
         setManagingItem(item);
@@ -377,11 +470,11 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
         try {
             const res = await fetch(`/api/planning/annual-plans/history?planId=${item.planId || item.id}`)
             const data = await res.json()
-            setHistoryLogs(Array.isArray(data) ? data : [])
+            if (isMounted.current) setHistoryLogs(Array.isArray(data) ? data : [])
         } catch {
-            setHistoryLogs([])
+            if (isMounted.current) setHistoryLogs([])
         } finally {
-            setHistoryLoading(false)
+            if (isMounted.current) setHistoryLoading(false)
         }
     }
 
@@ -463,15 +556,65 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
         })
     }, [allData, filters])
 
+    const sortedData = useMemo(() => {
+        if (viewMode === 'list') return filteredData;
+        
+        return [...filteredData].sort((a, b) => {
+            const groupA = viewMode === 'regions' ? getRegionDisplay(a) :
+                           viewMode === 'districts' ? getDistrictDisplay(a) :
+                           viewMode === 'authorities' ? getLocalizedAuthorityName(a.controlAuthority || "", locale as any, supplyDepartments, 'full') :
+                           '';
+            const groupB = viewMode === 'regions' ? getRegionDisplay(b) :
+                           viewMode === 'districts' ? getDistrictDisplay(b) :
+                           viewMode === 'authorities' ? getLocalizedAuthorityName(b.controlAuthority || "", locale as any, supplyDepartments, 'full') :
+                           '';
+            return groupA.localeCompare(groupB);
+        });
+    }, [filteredData, viewMode, locale, supplyDepartments]);
+
+    // Auto-expand all groups when viewMode changes
+    useEffect(() => {
+        if (viewMode !== 'list') {
+            const allGroups: Record<string, boolean> = {};
+            filteredData.forEach(item => {
+                const group = viewMode === 'regions' ? getRegionDisplay(item) :
+                              viewMode === 'districts' ? getDistrictDisplay(item) :
+                              viewMode === 'authorities' ? getLocalizedAuthorityName(item.controlAuthority || "", locale as any, supplyDepartments, 'full') :
+                              'default';
+                allGroups[group] = true;
+            });
+            setExpandedGroups(allGroups);
+        }
+    }, [viewMode]);
+
+    if (!hasMounted) {
+        return (
+            <div className="flex flex-col items-center justify-center py-24 gap-4 animate-in fade-in duration-700">
+                <div className="relative">
+                    <div className="h-12 w-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                    <TableIcon className="absolute inset-0 m-auto h-5 w-5 text-primary/40" />
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] animate-pulse">
+                        Инициализация реестра
+                    </span>
+                    <span className="text-[9px] text-muted-foreground/60 italic">
+                        Подготовка данных и компонентов...
+                    </span>
+                </div>
+            </div>
+        )
+    }
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
             <Card>
                 <CardHeader>
                     <CardTitle>{t("orders.filters.title")}</CardTitle>
                     <CardDescription>{t("orders.filters.description")}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid gap-4 md:grid-cols-4">
+                    <div className="grid gap-4 md:grid-cols-5">
                         <ClassifierSelect
                             classifierId={25}
                             value={filters.status}
@@ -489,187 +632,401 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                             value={filters.dateFrom}
                             onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
                         />
-                        <Button variant="outline" onClick={() => setFilters({ search: "", status: "", dateFrom: "" })}>
+                        <Button 
+                            variant="outline" 
+                            className="w-full"
+                            onClick={() => {
+                                setFilters({ search: "", status: "", dateFrom: "" });
+                                setViewMode('list');
+                            }}
+                        >
+                            <RefreshCw className="mr-2 h-4 w-4 text-muted-foreground" />
                             {t("orders.filters.reset")}
                         </Button>
+                        <Select value={viewMode} onValueChange={(v: any) => setViewMode(v)}>
+                            <SelectTrigger className="w-full h-10 text-xs font-medium bg-background/50 border-primary/20">
+                                <div className="flex items-center gap-2">
+                                    <FilterIcon className="w-3.5 h-3.5 text-primary" />
+                                    <SelectValue placeholder="Группировка" />
+                                </div>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="list">{locale === 'ru' ? 'Списком' : 'Ro\'yxat'}</SelectItem>
+                                <SelectItem value="regions">{locale === 'ru' ? 'По областям' : 'Viloyatlar bo\'yicha'}</SelectItem>
+                                <SelectItem value="districts">{locale === 'ru' ? 'По районам' : 'Tumanlar bo\'yicha'}</SelectItem>
+                                <SelectItem value="authorities">{locale === 'ru' ? 'По органам' : 'Organlar bo\'yicha'}</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                 </CardContent>
             </Card>
 
-            <Card>
-                <CardHeader>
+            <Card className="overflow-hidden border-none shadow-xl bg-background/60 backdrop-blur-xl">
+                <CardHeader className="border-b bg-slate-50/50 dark:bg-slate-900/20 py-4">
                     <div className="flex items-center justify-between">
-                        <CardTitle>{t("orders.table.title")}</CardTitle>
+                        <div>
+                            <CardTitle className="text-lg font-bold flex items-center gap-2">
+                                <TableIcon className="w-5 h-5 text-primary" />
+                                {t("orders.table.title")}
+                            </CardTitle>
+                            <CardDescription className="text-xs">
+                                {filteredData.length} {locale === 'ru' ? 'записей найдено' : 'yozuv topildi'}
+                            </CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            {/* Grouping Select moved to filters as per user request */}
+                        </div>
                     </div>
                 </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader className="bg-slate-50/50 dark:bg-slate-900/20">
-                            <TableRow className="hover:bg-transparent border-b-2">
-                                <TableHead className="w-[50px] font-bold text-[10px] uppercase tracking-wider text-muted-foreground/80">#</TableHead>
-                                <TableHead className="min-w-[220px] font-bold text-[10px] uppercase tracking-wider text-muted-foreground/80">Объект и План</TableHead>
-                                <TableHead className="min-w-[180px] font-bold text-[10px] uppercase tracking-wider text-muted-foreground/80">Параметры проверки</TableHead>
-                                <TableHead className="min-w-[220px] font-bold text-[10px] uppercase tracking-wider text-muted-foreground/80">Состав комиссии</TableHead>
-                                <TableHead className="min-w-[280px] font-bold text-[10px] uppercase tracking-wider text-muted-foreground/80">Документооборот</TableHead>
-                                <TableHead className="w-[120px] font-bold text-[10px] uppercase tracking-wider text-muted-foreground/80 text-center">{t("orders.table.status")}</TableHead>
-                                <TableHead className="w-[80px] font-bold text-[10px] uppercase tracking-wider text-muted-foreground/80 text-right">{t("orders.table.actions")}</TableHead>
+                <CardContent className="p-0">
+                    <Table className="relative border-collapse">
+                        <TableHeader className="sticky top-0 bg-background/80 backdrop-blur-md z-20 shadow-[0_1px_3px_0_rgb(0,0,0,0.05)]">
+                            <TableRow className="hover:bg-transparent border-none">
+                                <TableHead className="w-10 bg-transparent font-semibold text-foreground/80 text-[10px] uppercase tracking-wider pl-4">ID</TableHead>
+                                <TableHead className="bg-transparent font-semibold text-foreground/80 min-w-40 text-[10px] uppercase tracking-wider px-2">Объект</TableHead>
+                                <TableHead className="bg-transparent font-semibold text-foreground/80 min-w-40 text-[10px] uppercase tracking-wider px-2">Орган / Направление</TableHead>
+                                <TableHead className="bg-transparent font-semibold text-foreground/80 min-w-24 text-[10px] uppercase tracking-wider px-2">Тип</TableHead>
+                                <TableHead className="bg-transparent font-semibold text-foreground/80 min-w-36 text-[10px] uppercase tracking-wider px-2">Срок проведения</TableHead>
+                                <TableHead className="bg-transparent font-semibold text-foreground/80 min-w-32 text-[10px] uppercase tracking-wider px-2">Приказ</TableHead>
+                                <TableHead className="bg-transparent font-semibold text-foreground/80 min-w-24 text-[10px] uppercase tracking-wider px-2">Инструктаж</TableHead>
+                                <TableHead className="bg-transparent font-semibold text-foreground/80 min-w-32 text-[10px] uppercase tracking-wider px-2">Предписание</TableHead>
+                                <TableHead className="bg-transparent font-semibold text-foreground/80 min-w-32 text-[10px] uppercase tracking-wider px-2">Комиссия</TableHead>
+                                <TableHead className="bg-transparent font-semibold text-foreground/80 min-w-24 text-[10px] uppercase tracking-wider text-center px-2">Статус</TableHead>
+                                <TableHead className="text-right bg-transparent font-semibold text-foreground/80 text-[10px] uppercase tracking-wider pr-4">Действия</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredData.map((item, index) => (
-                                <TableRow key={item.id} className="group transition-all hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
-                                    <TableCell className="font-mono text-[10px] text-muted-foreground/70">
-                                        {(index + 1).toString().padStart(3, '0')}
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col gap-1.5">
-                                            <div className="flex items-center gap-2">
-                                                <Building2 className="w-4 h-4 text-primary/70 shrink-0" />
-                                                <span className="font-bold text-sm leading-tight">{item.controlObject}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5 ml-6">
-                                                <Badge variant="outline" className="font-mono text-[9px] py-0 h-4 px-1.5 border-primary/20 text-primary/70 bg-primary/5">
-                                                    ID: {item.planId}
-                                                </Badge>
-                                                {item.controlObjectSubtitle && (
-                                                    <Badge variant="secondary" className="text-[9px] py-0 h-4 px-1.5 bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 font-bold uppercase tracking-tighter">
-                                                        {item.controlObjectSubtitle}
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col gap-1.5">
-                                            <div className="flex items-start gap-2">
-                                                <ShieldAlert className="w-3.5 h-3.5 text-blue-500/80 shrink-0 mt-0.5" />
-                                                <span className="text-[11px] font-medium leading-tight text-foreground/80">
-                                                    {item.inspectionDirection}
-                                                </span>
-                                            </div>
-                                            <div className="mt-0.5 ml-5.5">
-                                                <Badge variant="secondary" className="py-0 h-4 px-1.5 text-[9px] font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
-                                                    <Tag className="w-2.5 h-2.5 mr-1" />
-                                                    {item.inspectionDirectionSubtitle || "—"}
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col gap-2">
-                                            {item.commissionMembers && item.commissionMembers.length > 0 ? (
-                                                <>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <UserCheck className="w-3.5 h-3.5 text-purple-500/80 shrink-0" />
-                                                        <span className="text-[11px] font-bold text-purple-700 dark:text-purple-400">
-                                                            {item.commissionMembers.find(m => m.role?.includes("Председатель"))?.name || item.commissionMembers[0].name}
-                                                        </span>
+                            {sortedData.map((item, index) => {
+                                const currentGroup = viewMode === 'regions' ? getRegionDisplay(item) :
+                                    viewMode === 'districts' ? getDistrictDisplay(item) :
+                                    viewMode === 'authorities' ? getLocalizedAuthorityName(item.controlAuthority || "", locale as any, supplyDepartments, 'full') :
+                                    'default'
+
+                                const prevItem = index > 0 ? sortedData[index - 1] : null
+                                const prevGroup = prevItem ? (
+                                    viewMode === 'regions' ? getRegionDisplay(prevItem) :
+                                    viewMode === 'districts' ? getDistrictDisplay(prevItem) :
+                                    viewMode === 'authorities' ? getLocalizedAuthorityName(prevItem.controlAuthority || "", locale as any, supplyDepartments, 'full') :
+                                    'default'
+                                ) : null
+
+                                const showGroupHeader = viewMode !== 'list' && currentGroup !== prevGroup
+                                const isGroupExpanded = expandedGroups[currentGroup] ?? false
+
+                                return (
+                                    <React.Fragment key={item.id}>
+                                        {showGroupHeader && (
+                                            <TableRow className="bg-slate-100/60 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer transition-colors duration-200 border-b shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)] group/header" onClick={() => toggleGroup(currentGroup)}>
+                                                <TableCell colSpan={11} className="font-semibold p-3">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className={cn(
+                                                                "p-1 rounded-sm transition-colors",
+                                                                isGroupExpanded ? "bg-primary/10 text-primary" : "bg-muted-foreground/10 text-muted-foreground group-hover/header:bg-primary/5 group-hover/header:text-primary/70"
+                                                            )}>
+                                                                {isGroupExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                                            </div>
+                                                            <span className="text-sm font-semibold tracking-tight text-foreground/90">
+                                                                {currentGroup}
+                                                            </span>
+                                                            <Badge variant="outline" className="ml-2 font-bold bg-primary/10 text-primary border-primary/20 shadow-sm">
+                                                                {sortedData.filter(p => {
+                                                                    if (viewMode === 'regions') return getRegionDisplay(p) === currentGroup
+                                                                    if (viewMode === 'districts') return getDistrictDisplay(p) === currentGroup
+                                                                    if (viewMode === 'authorities') return getLocalizedAuthorityName(p.controlAuthority || "", locale as any, supplyDepartments, 'full') === currentGroup
+                                                                    return false
+                                                                }).length} {locale === 'ru' ? 'объектов' : 'obyektlar'}
+                                                            </Badge>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex flex-wrap gap-1 ml-5">
-                                                        {item.commissionMembers.filter(m => !m.role?.includes("Председатель")).slice(0, 2).map((m, i) => (
-                                                            <Badge key={i} variant="outline" className="text-[9px] bg-slate-50/50 py-0 h-4 border-slate-200">
-                                                                {m.name.split(' ').map((n, idx) => idx === 0 ? n : n[0] + '.').join(' ')}
-                                                            </Badge>
-                                                        ))}
-                                                        {item.commissionMembers.length > 3 && (
-                                                            <Badge variant="outline" className="text-[9px] bg-blue-50 text-blue-700 border-blue-100 py-0 h-4">
-                                                                +{item.commissionMembers.length - 3}
-                                                            </Badge>
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+
+                                        {(viewMode === 'list' || isGroupExpanded) && (
+                                            <TableRow className="group transition-all duration-200 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 hover:shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                                                <TableCell className="font-mono text-[10px] text-muted-foreground/70 pl-4 py-3">
+                                                    {(index + 1).toString().padStart(5, '0')}
+                                                </TableCell>
+
+                                                <TableCell className="font-medium min-w-36 px-2 py-3">
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <div className="flex items-start gap-2 text-sm font-semibold cursor-help group/obj">
+                                                                    <Building2 className="w-4 h-4 text-primary/70 shrink-0 mt-0.5 group-hover/obj:text-primary transition-colors" />
+                                                                    <span className="whitespace-normal leading-tight text-foreground/90 border-b border-transparent group-hover/obj:border-primary/30 transition-all">
+                                                                        {item.controlObject}
+                                                                    </span>
+                                                                </div>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent side="right" className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 text-white border-none shadow-xl">
+                                                                <MapPin className="w-3.5 h-3.5 text-blue-400" />
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-[10px] font-bold uppercase tracking-tighter opacity-50">
+                                                                        {locale === 'ru' ? 'Местоположение' : 'Joylashuv'}
+                                                                    </span>
+                                                                    <span className="text-xs font-medium italic">
+                                                                        {(() => {
+                                                                            const plan = item.originalPlan;
+                                                                            const data = getAreaRegionData(plan);
+                                                                            const areaName = data?.area ? getLocalizedName(data.area, locale) : (getLocationDisplay(plan, locale).includes(",") ? getLocationDisplay(plan, locale).split(",")[0].trim() : "—");
+                                                                            const regionName = data?.region ? getLocalizedName(data.region, locale) : (getLocationDisplay(plan, locale).includes(",") ? getLocationDisplay(plan, locale).split(",")[1].trim() : "");
+                                                                            return regionName ? `${regionName}, ${areaName}` : areaName;
+                                                                        })()}
+                                                                    </span>
+                                                                </div>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                </TableCell>
+
+
+                                                <TableCell className="min-w-36 px-2 py-3">
+                                                    <div className="flex flex-col gap-1">
+                                                        <div className="flex items-start gap-1.5">
+                                                            <ShieldAlert className="w-3.5 h-3.5 text-amber-500/80 shrink-0 mt-0.5" />
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <span className="font-medium cursor-help underline decoration-dotted decoration-muted-foreground/50 text-xs leading-tight">
+                                                                            {getLocalizedAuthorityName(item.controlAuthority || "", locale as any, supplyDepartments, 'short')}
+                                                                        </span>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        {getLocalizedAuthorityName(item.controlAuthority || "", locale as any, supplyDepartments, 'full')}
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5 ml-5">
+                                                            <CircleDot className="w-3 h-3 text-blue-500/80 shrink-0" />
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <span className="text-[10px] font-bold text-slate-600 cursor-help border-b border-dotted border-slate-300">
+                                                                            {(() => {
+                                                                                if (locale === 'uzLatn' && item.inspectionAbbreviationUzLatn) return item.inspectionAbbreviationUzLatn;
+                                                                                if (locale === 'uzCyrl' && item.inspectionAbbreviationUzCyrl) return item.inspectionAbbreviationUzCyrl;
+                                                                                if (item.inspectionAbbreviation) return item.inspectionAbbreviation;
+                                                                                return getLocalizedDirectionName(item.inspectionDirection, locale as any, 'short');
+                                                                            })()}
+                                                                        </span>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent side="top">
+                                                                        <div className="flex flex-col gap-0.5">
+                                                                            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">
+                                                                                {locale === "ru" ? "Направление" : "Yo'nalish"}
+                                                                            </span>
+                                                                            <span className="text-xs font-semibold">
+                                                                                {item.inspectionDirectionName ? getLocalizedName(item.inspectionDirectionName, locale) : getLocalizedDirectionName(item.inspectionDirection, locale as any, 'full')}
+                                                                            </span>
+                                                                        </div>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+
+
+                                                <TableCell className="min-w-20 px-2 py-3">
+                                                    <Badge variant="outline" className="py-0 h-4.5 px-1.5 text-[10px] font-medium border-primary/20 text-primary/80 bg-primary/5">
+                                                        {getInspectionTypeLabel(item.inspectionDirectionSubtitle, locale as any)}
+                                                    </Badge>
+                                                </TableCell>
+
+                                                <TableCell className="min-w-36 px-2 py-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="flex flex-col gap-0.5">
+                                                            <div className="flex items-center gap-1">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                                                                <span className="text-[10px] font-mono font-bold text-foreground/80">
+                                                                    {item.originalPlan.startDate ? new Date(item.originalPlan.startDate).toLocaleDateString() : "—"}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
+                                                                <span className="text-[10px] font-mono font-bold text-foreground/80">
+                                                                    {item.originalPlan.endDate ? new Date(item.originalPlan.endDate).toLocaleDateString() : "—"}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        {(() => {
+                                                            const start = item.originalPlan.startDate ? new Date(item.originalPlan.startDate) : null;
+                                                            const end = item.originalPlan.endDate ? new Date(item.originalPlan.endDate) : null;
+                                                            if (!start || !end) return null;
+                                                            const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                                                            const colorClass = days <= 15 ? "bg-emerald-500/10 text-emerald-600 border-emerald-200" : 
+                                                                             days <= 30 ? "bg-blue-500/10 text-blue-600 border-blue-200" : 
+                                                                             "bg-amber-500/10 text-amber-600 border-amber-200";
+                                                            return (
+                                                                <Badge variant="outline" className={cn("text-[9px] font-black h-7 flex flex-col justify-center px-1.5 border leading-none min-w-[32px] text-center", colorClass)}>
+                                                                    <span>{days}</span>
+                                                                    <span className="text-[7px] uppercase tracking-tighter opacity-70 mt-0.5">
+                                                                        {locale === 'ru' ? 'дн' : 'kun'}
+                                                                    </span>
+                                                                </Badge>
+                                                            );
+                                                        })()}
+                                                    </div>
+                                                </TableCell>
+
+                                                <TableCell className="min-w-24 px-2 py-3">
+                                                    <div className="flex flex-col gap-0.5">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <FileText className="w-3.5 h-3.5 text-indigo-500/70" />
+                                                            <span className="text-[10px] font-mono font-bold tracking-tighter">
+                                                                {item.orderNum !== "—" ? item.orderNum : "—"}
+                                                            </span>
+                                                        </div>
+                                                        {item.date && item.date !== "—" && (
+                                                            <span className="text-[9px] text-muted-foreground italic ml-5">
+                                                                {new Date(item.date).toLocaleDateString()}
+                                                            </span>
                                                         )}
                                                     </div>
-                                                </>
-                                            ) : (
-                                                <div className="flex items-center gap-1.5 text-slate-400 italic text-[10px]">
-                                                    <Users className="w-3.5 h-3.5" />
-                                                    <span>Не назначена</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col gap-2">
-                                            {/* Order */}
-                                            <div className="flex items-start gap-2">
-                                                <FileText className={cn("w-3.5 h-3.5 shrink-0 mt-0.5", item.orderNum !== "—" ? "text-indigo-500" : "text-muted-foreground/30")} />
-                                                <div className="flex flex-col">
-                                                    <span className="text-[9px] uppercase tracking-wider font-semibold text-muted-foreground">Приказ</span>
-                                                    {item.orderNum !== "—" ? (
-                                                        <span className="text-[10px] font-mono font-medium">
-                                                            №{item.orderNum} <span className="text-muted-foreground ml-1">от {formatDateShort(item.date)}</span>
-                                                        </span>
-                                                    ) : <span className="text-[10px] text-muted-foreground/50 italic">{locale === "ru" ? "Не сформирован" : "Shakllantirilmagan"}</span>}
-                                                </div>
-                                            </div>
-                                            
-                                            {/* Briefing */}
-                                            <div className="flex items-start gap-2 ml-0.5 border-l-2 border-slate-100 dark:border-slate-800 pl-3 py-0.5">
-                                                <Zap className={cn("w-3 h-3 shrink-0 mt-1", item.briefingDate ? "text-amber-500" : "text-muted-foreground/30")} />
-                                                <div className="flex flex-col">
-                                                    <span className="text-[8px] uppercase tracking-wider font-semibold text-muted-foreground/70">Инструктаж</span>
-                                                    <span className={cn("text-[10px]", item.briefingDate ? "font-medium" : "text-muted-foreground/40")}>
-                                                        {item.briefingDate ? formatDateShort(item.briefingDate) : <span className="text-muted-foreground/50 italic">{locale === "ru" ? "Не проведен" : "O'tkazilmagan"}</span>}
-                                                    </span>
-                                                </div>
-                                            </div>
+                                                </TableCell>
+                                                
+                                                <TableCell className="min-w-20 px-2 py-3">
+                                                    <div className="flex flex-col gap-0.5">
+                                                        {item.briefingDate ? (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Calendar className="w-3.5 h-3.5 text-emerald-500/70" />
+                                                                <span className="text-[10px] font-mono font-bold tracking-tighter">
+                                                                    {new Date(item.briefingDate).toLocaleDateString()}
+                                                                </span>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-muted-foreground text-[10px] italic ml-5">—</span>
+                                                        )}
+                                                    </div>
+                                                </TableCell>
 
-                                            {/* Prescription */}
-                                            <div className="flex items-start gap-2 ml-0.5 border-l-2 border-slate-100 dark:border-slate-800 pl-3 py-0.5">
-                                                <ClipboardCheck className={cn("w-3 h-3 shrink-0 mt-1", item.prescriptionNum ? "text-green-500" : "text-muted-foreground/30")} />
-                                                <div className="flex flex-col">
-                                                    <span className="text-[8px] uppercase tracking-wider font-semibold text-muted-foreground/70">Предписание</span>
-                                                    <span className={cn("text-[10px]", item.prescriptionNum ? "font-medium" : "text-muted-foreground/40")}>
-                                                         {item.prescriptionNum ? (
-                                                             <>
-                                                                 {item.prescriptionNum}
-                                                                 {item.prescriptionDate && (
-                                                                     <span className="text-muted-foreground ml-1 font-normal italic">
-                                                                         от {formatDateShort(item.prescriptionDate)}
-                                                                     </span>
-                                                                 )}
-                                                             </>
-                                                         ) : (
-                                                             <span className="text-muted-foreground/50 italic">{locale === "ru" ? "Не выдано" : "Berilmagan"}</span>
-                                                         )}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-center">
-                                        <Badge variant={item.statusVariant} className={cn("whitespace-nowrap font-medium text-[10px] px-2 py-0.5 shadow-sm transition-all hover:shadow-md")}>
-                                            {item.status}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button variant="ghost" size="icon" onClick={() => handleOpenManage(item)} className="h-8 w-8 hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-950">
-                                                            <Plus className="h-4 w-4" />
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>Управление данными</TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button variant="ghost" size="icon" onClick={() => {/* handle delete */}} className="h-8 w-8 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950">
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>Удалить запись</TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                                                <TableCell className="min-w-24 px-2 py-3">
+                                                    <div className="flex flex-col gap-0.5">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <ClipboardCheck className="w-3.5 h-3.5 text-orange-500/70" />
+                                                            <span className="text-[10px] font-mono font-bold tracking-tighter">
+                                                                {item.prescriptionNum || "—"}
+                                                            </span>
+                                                        </div>
+                                                        {item.prescriptionDate && (
+                                                            <span className="text-[9px] text-muted-foreground italic ml-5">
+                                                                {new Date(item.prescriptionDate).toLocaleDateString()}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </TableCell>
+
+                                                <TableCell className="min-w-24 px-2 py-3">
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <div className="flex flex-col gap-1 cursor-help">
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        <Users className="w-3.5 h-3.5 text-purple-500/70" />
+                                                                        <span className="text-[11px] font-medium truncate max-w-20">
+                                                                            {item.commissionMembers?.[0]?.name || "—"}
+                                                                        </span>
+                                                                    </div>
+                                                                    {item.commissionCount && item.commissionCount > 1 && (
+                                                                        <Badge variant="secondary" className="w-fit text-[9px] py-0 h-4 px-1.5 ml-5">
+                                                                            +{item.commissionCount - 1}
+                                                                        </Badge>
+                                                                    )}
+                                                                </div>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent side="top" className="w-64 p-0 overflow-hidden border-none shadow-2xl">
+                                                                <div className="bg-slate-900 text-slate-50">
+                                                                    <div className="px-4 py-2 border-b border-slate-800 bg-slate-800/50">
+                                                                        <span className="text-[10px] font-bold uppercase tracking-widest opacity-50">
+                                                                            {locale === 'ru' ? 'Состав комиссии' : 'Komissiya tarkibi'}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="p-2 space-y-1">
+                                                                        {item.commissionMembers?.map((member, idx) => (
+                                                                            <div key={idx} className="flex items-start gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors">
+                                                                                <div className={cn(
+                                                                                    "mt-1 w-1.5 h-1.5 rounded-full shrink-0",
+                                                                                    member.role?.includes("Председатель") ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" : "bg-blue-400"
+                                                                                )} />
+                                                                                <div className="flex flex-col gap-0.5 min-w-0">
+                                                                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                                                                        <span className="text-[11px] font-bold truncate leading-tight">
+                                                                                            {member.name}
+                                                                                        </span>
+                                                                                        {member.rank && (
+                                                                                            <span className="text-[9px] font-medium px-1 bg-white/10 rounded-sm text-slate-400 uppercase tracking-tighter">
+                                                                                                {member.rank}
+                                                                                            </span>
+                                                                                        )}
+                                                                                    </div>
+                                                                                    <span className="text-[10px] text-slate-400 italic">
+                                                                                        {member.role || (locale === 'ru' ? 'Член комиссии' : 'Komissiya a\'zosi')}
+                                                                                    </span>
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                </TableCell>
+
+                                                {/* Статус */}
+                                                <TableCell className="text-center">
+                                                    <Badge variant={item.statusVariant} className={cn("whitespace-nowrap font-bold text-[10px] px-2.5 py-0.5 shadow-sm")}>
+                                                        {item.status}
+                                                    </Badge>
+                                                </TableCell>
+
+                                                {/* Действия */}
+                                                <TableCell className="text-right pr-4">
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-muted/80">
+                                                                <span className="sr-only">Open menu</span>
+                                                                <MoreVertical className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end" className="w-45 p-1.5 shadow-xl border-border/50 backdrop-blur-sm bg-background/95">
+                                                            <DropdownMenuItem 
+                                                                className="gap-2 focus:bg-primary/10 focus:text-primary cursor-pointer rounded-md transition-colors"
+                                                                onClick={() => handleOpenManage(item)}
+                                                            >
+                                                                <Icons.Settings className="h-4 w-4" />
+                                                                <span>{locale === "ru" ? "Управление" : "Boshqarish"}</span>
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem 
+                                                                className="gap-2 focus:bg-primary/10 focus:text-primary cursor-pointer rounded-md transition-colors"
+                                                                onClick={() => handleViewHistory(item)}
+                                                            >
+                                                                <Icons.History className="h-4 w-4" />
+                                                                <span>{locale === "ru" ? "История" : "Tarix"}</span>
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem 
+                                                                className="gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer rounded-md transition-colors"
+                                                                onClick={() => {/* handle delete */}}
+                                                            >
+                                                                <Icons.Trash className="h-4 w-4" />
+                                                                <span>{locale === "ru" ? "Удалить" : "O'chirish"}</span>
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </React.Fragment>
+                                );
+                            })}
                         </TableBody>
                     </Table>
                 </CardContent>
             </Card>
+
 
             {/* Unified Management Dialog - Stepper Implementation */}
             <Dialog open={showManageDialog} onOpenChange={(open) => {
@@ -696,9 +1053,9 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                         {/* Visual Stepper */}
                         <div className="flex items-center justify-between gap-2 px-2 pt-2">
                             {[
-                                { id: 1, label: t("orders.manage.step1"), icon: Icons.FileText },
-                                { id: 2, label: t("orders.manage.step2"), icon: Icons.ClipboardCheck },
-                                { id: 3, label: t("orders.manage.step3"), icon: Icons.Users }
+                                { id: 1, label: t("orders.manage.step1"), icon: FileText },
+                                { id: 2, label: t("orders.manage.step2"), icon: ClipboardCheck },
+                                { id: 3, label: t("orders.manage.step3"), icon: Users }
                             ].map((step, idx) => (
                                 <div key={step.id} className="flex items-center flex-1 last:flex-none">
                                     <div className="flex flex-col items-center gap-1.5 relative z-10">
@@ -732,11 +1089,41 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                             {/* Step 1: Official Order */}
                             {currentStep === 1 && (
                                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                                    <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800">
-                                        <Icons.Info className="h-5 w-5 text-blue-600" />
-                                        <p className="text-xs text-blue-800 dark:text-blue-300 font-medium leading-relaxed">
-                                            Укажите номер и дату официального приказа, на основании которого проводится данное мероприятие.
-                                        </p>
+                                    <div className="flex flex-col gap-3">
+                                        <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800">
+                                            <Icons.Info className="h-5 w-5 text-blue-600" />
+                                            <p className="text-xs text-blue-800 dark:text-blue-300 font-medium leading-relaxed">
+                                                Укажите номер и дату официального приказа, на основании которого проводится данное мероприятие.
+                                            </p>
+                                        </div>
+
+                                        <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-white dark:bg-slate-800 rounded-lg shadow-sm">
+                                                    <Calendar className="h-5 w-5 text-emerald-500" />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                                                        {locale === 'ru' ? 'Срок проведения' : 'O\'tkazish muddati'}
+                                                    </span>
+                                                    <span className="text-sm font-mono font-black text-foreground/80 tracking-tight">
+                                                        {managingItem?.periodConducted}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            {(() => {
+                                                const start = managingItem?.originalPlan?.startDate ? new Date(managingItem.originalPlan.startDate) : null;
+                                                const end = managingItem?.originalPlan?.endDate ? new Date(managingItem.originalPlan.endDate) : null;
+                                                if (!start || !end) return null;
+                                                const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                                                return (
+                                                    <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-200 font-black h-8 px-2 flex flex-col justify-center leading-none">
+                                                        <span className="text-xs">{days}</span>
+                                                        <span className="text-[8px] uppercase tracking-tighter opacity-70">{locale === 'ru' ? 'дней' : 'kun'}</span>
+                                                    </Badge>
+                                                );
+                                            })()}
+                                        </div>
                                     </div>
                                     <div className="grid grid-cols-1 gap-6">
                                         <div className="space-y-2">
@@ -874,7 +1261,7 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                                             <motion.div 
                                                 initial={{ opacity: 0, scale: 0.95 }}
                                                 animate={{ opacity: 1, scale: 1 }}
-                                                className="p-4 bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/10 dark:to-background border-2 border-purple-200 dark:border-purple-800 rounded-2xl flex items-center gap-4 shadow-sm"
+                                                className="p-4 bg-linear-to-br from-purple-50 to-white dark:from-purple-900/10 dark:to-background border-2 border-purple-200 dark:border-purple-800 rounded-2xl flex items-center gap-4 shadow-sm"
                                             >
                                                 <div className="h-12 w-12 rounded-2xl bg-purple-600 flex items-center justify-center text-white shadow-lg shadow-purple-200 dark:shadow-none">
                                                     <Icons.UserCheck className="h-6 w-6" />

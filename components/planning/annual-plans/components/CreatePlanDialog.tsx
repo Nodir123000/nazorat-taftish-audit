@@ -67,7 +67,9 @@ export function CreatePlanDialog({
         objectsTotal: 0,
         objectsFS: 0,
         objectsOS: 0,
+        objectsOS: 0,
         subordinateUnitsOnAllowance: [],
+        status: "106", // Default to Draft
     })
 
     const [newSubordinateUnit, setNewSubordinateUnit] = useState({ unitCode: "", unitName: "", allowanceType: "full" })
@@ -92,6 +94,7 @@ export function CreatePlanDialog({
                 objectsFS: initialData.objectsFS || 0,
                 objectsOS: initialData.objectsOS || 0,
                 subordinateUnitsOnAllowance: initialData.subordinateUnitsOnAllowance || [],
+                status: initialData.status || "106",
             })
         } else {
             setFormData({
@@ -108,6 +111,7 @@ export function CreatePlanDialog({
                 objectsFS: 0,
                 objectsOS: 0,
                 subordinateUnitsOnAllowance: [],
+                status: "106",
             })
         }
     }, [initialData, open])
@@ -175,6 +179,43 @@ export function CreatePlanDialog({
                                 value={formData.incomingNumber || ""}
                                 onChange={(e) => setFormData({ ...formData, incomingNumber: e.target.value })}
                                 placeholder="№ 123"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="grid gap-2">
+                            <Label className="text-xs uppercase font-bold text-muted-foreground">
+                                {locale === "ru" ? "Статус документа" : "Hujjat holati"}
+                            </Label>
+                            <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+                                <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white">
+                                    <SelectValue placeholder={t("common.select")} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="106" className="focus:bg-slate-100">
+                                        <div className="flex items-center gap-2">
+                                            <div className="h-2 w-2 rounded-full bg-slate-400" />
+                                            <span>{locale === "ru" ? "Черновик" : "Qoralama"}</span>
+                                        </div>
+                                    </SelectItem>
+                                    <SelectItem value="101" className="focus:bg-blue-50">
+                                        <div className="flex items-center gap-2">
+                                            <div className="h-2 w-2 rounded-full bg-blue-500" />
+                                            <span>{locale === "ru" ? "Запланирована" : "Rejalashtirilgan"}</span>
+                                        </div>
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label className="text-xs uppercase font-bold text-muted-foreground opacity-50">
+                                {locale === "ru" ? "Тип периода" : "Davr turi"}
+                            </Label>
+                            <Input
+                                disabled
+                                className="h-11 rounded-xl bg-slate-50 border-slate-100 text-slate-400 cursor-not-allowed"
+                                value={locale === "ru" ? "Годовой план" : "Yillik reja"}
                             />
                         </div>
                     </div>

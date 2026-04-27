@@ -74,6 +74,13 @@ const physicalPersonSchema = z.object({
 
 export function PhysicalPersons() {
     const { locale } = useI18n()
+
+    const t = useCallback((ru: string, uzL: string, uzC: string) => {
+        if (locale === "ru") return ru;
+        if (locale === "uzLatn") return uzL;
+        return uzC;
+    }, [locale])
+
     const [searchTerm, setSearchTerm] = useState("")
     const [debouncedSearch, setDebouncedSearch] = useState("")
     const searchTimer = useRef<number | null>(null)
@@ -358,11 +365,6 @@ export function PhysicalPersons() {
         }
     }
 
-    const t = (ru: string, uzL: string, uzC: string) => {
-        if (locale === "ru") return ru;
-        if (locale === "uzLatn") return uzL;
-        return uzC;
-    }
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">

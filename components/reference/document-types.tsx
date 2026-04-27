@@ -44,6 +44,9 @@ const documentTypeSchema = z.object({
   // Optional localized fields
   name_uz_latn: z.string().optional(),
   name_uz_cyrl: z.string().optional(),
+  abbreviation: z.string().optional(),
+  abbreviation_uz_latn: z.string().optional(),
+  abbreviation_uz_cyrl: z.string().optional(),
   description_uz_latn: z.string().optional(),
   description_uz_cyrl: z.string().optional(),
 })
@@ -54,6 +57,9 @@ interface DocumentType {
   name: string
   name_uz_latn: string
   name_uz_cyrl: string
+  abbreviation: string
+  abbreviation_uz_latn: string
+  abbreviation_uz_cyrl: string
   category: string
   category_uz_latn?: string
   category_uz_cyrl?: string
@@ -148,6 +154,9 @@ export function DocumentTypes() {
       name: "",
       name_uz_latn: "",
       name_uz_cyrl: "",
+      abbreviation: "",
+      abbreviation_uz_latn: "",
+      abbreviation_uz_cyrl: "",
       category: "Основные",
       template: "Да",
       description: "",
@@ -195,6 +204,9 @@ export function DocumentTypes() {
         name: form.name,
         name_uz_latn: form.name_uz_latn,
         name_uz_cyrl: form.name_uz_cyrl,
+        abbreviation: form.abbreviation,
+        abbreviation_uz_latn: form.abbreviation_uz_latn,
+        abbreviation_uz_cyrl: form.abbreviation_uz_cyrl,
         category: form.category,
         status: form.status
       })
@@ -294,7 +306,7 @@ export function DocumentTypes() {
                       </TableCell>
                       <TableCell className="px-6">
                         <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-100 font-mono text-[12px] px-3 py-1 rounded-xl shadow-sm">
-                          {doc.code}
+                          {(locale === "ru" ? doc.abbreviation : locale === "uzLatn" ? doc.abbreviation_uz_latn : doc.abbreviation_uz_cyrl) || doc.code}
                         </Badge>
                       </TableCell>
                       <TableCell className="px-6">

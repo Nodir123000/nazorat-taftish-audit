@@ -24,7 +24,7 @@ export const classifiers = [
       { id: 103, name: "Приостановлена", name_uz_cyrl: "Тўхтатилган", name_uz_latn: "To'xtatilgan" },
       { id: 104, name: "Завершена", name_uz_cyrl: "Якунланган", name_uz_latn: "Yakunlangan" },
       { id: 105, name: "Отменена", name_uz_cyrl: "Бекор қилинган", name_uz_latn: "Bekor qilingan" },
-      { id: 106, name: "Изучить и дать предложение", name_uz_cyrl: "Ўрганиб чиқиш ва таклиф бериш", name_uz_latn: "O'rganib chiqish va taklif berish" },
+      { id: 106, name: "Черновик", name_uz_cyrl: "Қоралама", name_uz_latn: "Qoralama" },
     ],
   },
   {

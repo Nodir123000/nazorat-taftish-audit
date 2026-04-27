@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const unitId = searchParams.get("unitId")
     const unitName = searchParams.get("unitName")
     const authorityCode = searchParams.get("authorityCode")
+    const direction = searchParams.get("direction")
 
     if ((!unitId && !unitName) || !authorityCode) {
       return NextResponse.json(
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
     }
 
     const unitRef = unitId ? Number(unitId) : unitName!
-    const data = await planningService.findLastControlPeriod(unitRef, authorityCode)
+    const data = await planningService.findLastControlPeriod(unitRef, authorityCode, direction || undefined)
 
     return NextResponse.json({
       success: true,

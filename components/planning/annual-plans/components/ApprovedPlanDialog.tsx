@@ -107,7 +107,7 @@ import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/i18n/hooks"
 import { militaryUnits, militaryDistricts, controlAuthorities, controlDirections } from "@/lib/data/military-data"
 import { classifiers } from "@/components/reference/classifiers"
-import { getLocalizedAuthorityName, getLocalizedDirectionName, getLocalizedDistrictName, getInspectionTypeLabel, getStatusLabel, toSafeString, Locale } from "@/lib/utils/localization"
+import { getLocalizedAuthorityName, getLocalizedDirectionName, getLocalizedDirectionAbbr, getLocalizedDistrictName, getInspectionTypeLabel, getStatusLabel, toSafeString, Locale } from "@/lib/utils/localization"
 
 interface ApprovedPlanDialogProps {
     open: boolean
@@ -260,6 +260,7 @@ export function ApprovedPlanDialog({
                 if (formData.unitId) params.append("unitId", formData.unitId.toString());
                 if (formData.controlObject) params.append("unitName", formData.controlObject);
                 if (formData.controlAuthority) params.append("authorityCode", formData.controlAuthority);
+                if (formData.inspectionDirection) params.append("direction", formData.inspectionDirection);
 
                 const response = await fetch(`/api/planning/previous-period?${params.toString()}`);
                 const result = await response.json();
@@ -314,7 +315,6 @@ export function ApprovedPlanDialog({
         if (statusId.toString() === "101") {
             if (!formData.inspectionDirection) errors.push(locale === "ru" ? "Направление проверки" : "Tekshiruv yo'nalishi")
             if (!formData.periodConducted) errors.push(locale === "ru" ? "Период проведения (квартал)" : "O'tkazish davri (chorak)")
-            if (!formData.periodCoveredStart || !formData.periodCoveredEnd) errors.push(locale === "ru" ? "Период охвата" : "Qamrab olingan davr")
         }
         return errors
     }
@@ -667,7 +667,14 @@ export function ApprovedPlanDialog({
                                                                         }}
                                                                     >
                                                                         <Icons.Check className={cn("mr-2 h-4 w-4", formData.inspectionDirection === dir.code ? "opacity-100" : "opacity-0")} />
-                                                                        {toSafeString(locale === "uzLatn" ? dir.name_uz_latn : locale === "uzCyrl" ? dir.name_uz_cyrl : dir.name, locale as any)}
+                                                                        <div className="flex items-center gap-2">
+                                                                            <Badge variant="outline" className="font-mono text-[10px] px-1.5 py-0 bg-slate-50 text-slate-500 border-slate-200">
+                                                                                {getLocalizedDirectionAbbr(dir.code, locale as any)}
+                                                                            </Badge>
+                                                                            <span>
+                                                                                {toSafeString(locale === "uzLatn" ? dir.name_uz_latn : locale === "uzCyrl" ? dir.name_uz_cyrl : dir.name, locale as any)}
+                                                                            </span>
+                                                                        </div>
                                                                     </CommandItem>
                                                                 ))}
                                                             </CommandGroup>
@@ -689,16 +696,16 @@ export function ApprovedPlanDialog({
                                                     <Command>
                                                         <CommandList>
                                                             <CommandGroup>
-                                                                {inspectionTypes.map((type) => (
+                                                                 {inspectionTypes.map((type) => (
                                                                     <CommandItem
                                                                         key={type.id}
                                                                         value={type.id?.toString()}
                                                                         onSelect={() => {
-                                                                            setFormData({ ...formData, inspectionType: type.code || type.id?.toString() })
+                                                                            setFormData({ ...formData, inspectionType: type.id?.toString() })
                                                                             setOpenTypeSelect(false)
                                                                         }}
                                                                     >
-                                                                        <Icons.Check className={cn("mr-2 h-4 w-4", (formData.inspectionType?.toString() === type.code || formData.inspectionType?.toString() === type.id?.toString()) ? "opacity-100" : "opacity-0")} />
+                                                                        <Icons.Check className={cn("mr-2 h-4 w-4", formData.inspectionType?.toString() === type.id?.toString() ? "opacity-100" : "opacity-0")} />
                                                                         {toSafeString(locale === "uzLatn" ? type.name_uz_latn : locale === "uzCyrl" ? type.name_uz_cyrl : type.name, locale as any)}
                                                                     </CommandItem>
                                                                 ))}
@@ -719,7 +726,7 @@ export function ApprovedPlanDialog({
                                         <Label className="flex items-center justify-between text-primary font-bold text-sm uppercase tracking-tight">
                                             <div className="flex items-center gap-2">
                                                 <Icons.CalendarRange className="w-4 h-4" />
-                                                {t("annual.approved.periodCovered")}
+                                                {locale === "ru" ? "Период последней ревизии" : "Oxirgi taftish davri"}
                                                 <Button 
                                                     variant="ghost" 
                                                     size="icon" 
@@ -737,20 +744,21 @@ export function ApprovedPlanDialog({
                                             {isLoadingHistory && <Icons.Loader2 className="w-3.5 h-3.5 animate-spin" />}
                                             {isHistoryPopulated && !isLoadingHistory && (
                                                 <Badge variant="secondary" className="bg-primary/10 text-primary text-[10px] h-5">
-                                                    {locale === "ru" ? "Авто-подбор" : "Avto-tanlov"}
+                                                    {locale === "ru" ? "Из истории" : "Tarixdan"}
                                                 </Badge>
                                             )}
                                         </Label>
                                         <div className="flex gap-4 items-center">
                                             <div className="grid gap-1.5 flex-1">
-                                                <span className="text-[10px] uppercase font-bold text-muted-foreground ml-1">{t("annual.approved.periodCoveredStart")}</span>
+                                                <span className="text-[10px] uppercase font-bold text-muted-foreground ml-1">{locale === "ru" ? "Начало" : "Boshlanishi"}</span>
                                                 <ConfigProvider locale={locale === "ru" ? ruRU : enUS}>
                                                     <DatePicker
-                                                        className="w-full h-10"
-                                                        placeholder={locale === "ru" ? "Начало" : "Boshlanishi"}
+                                                        className="w-full h-10 bg-muted/30"
+                                                        placeholder={locale === "ru" ? "Нет данных" : "Ma'lumot yo'q"}
                                                         value={formData.periodCoveredStart ? dayjs(formData.periodCoveredStart) : null}
                                                         onChange={(date) => setFormData({...formData, periodCoveredStart: date ? date.format("YYYY-MM-DD") : ""})}
                                                         format="DD.MM.YYYY"
+                                                        disabled={true}
                                                     />
                                                 </ConfigProvider>
                                             </div>
@@ -758,14 +766,15 @@ export function ApprovedPlanDialog({
                                                 <Icons.ArrowRight className="text-muted-foreground w-4 h-4" />
                                             </div>
                                             <div className="grid gap-1.5 flex-1">
-                                                <span className="text-[10px] uppercase font-bold text-muted-foreground ml-1">{t("annual.approved.periodCoveredEnd")}</span>
+                                                <span className="text-[10px] uppercase font-bold text-muted-foreground ml-1">{locale === "ru" ? "Конец" : "Tugashi"}</span>
                                                 <ConfigProvider locale={locale === "ru" ? ruRU : enUS}>
                                                     <DatePicker
-                                                        className="w-full h-10"
-                                                        placeholder={locale === "ru" ? "Конец" : "Tugashi"}
+                                                        className="w-full h-10 bg-muted/30"
+                                                        placeholder={locale === "ru" ? "Нет данных" : "Ma'lumot yo'q"}
                                                         value={formData.periodCoveredEnd ? dayjs(formData.periodCoveredEnd) : null}
                                                         onChange={(date) => setFormData({...formData, periodCoveredEnd: date ? date.format("YYYY-MM-DD") : ""})}
                                                         format="DD.MM.YYYY"
+                                                        disabled={true}
                                                     />
                                                 </ConfigProvider>
                                             </div>
