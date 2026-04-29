@@ -85,13 +85,14 @@ export function AnnualPlanPage({ initialPlans = [] }: AnnualPlanPageProps) {
         if (filters.status && filters.status !== "all") {
             if (filters.status === "overdue") {
                 const now = new Date()
-                const isNotFinal = plan.status !== 101 && plan.status !== 105 && plan.status !== 'approved' && plan.status !== 'completed' && plan.status !== "101" && plan.status !== "105"
+                const FINAL_STATUSES = new Set(["approved", "completed", "in_progress"])
+                const isNotFinal = !FINAL_STATUSES.has(plan.status?.toString())
                 const startDate = plan.periodCoveredStart ? new Date(plan.periodCoveredStart) : null
-                matchesStatus = isNotFinal && startDate && startDate < now
+                matchesStatus = isNotFinal && !!startDate && startDate < now
             } else if (filters.status === "coverage") {
                 matchesStatus = (plan.objectsFS || 0) + (plan.objectsOS || 0) > 0
             } else {
-                matchesStatus = plan.status.toString() === filters.status
+                matchesStatus = plan.status?.toString() === filters.status
             }
         }
 
@@ -196,11 +197,13 @@ export function AnnualPlanPage({ initialPlans = [] }: AnnualPlanPageProps) {
 
 
 
-    const maxPlanId = plans.reduce((max, plan) => {
-        const id = typeof plan.planId === 'number' ? plan.planId : 0
-        return id > max ? id : max
+    // Следующий номер плана — максимальный числовой суффикс plan_number + 1
+    const currentYear = new Date().getFullYear()
+    const maxPlanSeq = plans.reduce((max, plan) => {
+        const num = parseInt(String(plan.planNumber || "").split("/")[0], 10)
+        return !isNaN(num) && num > max ? num : max
     }, 0)
-    const nextPlanNumber = (maxPlanId + 1).toString()
+    const nextPlanNumber = `${maxPlanSeq + 1}/${currentYear}`
 
     return (
         <div className="flex-1 p-6 space-y-6">

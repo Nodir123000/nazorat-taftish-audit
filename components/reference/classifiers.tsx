@@ -393,6 +393,17 @@ export const classifiers = [
       { id: 2303, name: "Целевая проверка", name_uz_cyrl: "Мақсадли текширув", name_uz_latn: "Maqsadli tekshiruv" },
     ],
   },
+  {
+    id: 24,
+    name: "Статусы исполнения решений",
+    name_uz_cyrl: "Қарорлар ижроси ҳолатлари",
+    name_uz_latn: "Qarorlar ijrosi holatlari",
+    description: "Статусы исполнения принятых решений по итогам инспекций",
+    description_uz_cyrl: "Инспекция якунлари бўйича қабул қилинган қарорларнинг ижро ҳолатлари",
+    description_uz_latn: "Inspektsiya yakunlari bo'yicha qabul qilingan qarorlarning ijro holatlari",
+    values: [],
+    isDynamic: true
+  },
 ]
 
 export function Classifiers() {

@@ -17,12 +17,17 @@ function createPrismaClient() {
     return client.$extends({
         client: {
             async $withRLS<T>(
-                ctx: { user_id: number; unit_id: number }, 
+                ctx: { user_id: number; unit_id: number },
                 fn: (tx: any) => Promise<T>
             ): Promise<T> {
+                const userId = Math.trunc(ctx.user_id)
+                const unitId = Math.trunc(ctx.unit_id)
+                if (!Number.isFinite(userId) || !Number.isFinite(unitId)) {
+                    throw new Error("[RLS] invalid user_id or unit_id")
+                }
                 return (this as any).$transaction(async (tx: any) => {
-                    await tx.$executeRawUnsafe(`SET LOCAL app.current_user_id = '${ctx.user_id}'`);
-                    await tx.$executeRawUnsafe(`SET LOCAL app.current_unit_id = '${ctx.unit_id}'`);
+                    await tx.$executeRaw`SET LOCAL app.current_user_id = ${String(userId)}`;
+                    await tx.$executeRaw`SET LOCAL app.current_unit_id = ${String(unitId)}`;
                     return fn(tx);
                 });
             }

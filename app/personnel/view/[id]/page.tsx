@@ -1,12 +1,23 @@
 import { Suspense } from "react"
+import { redirect } from "next/navigation"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { PageSkeleton } from "@/components/loading-skeleton"
 import PersonnelViewClient from "./personnel-view-client"
 import { prisma } from "@/lib/db/prisma"
+import { getCurrentUser } from "@/lib/auth"
+
+const ALLOWED_ROLES = ["admin", "chief_inspector", "inspector"]
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const user = await getCurrentUser()
+  if (!user) redirect("/login")
+  if (!ALLOWED_ROLES.includes(user.role)) redirect("/dashboard")
+
   const { id: idStr } = await params
   const id = Number.parseInt(idStr)
+
+  // Показывать ПИНФЛ и паспортные данные только admin/chief_inspector
+  const canViewSensitiveData = user.role === "admin" || user.role === "chief_inspector"
 
   let employee = null
 
@@ -14,7 +25,31 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     const item = await prisma.personnel.findUnique({
       where: { id },
       include: {
-        ref_physical_persons: true,
+        ref_physical_persons: {
+          select: {
+            id: true,
+            // ПИНФЛ передаётся только привилегированным ролям
+            pinfl: canViewSensitiveData,
+            passport_series: canViewSensitiveData,
+            passport_number: canViewSensitiveData,
+            passport_issued_by: true,
+            passport_expiry_date: true,
+            last_name: true,
+            first_name: true,
+            middle_name: true,
+            birth_date: true,
+            birth_place: true,
+            address: true,
+            actual_address: true,
+            contact_phone: true,
+            email: true,
+            biography: true,
+            gender_id: true,
+            nationality_id: true,
+            ref_genders: { select: { code: true } },
+            ref_nationalities: { select: { name: true } },
+          }
+        },
         ref_ranks: true,
         ref_positions: true,
         ref_vus_list: true,
@@ -27,50 +62,47 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               }
             }
           }
+        },
+        financial_audits: {
+          include: { financial_violations: true }
         }
       }
     })
 
     if (item) {
-      // Fetch Audit Statistics
-      const audits = await prisma.financial_audits.findMany({
-        where: { inspector_id: item.id },
-        include: { financial_violations: true }
-      });
+      // Аудиты уже включены через include выше — без второго запроса
+      const audits = item.financial_audits || []
 
-      const auditsCompleted = audits.filter(a => a.status === 'completed').length;
-      const auditsInProgress = audits.filter(a => a.status === 'in_progress' || a.status === 'draft').length;
-      const auditsPlanned = audits.filter(a => a.status === 'planned').length;
+      const auditsCompleted = audits.filter((a: any) => a.status === 'completed').length
+      const auditsInProgress = audits.filter((a: any) => a.status === 'in_progress' || a.status === 'draft').length
+      const auditsPlanned = audits.filter((a: any) => a.status === 'planned').length
 
-      let totalDamageAmount = 0;
-      let violationsFound = 0;
-      let totalRecovered = 0;
+      let totalDamageAmount = 0
+      let violationsFound = 0
+      let totalRecovered = 0
 
-      audits.forEach(a => {
-        const violations = (a.financial_violations as any[]) || [];
-        violationsFound += violations.length;
-        violations.forEach(v => {
-          totalDamageAmount += Number(v.amount || 0);
-          totalRecovered += Number(v.recovered || 0);
-        });
-      });
+      audits.forEach((a: any) => {
+        const violations = a.financial_violations || []
+        violationsFound += violations.length
+        violations.forEach((v: any) => {
+          totalDamageAmount += Number(v.amount || 0)
+          totalRecovered += Number(v.recovered || 0)
+        })
+      })
 
-      // KPI Calculation: Based on recovery rate (simple version)
-      const recoveryRate = totalDamageAmount > 0 ? (totalRecovered / totalDamageAmount) * 100 : 0;
-      const kpiScore = Math.round(recoveryRate);
-      
-      let kpiRating: "excellent" | "good" | "satisfactory" | "unsatisfactory" = "satisfactory";
-      if (kpiScore >= 90) kpiRating = "excellent";
-      else if (kpiScore >= 70) kpiRating = "good";
-      else if (kpiScore >= 50) kpiRating = "satisfactory";
-      else if (totalDamageAmount > 0) kpiRating = "unsatisfactory";
-      else kpiRating = "good"; // Default for new inspectors
+      const recoveryRate = totalDamageAmount > 0 ? (totalRecovered / totalDamageAmount) * 100 : 0
+      const kpiScore = Math.round(recoveryRate)
 
-      // Map audits to InspectionResult for the UI
-      const inspectionResults = audits.map(a => ({
+      let kpiRating: "excellent" | "good" | "satisfactory" | "unsatisfactory" = "good"
+      if (kpiScore >= 90) kpiRating = "excellent"
+      else if (kpiScore >= 70) kpiRating = "good"
+      else if (kpiScore >= 50) kpiRating = "satisfactory"
+      else if (totalDamageAmount > 0) kpiRating = "unsatisfactory"
+
+      const inspectionResults = audits.map((a: any) => ({
         id: a.id.toString(),
-        planId: (a as any).prescription_id?.toString() || "",
-        actNumber: (a as any).act_number || a.id.toString(),
+        planId: a.prescription_id?.toString() || "",
+        actNumber: a.act_number || a.id.toString(),
         actDate: a.date ? a.date.toISOString().split('T')[0] : "",
         controlAuthority: a.control_body || "КРУ МО",
         controlObject: a.unit || "",
@@ -78,37 +110,47 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         inspectionDirection: a.inspection_direction || "",
         inspectionDepartment: "Финансовый",
         inspectionType: (a.inspection_type?.toLowerCase().includes("план") ? "planned" : "unplanned") as "planned" | "unplanned",
-        totalAmount: (a.financial_violations as any[])?.reduce((sum, v) => sum + Number(v.amount || 0), 0) || 0,
-        recoveredAmount: (a.financial_violations as any[])?.reduce((sum, v) => sum + Number(v.recovered || 0), 0) || 0,
-        quantityStats: `${(a.financial_violations as any[])?.length || 0} (0)`,
+        totalAmount: a.financial_violations?.reduce((sum: number, v: any) => sum + Number(v.amount || 0), 0) || 0,
+        recoveredAmount: a.financial_violations?.reduce((sum: number, v: any) => sum + Number(v.recovered || 0), 0) || 0,
+        quantityStats: `${a.financial_violations?.length || 0} (0)`,
         responsiblePerson: a.cashier || "",
         status: (a.status === 'completed' ? 'checked' : 'in_progress') as "checked" | "in_progress",
-        violations: (a.financial_violations as any[])?.map(v => ({
-            id: v.id.toString(),
-            violationType: v.type || "Финансовое",
-            violationSubtype: v.category || "",
-            source: v.source || "",
-            amount: Number(v.amount || 0),
-            recoveredAmount: Number(v.recovered || 0),
-            quantityStats: "1 (0)",
-            responsiblePerson: v.responsible || ""
+        violations: a.financial_violations?.map((v: any) => ({
+          id: v.id.toString(),
+          violationType: v.type || "Финансовое",
+          violationSubtype: v.category || "",
+          source: v.source || "",
+          amount: Number(v.amount || 0),
+          recoveredAmount: Number(v.recovered || 0),
+          quantityStats: "1 (0)",
+          responsiblePerson: v.responsible || ""
         })) || []
-      }));
+      }))
 
-      // Helper to get localized name
-      const getLoc = (obj: any, loc: string = 'ru') => {
-        if (!obj) return "";
-        if (typeof obj === 'string') return obj;
-        if (obj.name && typeof obj.name === 'object') {
-          return obj.name[loc] || obj.name['ru'] || "";
-        }
-        return obj[loc] || obj['ru'] || "";
-      };
+      const getLoc = (obj: any, loc: string = 'ru'): string => {
+        if (!obj) return ""
+        if (typeof obj === 'string') return obj
+        if (obj.name && typeof obj.name === 'object') return obj.name[loc] || obj.name['ru'] || ""
+        return obj[loc] || obj['ru'] || ""
+      }
 
-      const p = item.ref_physical_persons;
+      const p = item.ref_physical_persons
+
+      // Пол из кода справочника (не магическое число)
+      const genderCode = p?.ref_genders?.code?.toUpperCase()
+      const gender = genderCode === 'M' || genderCode === 'MALE' ? "MALE" : "FEMALE"
+
+      // Национальность из справочника
+      const nationality = getLoc(p?.ref_nationalities) || ""
+
+      // Дислокация — только из реальных связанных данных
+      const dislocation = item.ref_units?.ref_areas
+        ? `${getLoc(item.ref_units.ref_areas.name)}, ${getLoc(item.ref_units.ref_areas.ref_regions?.name ? item.ref_units.ref_areas.ref_regions : null)}`
+        : ""
+
       employee = {
         id: item.id.toString(),
-        pin: p?.pinfl || "",
+        pin: canViewSensitiveData ? (p?.pinfl || "") : "***",
         firstName: p?.first_name || "",
         lastName: p?.last_name || "",
         patronymic: p?.middle_name || "",
@@ -119,23 +161,21 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         position: getLoc(item.ref_positions),
         department: getLoc(item.ref_units),
         militaryUnit: getLoc(item.ref_units),
-        militaryDistrict: item.ref_units?.ref_military_districts?.short_name
-          ? getLoc(item.ref_units.ref_military_districts.short_name)
-          : (item.ref_units?.ref_military_districts?.name ? getLoc(item.ref_units.ref_military_districts.name) : ""),
-        dislocation: (item.ref_units?.ref_areas?.name && typeof item.ref_units.ref_areas.name === 'object' && (item.ref_units.ref_areas.name as any).ru)
-          ? `${getLoc(item.ref_units.ref_areas.name)}, ${getLoc(item.ref_units.ref_areas.ref_regions)}`
-          : (item.ref_units?.unit_id ? (item.ref_units.unit_id % 5 === 0 ? "Ташкент" : item.ref_units.unit_id % 5 === 1 ? "Самарканд" : "Бухара") : ""),
+        militaryDistrict: item.ref_units?.ref_military_districts
+          ? getLoc(item.ref_units.ref_military_districts.short_name || item.ref_units.ref_military_districts.name)
+          : "",
+        dislocation,
 
         dob: p?.birth_date?.toISOString() || "",
-        gender: (item.ref_physical_persons?.gender_id === 801 ? "MALE" : "FEMALE") as "MALE" | "FEMALE",
-        nationality: "Узбек",
+        gender: gender as "MALE" | "FEMALE",
+        nationality,
         citizenship: "Узбекистан",
-        maritalStatus: "Женат",
+        maritalStatus: "",
 
-        passportNumber: `${p?.passport_series || ""}${p?.passport_number || ""}`,
+        passportNumber: canViewSensitiveData ? `${p?.passport_series || ""}${p?.passport_number || ""}` : "***",
         passport: {
-          series: p?.passport_series || "",
-          number: p?.passport_number || "",
+          series: canViewSensitiveData ? (p?.passport_series || "") : "***",
+          number: canViewSensitiveData ? (p?.passport_number || "") : "***",
           issueDate: "",
           expiryDate: p?.passport_expiry_date?.toISOString() || "",
           issuedBy: p?.passport_issued_by || ""
@@ -152,13 +192,13 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         workPhone: item.emergency_phone || "",
         emergencyContact: item.emergency_contact || "",
         emergencyPhone: item.emergency_phone || "",
-        
+
         specialization: item.ref_vus_list?.code || "",
 
         inspectorCategory: item.category || "Инспектор",
-        totalDamageAmount: totalDamageAmount,
-        kpiScore: kpiScore,
-        kpiRating: kpiRating,
+        totalDamageAmount,
+        kpiScore,
+        kpiRating,
         serviceStartDate: item.service_start_date?.toISOString() || "",
         violationsFound: violationsFound,
         serviceNumber: item.service_number || "",

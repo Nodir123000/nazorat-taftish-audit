@@ -101,7 +101,7 @@ export function MilitaryPositionsTable() {
         return names.filter(Boolean).join(" / ")
     }
 
-    const filteredValues = (positionsList as ReferenceItem[]).filter((v: ReferenceItem) => {
+    const filteredValues = (Array.isArray(positionsList) ? positionsList : []).filter((v: ReferenceItem) => {
         const name = v.name;
         const code = (v.code || v.id.toString()).toLowerCase()
         const s = searchTerm.toLowerCase()
@@ -182,7 +182,7 @@ export function MilitaryPositionsTable() {
             toast.success(editingPosition ? "Обновлено" : "Добавлено")
             setIsDialogOpen(false)
         } catch (error) {
-            toast.error("Ошибка сохранения")
+            toast.error(locale === "ru" ? "Ошибка сохранения" : locale === "uzLatn" ? "Saqlashda xatolik" : "Сақлашда хатолик")
         }
     }
 
@@ -192,7 +192,7 @@ export function MilitaryPositionsTable() {
                 await deletePosition.mutateAsync(id.toString())
                 toast.success(locale === "ru" ? "Удалено" : "O'chirildi")
             } catch (error) {
-                toast.error("Ошибка удаления")
+                toast.error(locale === "ru" ? "Ошибка удаления" : locale === "uzLatn" ? "O'chirishda xatolik" : "Ўчиришда хатолик")
             }
         }
     }
@@ -259,7 +259,9 @@ export function MilitaryPositionsTable() {
                                         <TableCell colSpan={5} className="text-center py-20">
                                             <div className="flex flex-col items-center gap-3">
                                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                                                <span className="text-muted-foreground font-medium">Загрузка данных...</span>
+                                                <span className="text-muted-foreground font-medium">
+                                                    {locale === "ru" ? "Загрузка данных..." : locale === "uzLatn" ? "Ma'lumotlar yuklanmoqda..." : "Маълумотлар юкланмоқда..."}
+                                                </span>
                                             </div>
                                         </TableCell>
                                     </TableRow>

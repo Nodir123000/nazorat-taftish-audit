@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
+import useSWR from "swr"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -8,6 +9,24 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Icons } from "@/components/icons"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url)
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error || "Ошибка загрузки")
+  return data
+}
+
+function useDebounce<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay)
+    return () => clearTimeout(timer)
+  }, [value, delay])
+  return debounced
+}
 
 interface AuditLogEntry {
   log_id: number
@@ -17,49 +36,39 @@ interface AuditLogEntry {
   action: string
   table_name?: string | null
   record_id?: number | null
+  old_value?: string | null
+  new_value?: string | null
   ip_address?: string | null
   created_at: string | null
 }
 
 export function AuditLogViewer() {
-  const [logs, setLogs] = useState<AuditLogEntry[]>([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-
   const [searchQuery, setSearchQuery] = useState("")
   const [actionFilter, setActionFilter] = useState("all")
   const [dateFilter, setDateFilter] = useState("all")
   const [page, setPage] = useState(1)
   const LIMIT = 50
 
-  const fetchLogs = useCallback(async () => {
-    setLoading(true)
-    setError("")
-    try {
-      const params = new URLSearchParams({
-        page: String(page),
-        limit: String(LIMIT),
-        search: searchQuery,
-        action: actionFilter,
-        date: dateFilter,
-      })
-      const res = await fetch(`/api/admin/audit-logs?${params}`)
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Ошибка загрузки")
-      setLogs(data.logs)
-      setTotal(data.total)
-    } catch (e: any) {
-      setError(e.message)
-    } finally {
-      setLoading(false)
-    }
-  }, [page, searchQuery, actionFilter, dateFilter])
+  const debouncedSearch = useDebounce(searchQuery, 400)
 
-  useEffect(() => { fetchLogs() }, [fetchLogs])
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(LIMIT),
+    search: debouncedSearch,
+    action: actionFilter,
+    date: dateFilter,
+  })
+
+  const { data, error, isLoading, mutate } = useSWR(`/api/admin/audit-logs?${params.toString()}`, fetcher, {
+    keepPreviousData: true
+  })
+
+  const logs = data?.logs || []
+  const total = data?.total || 0
+  const errorMessage = error instanceof Error ? error.message : ""
 
   // Сбросить страницу при смене фильтров
-  useEffect(() => { setPage(1) }, [searchQuery, actionFilter, dateFilter])
+  useEffect(() => { setPage(1) }, [debouncedSearch, actionFilter, dateFilter])
 
   const getActionBadge = (action: string) => {
     if (action.includes("Вход") || action.includes("Выход"))
@@ -85,6 +94,20 @@ export function AuditLogViewer() {
 
   const totalPages = Math.ceil(total / LIMIT)
 
+  const renderJson = (jsonStr: string | null | undefined) => {
+    if (!jsonStr) return <span className="text-muted-foreground italic">пусто</span>
+    try {
+      const obj = JSON.parse(jsonStr)
+      return (
+        <pre className="text-xs bg-muted p-2 rounded-md overflow-auto max-h-50">
+          {JSON.stringify(obj, null, 2)}
+        </pre>
+      )
+    } catch {
+      return <span className="text-xs break-all">{jsonStr}</span>
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -93,7 +116,7 @@ export function AuditLogViewer() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="relative flex-1 min-w-[200px]">
+          <div className="relative flex-1 min-w-50">
             <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Поиск по пользователю, действию, таблице..."
@@ -103,7 +126,7 @@ export function AuditLogViewer() {
             />
           </div>
           <Select value={actionFilter} onValueChange={setActionFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-45">
               <Icons.Filter className="w-4 h-4 mr-2" />
               <SelectValue />
             </SelectTrigger>
@@ -117,7 +140,7 @@ export function AuditLogViewer() {
             </SelectContent>
           </Select>
           <Select value={dateFilter} onValueChange={setDateFilter}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-37.5">
               <Icons.Calendar className="w-4 h-4 mr-2" />
               <SelectValue />
             </SelectTrigger>
@@ -128,13 +151,13 @@ export function AuditLogViewer() {
               <SelectItem value="week">Неделя</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm" className="gap-2" onClick={fetchLogs}>
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => mutate()}>
             <Icons.RefreshCw className="w-4 h-4" />
             Обновить
           </Button>
         </div>
 
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {errorMessage && <p className="text-sm text-destructive">{errorMessage}</p>}
 
         <div className="border rounded-lg">
           <Table>
@@ -146,18 +169,19 @@ export function AuditLogViewer() {
                 <TableHead>Таблица</TableHead>
                 <TableHead>IP адрес</TableHead>
                 <TableHead>Тип</TableHead>
+                <TableHead className="text-right">Детали</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
+              {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     <Icons.Spinner className="inline w-4 h-4 mr-2" />Загрузка...
                   </TableCell>
                 </TableRow>
               ) : logs.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     Записи не найдены
                   </TableCell>
                 </TableRow>
@@ -184,6 +208,36 @@ export function AuditLogViewer() {
                     </TableCell>
                     <TableCell className="font-mono text-sm">{log.ip_address ?? "—"}</TableCell>
                     <TableCell>{getActionBadge(log.action)}</TableCell>
+                    <TableCell className="text-right">
+                      {(log.old_value || log.new_value) && (
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <Icons.Eye className="w-4 h-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                              <DialogTitle>Детали изменения</DialogTitle>
+                            </DialogHeader>
+                            <div className="grid grid-cols-2 gap-4 mt-4">
+                              <div>
+                                <h4 className="text-sm font-semibold mb-2">До изменения:</h4>
+                                <ScrollArea className="h-75 border rounded-md p-2">
+                                  {renderJson(log.old_value)}
+                                </ScrollArea>
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-semibold mb-2">После изменения:</h4>
+                                <ScrollArea className="h-75 border rounded-md p-2">
+                                  {renderJson(log.new_value)}
+                                </ScrollArea>
+                              </div>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))
               )}

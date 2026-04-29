@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic"
 import { NextRequest, NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/db/prisma"
 import { getCurrentUser } from "@/lib/auth"
 
@@ -16,7 +17,7 @@ export async function GET(req: NextRequest) {
   const action = searchParams.get("action") || ""
   const dateFilter = searchParams.get("date") || "all"
 
-  const where: any = {}
+  const where: Prisma.audit_logWhereInput = {}
 
   // Фильтр по типу действия
   if (action && action !== "all") {
@@ -75,6 +76,8 @@ export async function GET(req: NextRequest) {
         action: l.action,
         table_name: l.table_name,
         record_id: l.record_id,
+        old_value: l.old_value,
+        new_value: l.new_value,
         ip_address: l.ip_address,
         created_at: l.created_at?.toISOString() ?? null,
       })),

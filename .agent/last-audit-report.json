@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-04-22T16:45:22.391Z",
-  "filesScanned": 551,
+  "timestamp": "2026-04-29T04:29:17.542Z",
+  "filesScanned": 550,
   "summary": {
     "critical": 0,
-    "warning": 51,
+    "warning": 52,
     "info": 0
   },
   "violations": [
@@ -12,7 +12,7 @@
       "ruleId": "HAS_CREATED_AT",
       "file": "prisma\\schema.prisma",
       "line": 1,
-      "message": "Модель 'kpi_metrics' не имеет поля created_at. Рекомендуется добавить.",
+      "message": "Модель 'i18n_keys' не имеет поля created_at. Рекомендуется добавить.",
       "suggestion": "created_at DateTime @default(now())"
     },
     {
@@ -20,7 +20,7 @@
       "ruleId": "HAS_CREATED_AT",
       "file": "prisma\\schema.prisma",
       "line": 1,
-      "message": "Модель 'user_kpi_scores' не имеет поля created_at. Рекомендуется добавить.",
+      "message": "Модель 'i18n_values' не имеет поля created_at. Рекомендуется добавить.",
       "suggestion": "created_at DateTime @default(now())"
     },
     {
@@ -44,7 +44,7 @@
       "ruleId": "HAS_CREATED_AT",
       "file": "prisma\\schema.prisma",
       "line": 1,
-      "message": "Модель 'i18n_keys' не имеет поля created_at. Рекомендуется добавить.",
+      "message": "Модель 'kpi_metrics' не имеет поля created_at. Рекомендуется добавить.",
       "suggestion": "created_at DateTime @default(now())"
     },
     {
@@ -52,7 +52,7 @@
       "ruleId": "HAS_CREATED_AT",
       "file": "prisma\\schema.prisma",
       "line": 1,
-      "message": "Модель 'i18n_values' не имеет поля created_at. Рекомендуется добавить.",
+      "message": "Модель 'user_kpi_scores' не имеет поля created_at. Рекомендуется добавить.",
       "suggestion": "created_at DateTime @default(now())"
     },
     {
@@ -67,7 +67,7 @@
       "severity": "WARNING",
       "ruleId": "NO_DIRECT_FETCH",
       "file": "app\\planning\\orders\\create\\page.tsx",
-      "line": 155,
+      "line": 129,
       "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
       "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
     },
@@ -75,7 +75,7 @@
       "severity": "WARNING",
       "ruleId": "NO_DIRECT_FETCH",
       "file": "app\\planning\\orders\\create\\page.tsx",
-      "line": 168,
+      "line": 157,
       "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
       "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
     },
@@ -83,15 +83,7 @@
       "severity": "WARNING",
       "ruleId": "NO_DIRECT_FETCH",
       "file": "app\\planning\\orders\\create\\page.tsx",
-      "line": 198,
-      "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
-      "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
-    },
-    {
-      "severity": "WARNING",
-      "ruleId": "NO_DIRECT_FETCH",
-      "file": "app\\planning\\orders\\create\\page.tsx",
-      "line": 555,
+      "line": 274,
       "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
       "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
     },
@@ -99,7 +91,7 @@
       "severity": "WARNING",
       "ruleId": "NO_DIRECT_FETCH",
       "file": "app\\planning\\orders\\create-briefing\\page.tsx",
-      "line": 142,
+      "line": 54,
       "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
       "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
     },
@@ -107,15 +99,7 @@
       "severity": "WARNING",
       "ruleId": "NO_DIRECT_FETCH",
       "file": "app\\planning\\orders\\create-briefing\\page.tsx",
-      "line": 151,
-      "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
-      "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
-    },
-    {
-      "severity": "WARNING",
-      "ruleId": "NO_DIRECT_FETCH",
-      "file": "app\\planning\\orders\\create-briefing\\page.tsx",
-      "line": 354,
+      "line": 93,
       "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
       "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
     },
@@ -123,7 +107,7 @@
       "severity": "WARNING",
       "ruleId": "NO_DIRECT_FETCH",
       "file": "app\\planning\\orders\\create-prescription\\page.tsx",
-      "line": 146,
+      "line": 66,
       "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
       "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
     },
@@ -131,15 +115,7 @@
       "severity": "WARNING",
       "ruleId": "NO_DIRECT_FETCH",
       "file": "app\\planning\\orders\\create-prescription\\page.tsx",
-      "line": 155,
-      "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
-      "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
-    },
-    {
-      "severity": "WARNING",
-      "ruleId": "NO_DIRECT_FETCH",
-      "file": "app\\planning\\orders\\create-prescription\\page.tsx",
-      "line": 329,
+      "line": 115,
       "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
       "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
     },
@@ -187,7 +163,7 @@
       "severity": "WARNING",
       "ruleId": "NO_DIRECT_FETCH",
       "file": "app\\units\\list\\page.tsx",
-      "line": 37,
+      "line": 47,
       "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
       "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
     },
@@ -195,7 +171,7 @@
       "severity": "WARNING",
       "ruleId": "NO_DIRECT_FETCH",
       "file": "app\\units\\list\\page.tsx",
-      "line": 181,
+      "line": 192,
       "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
       "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
     },
@@ -203,7 +179,7 @@
       "severity": "WARNING",
       "ruleId": "NO_DIRECT_FETCH",
       "file": "app\\units\\list\\page.tsx",
-      "line": 227,
+      "line": 238,
       "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
       "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
     },
@@ -299,7 +275,7 @@
       "severity": "WARNING",
       "ruleId": "NO_DIRECT_FETCH",
       "file": "components\\planning\\orders\\universal-registry.tsx",
-      "line": 109,
+      "line": 245,
       "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
       "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
     },
@@ -307,7 +283,7 @@
       "severity": "WARNING",
       "ruleId": "NO_DIRECT_FETCH",
       "file": "components\\planning\\orders\\universal-registry.tsx",
-      "line": 127,
+      "line": 471,
       "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
       "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
     },
@@ -315,15 +291,7 @@
       "severity": "WARNING",
       "ruleId": "NO_DIRECT_FETCH",
       "file": "components\\planning\\orders\\universal-registry.tsx",
-      "line": 279,
-      "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
-      "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
-    },
-    {
-      "severity": "WARNING",
-      "ruleId": "NO_DIRECT_FETCH",
-      "file": "components\\planning\\orders\\universal-registry.tsx",
-      "line": 308,
+      "line": 511,
       "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
       "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
     },
@@ -378,8 +346,32 @@
     {
       "severity": "WARNING",
       "ruleId": "NO_DIRECT_FETCH",
+      "file": "components\\reference\\employee-registry.tsx",
+      "line": 75,
+      "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
+      "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
+    },
+    {
+      "severity": "WARNING",
+      "ruleId": "NO_DIRECT_FETCH",
       "file": "components\\reference\\military-units.tsx",
-      "line": 118,
+      "line": 121,
+      "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
+      "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
+    },
+    {
+      "severity": "WARNING",
+      "ruleId": "NO_DIRECT_FETCH",
+      "file": "components\\reference\\personnel-edit-dialog.tsx",
+      "line": 85,
+      "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
+      "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
+    },
+    {
+      "severity": "WARNING",
+      "ruleId": "NO_DIRECT_FETCH",
+      "file": "components\\reference\\personnel-edit-dialog.tsx",
+      "line": 127,
       "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
       "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
     },
@@ -387,7 +379,7 @@
       "severity": "WARNING",
       "ruleId": "NO_DIRECT_FETCH",
       "file": "components\\reference\\personnel.tsx",
-      "line": 315,
+      "line": 350,
       "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
       "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
     },
@@ -395,7 +387,23 @@
       "severity": "WARNING",
       "ruleId": "NO_DIRECT_FETCH",
       "file": "components\\reference\\personnel.tsx",
-      "line": 409,
+      "line": 411,
+      "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
+      "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
+    },
+    {
+      "severity": "WARNING",
+      "ruleId": "NO_DIRECT_FETCH",
+      "file": "components\\reference\\personnel.tsx",
+      "line": 474,
+      "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
+      "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
+    },
+    {
+      "severity": "WARNING",
+      "ruleId": "NO_DIRECT_FETCH",
+      "file": "components\\reference\\personnel.tsx",
+      "line": 575,
       "message": "fetch() в клиентском компоненте. Рекомендуется useSWR() или серверный компонент.",
       "suggestion": "import useSWR from 'swr';\nconst { data } = useSWR('/api/...', fetcher);"
     },

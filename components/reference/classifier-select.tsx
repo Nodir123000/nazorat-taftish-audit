@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/popover"
 import { classifiers } from "@/components/reference/classifiers"
 import { usePositions, useVus } from "@/lib/hooks/use-reference"
+import { useI18n } from "@/lib/i18n/context"
 
 interface ClassifierSelectProps {
     classifierId: number
@@ -39,42 +40,41 @@ export function ClassifierSelect({
 }: ClassifierSelectProps) {
     const [open, setOpen] = React.useState(false)
     const [searchQuery, setSearchQuery] = React.useState("")
-    const { data: positions = [], isLoading: loadingPositions } = usePositions(undefined)
-    const { data: vus = [], isLoading: loadingVus } = useVus(undefined)
+    const { locale } = useI18n()
 
     const classifier = classifiers.find((c) => c.id === classifierId)
     const isDynamic = classifier?.isDynamic || classifierId === 13 || classifierId === 14
 
-    const loading = loadingPositions || loadingVus
+    const { data: positions = [], isLoading: loadingPositions } = usePositions(undefined)
+    const { data: vus = [], isLoading: loadingVus } = useVus(undefined)
+
+    const loading = isDynamic && (classifierId === 13 ? loadingPositions : classifierId === 14 ? loadingVus : false)
 
     const dynamicOptions = React.useMemo(() => {
         if (!isDynamic) return []
-        return classifierId === 13 ? positions : vus
+        const rawData = classifierId === 13 ? positions : vus
+        return Array.isArray(rawData) ? rawData : []
     }, [isDynamic, classifierId, positions, vus])
 
-    const options = isDynamic ? dynamicOptions : (classifier?.values || [])
+    const options = Array.isArray(dynamicOptions) ? (isDynamic ? dynamicOptions : (classifier?.values || [])) : (classifier?.values || [])
 
-    const getLocalizedName = (item: any) => {
+    const getLocalizedName = React.useCallback((item: any) => {
         if (!item) return ""
-        if (typeof item.name === 'object') {
-            // Priority: RU (usually standard for these specific fields in this UI)
-            return item.name.ru || item.name.uz || item.name.uzk || ""
+        if (typeof item.name === 'object' && !Array.isArray(item.name)) {
+            if (locale === "uzLatn") return item.name.uz || item.name.ru || ""
+            if (locale === "uzCyrl") return item.name.uzk || item.name.ru || ""
+            return item.name.ru || item.name.uz || ""
         }
-        return item.name
-    }
+        if (locale === "uzLatn") return item.name_uz_latn || item.name || ""
+        if (locale === "uzCyrl") return item.name_uz_cyrl || item.name || ""
+        return item.name || ""
+    }, [locale])
 
-    // Найти выбранное имя
     const selectedName = React.useMemo(() => {
-        const found = options.find((opt: any) => {
-            const optId = opt.id?.toString()
-            const valStr = value?.toString()
-            if (optId && valStr && optId === valStr) return true
-            
-            const optName = getLocalizedName(opt)
-            return optName === value
-        })
+        if (!value) return null
+        const found = options.find((opt: any) => opt.id?.toString() === value?.toString())
         return found ? getLocalizedName(found) : null
-    }, [options, value])
+    }, [options, value, getLocalizedName])
 
     const filteredOptions = React.useMemo(() => {
         if (!searchQuery) return options
@@ -83,7 +83,7 @@ export function ClassifierSelect({
             const name = getLocalizedName(opt).toLowerCase()
             return name.includes(query) || (opt.id && opt.id.toString().includes(query))
         })
-    }, [options, searchQuery])
+    }, [options, searchQuery, getLocalizedName])
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -122,7 +122,7 @@ export function ClassifierSelect({
                                         key={opt.id}
                                         value={name}
                                         onSelect={() => {
-                                            onValueChange(name)
+                                            onValueChange(opt.id?.toString() ?? name)
                                             setOpen(false)
                                             setSearchQuery("")
                                         }}
@@ -131,7 +131,7 @@ export function ClassifierSelect({
                                         <Check
                                             className={cn(
                                                 "h-4 w-4 shrink-0",
-                                                value === name || value?.toString() === opt.id.toString()
+                                                value?.toString() === opt.id?.toString()
                                                     ? "opacity-100"
                                                     : "opacity-0"
                                             )}

@@ -65,10 +65,18 @@ export function UnitSelect({
     }, [dbUnitsResult])
 
     const options = React.useMemo(() => {
-        // Merge static and DB units, avoiding duplicates
+        const getNameRu = (name: any): string => {
+            if (!name) return ""
+            if (typeof name === 'object') return name.ru || name.uz || ""
+            return String(name)
+        }
         const combined = [...militaryUnits]
         dbUnits.forEach((dbu: any) => {
-            if (!combined.some(mu => mu.name === dbu.name || (mu.stateNumber && mu.stateNumber === dbu.stateNumber))) {
+            const dbuNameRu = getNameRu(dbu.name)
+            if (!combined.some(mu =>
+                getNameRu(mu.name) === dbuNameRu ||
+                (mu.stateNumber && dbu.stateNumber && mu.stateNumber === dbu.stateNumber)
+            )) {
                 combined.push(dbu)
             }
         })
@@ -101,14 +109,14 @@ export function UnitSelect({
             const name = toSafeString(unit.name, locale as any).toLowerCase()
             const nameUzLatn = unit.name_uz_latn ? toSafeString(unit.name_uz_latn, locale as any).toLowerCase() : ""
             const nameUzCyrl = unit.name_uz_cyrl ? toSafeString(unit.name_uz_cyrl, locale as any).toLowerCase() : ""
-            
+
             return name.includes(query) ||
                 nameUzLatn.includes(query) ||
                 nameUzCyrl.includes(query) ||
-                unit.id.toString().includes(query) ||
+                (unit.id != null && unit.id.toString().includes(query)) ||
                 (unit.stateNumber && unit.stateNumber.includes(query))
         })
-    }, [options, searchQuery])
+    }, [options, searchQuery, locale])
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -117,10 +125,12 @@ export function UnitSelect({
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    disabled={disabled}
+                    disabled={disabled || isLoading}
                     className={cn("w-full justify-between text-left font-normal", className)}
                 >
-                    {selectedUnit ? (
+                    {isLoading ? (
+                        <span className="text-muted-foreground animate-pulse">Загрузка...</span>
+                    ) : selectedUnit ? (
                         <div className="flex items-center gap-2 truncate">
                             <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
                             <span className="truncate">{getLocalizedUnitName(selectedUnit)}</span>
@@ -128,6 +138,7 @@ export function UnitSelect({
                     ) : (
                         <span className="text-muted-foreground">{placeholder}</span>
                     )}
+
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>

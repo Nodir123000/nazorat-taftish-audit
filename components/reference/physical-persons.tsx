@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -162,13 +162,14 @@ export function PhysicalPersons() {
                     firstName: p.first_name,
                     middleName: p.middle_name || "",
                     gender: p.ref_genders ? getName(p.ref_genders.name) : "",
+                    genderCode: p.ref_genders?.code || p.gender_id?.toString() || "",
                     nationality: p.ref_nationalities ? getName(p.ref_nationalities.name) : "",
                     birthDate: p.birth_date ? new Date(p.birth_date).toLocaleDateString("ru-RU") : "",
                     region: regionName,
                     district: districtName,
                     streetHouse: streetHouse,
                     phone: p.contact_phone || "",
-                    status: 'active'
+                    status: (p.status as 'active' | 'inactive') || 'active'
                 };
             });
             setPersonsList(mappedData as any)
@@ -187,10 +188,6 @@ export function PhysicalPersons() {
     useEffect(() => {
         loadData()
     }, [debouncedSearch, page, pageSize])
-
-    useEffect(() => {
-        loadData()
-    }, [])
 
 
     const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -314,42 +311,9 @@ export function PhysicalPersons() {
             toast.error(t("Введите корректный ПИНФЛ (14 цифр)", "To'g'ri PINFL kiriting (14 raqam)", "Тўғри ПИНФЛ киритинг (14 рақам)"))
             return
         }
-
-        setIsSyncing(true)
-        // Simulate API call to Centralized Registry
-        await new Promise(resolve => setTimeout(resolve, 1500))
-
-        try {
-            // Mock data based on PINFL (in real system this would be a fetch)
-            const mockData = {
-                lastName: "Ахмедов",
-                firstName: "Сардор",
-                middleName: "Бахтиёрович",
-                passport: "AA" + Math.floor(1000000 + Math.random() * 9000000),
-                birthDate: "15.05.1985",
-                gender: "Мужской",
-                nationality: "Узбек",
-                region: "Ташкент",
-                district: "Юнусабадский район",
-                streetHouse: "ул. Амира Темура, д. 10",
-                status: "active"
-            }
-
-            setForm(prev => ({
-                ...prev,
-                ...mockData
-            }))
-
-            if (mockData.region) {
-                setSelectedRegion(mockData.region)
-            }
-
-            toast.success(t("Данные синхронизированы", "Ma'lumotlar sinxronlandi", "Маълумотлар синхронланди"))
-        } catch (error) {
-            toast.error("Ошибка при синхронизации")
-        } finally {
-            setIsSyncing(false)
-        }
+        // TODO: заменить на реальный API-вызов к Централизованному реестру (ГПИАЦ)
+        // Текущая реализация — заглушка, не использовать в продакшне
+        toast.error(t("Синхронизация с реестром недоступна", "Reyestr bilan sinxronizatsiya mavjud emas", "Реестр билан синхронизация мавжуд эмас"))
     }, [form.pinfl, t])
 
     const handleDelete = async (id: number) => {
@@ -468,7 +432,7 @@ export function PhysicalPersons() {
                                                     <TableCell className="px-6 border-l border-border/5">
                                                         <div className="flex items-center gap-3">
                                                             <div className="p-2 rounded-xl bg-primary/5 text-primary group-hover:bg-blue-600 group-hover:text-white transition-all scale-90">
-                                                                {person.gender === "Мужской" ? <UserCircle2 className="h-5 w-5" /> : <Users className="h-5 w-5" />}
+                                                                {(person as any).genderCode === "male" || ["Мужской", "Erkak", "Эркак"].includes(person.gender) ? <UserCircle2 className="h-5 w-5" /> : <Users className="h-5 w-5" />}
                                                             </div>
                                                             <div className="flex flex-col">
                                                                 <span className="font-bold text-[15px] text-slate-900 group-hover:text-blue-600 transition-colors">
@@ -563,20 +527,25 @@ export function PhysicalPersons() {
                                             {t("Назад", "Orqaga", "Орқага")}
                                         </Button>
                                         <div className="flex gap-1">
-                                            {[...Array(Math.ceil(totalCount / pageSize))].map((_, i) => (
-                                                <Button
-                                                    key={i}
-                                                    variant={page === i + 1 ? "default" : "outline"}
-                                                    size="icon"
-                                                    onClick={() => setPage(i + 1)}
-                                                    className={cn(
-                                                        "h-8 w-8 rounded-lg text-[11px] font-bold transition-all",
-                                                        page === i + 1 ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20" : "hover:bg-primary/5"
-                                                    )}
-                                                >
-                                                    {i + 1}
-                                                </Button>
-                                            )).slice(Math.max(0, page - 3), Math.min(Math.ceil(totalCount / pageSize), page + 2))}
+                                            {(() => {
+                                                const totalPages = Math.ceil(totalCount / pageSize)
+                                                const start = Math.max(1, page - 2)
+                                                const end = Math.min(totalPages, page + 2)
+                                                return Array.from({ length: end - start + 1 }, (_, i) => start + i).map((pageNum) => (
+                                                    <Button
+                                                        key={pageNum}
+                                                        variant={page === pageNum ? "default" : "outline"}
+                                                        size="icon"
+                                                        onClick={() => setPage(pageNum)}
+                                                        className={cn(
+                                                            "h-8 w-8 rounded-lg text-[11px] font-bold transition-all",
+                                                            page === pageNum ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20" : "hover:bg-primary/5"
+                                                        )}
+                                                    >
+                                                        {pageNum}
+                                                    </Button>
+                                                ))
+                                            })()}
                                         </div>
                                         <Button
                                             variant="outline"

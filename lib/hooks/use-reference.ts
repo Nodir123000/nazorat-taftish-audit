@@ -5,7 +5,7 @@ import { DocumentTypeDTO, CreateDocumentTypeDTO, MilitaryUnitDTO, CreateMilitary
 export function useDocumentTypes(params?: any) {
     return useQuery({
         queryKey: ["document-types", params],
-        queryFn: () => api.reference.documentTypes.list(params).then((res: any) => res),
+        queryFn: () => api.reference.documentTypes.list(params).then((res: any) => res.data || res),
     })
 }
 
@@ -43,7 +43,7 @@ export function useDeleteDocumentType() {
 export function useUnits(params?: any) {
     return useQuery({
         queryKey: ["units", params],
-        queryFn: () => api.reference.units.list(params).then((res: any) => res),
+        queryFn: () => api.reference.units.list(params).then((res: any) => res.data || res),
     })
 }
 
@@ -81,7 +81,7 @@ export function useDeleteUnit() {
 export function useRegions(params?: any) {
     return useQuery({
         queryKey: ["regions", params],
-        queryFn: () => api.reference.regions.list(params).then((res: any) => res || { items: [], total: 0 }),
+        queryFn: () => api.reference.regions.list(params).then((res: any) => res.data || res || { items: [], total: 0 }),
     })
 }
 
@@ -119,7 +119,7 @@ export function useDeleteRegion() {
 export function useAdministrativeDistricts(params?: any) {
     return useQuery({
         queryKey: ["administrative-districts", params],
-        queryFn: () => api.reference.districts.list(params).then((res: any) => res || { items: [], total: 0 }),
+        queryFn: () => api.reference.districts.list(params).then((res: any) => res.data || res || { items: [], total: 0 }),
     })
 }
 
@@ -159,7 +159,7 @@ export function useDeleteAdministrativeDistrict() {
 export function useDistricts(params?: any) {
     return useQuery({
         queryKey: ["military-districts", params],
-        queryFn: () => api.reference.militaryDistricts.list(params).then((res: any) => res || { items: [], total: 0 }),
+        queryFn: () => api.reference.militaryDistricts.list(params).then((res: any) => res.data || res || { items: [], total: 0 }),
     })
 }
 
@@ -199,7 +199,7 @@ export function useDeleteDistrict() {
 export function usePositions(params?: any) {
     return useQuery({
         queryKey: ["positions", params],
-        queryFn: () => api.reference.positions.list(params).then((res: any) => res),
+        queryFn: () => api.reference.positions.list(params).then((res: any) => res.data || res),
     })
 }
 
@@ -239,7 +239,7 @@ export function useDeletePosition() {
 export function useVus(params?: any) {
     return useQuery({
         queryKey: ["vus", params],
-        queryFn: () => api.reference.vus.list(params).then((res: any) => res),
+        queryFn: () => api.reference.vus.list(params).then((res: any) => res.data || res),
     })
 }
 
@@ -279,7 +279,7 @@ export function useDeleteVus() {
 export function useSupplyDepartments(params?: any) {
     return useQuery({
         queryKey: ["supply-departments", params],
-        queryFn: () => api.reference.supplyDepartments.list(params).then((res: any) => res),
+        queryFn: () => api.reference.supplyDepartments.list(params).then((res: any) => res.data || res),
     })
 }
 

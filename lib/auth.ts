@@ -1,11 +1,25 @@
 "use server"
 
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { prisma } from "./db/prisma"
 import * as bcrypt from "bcryptjs"
 import { createHmac, timingSafeEqual } from "crypto"
 import type { User } from "./types"
 import { checkLoginRateLimit, resetLoginRateLimit } from "./rate-limit"
+import { logAudit } from "./server-audit"
+
+async function getClientIp(): Promise<string | null> {
+  try {
+    const h = await headers()
+    return (
+      h.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      h.get("x-real-ip") ??
+      null
+    )
+  } catch {
+    return null
+  }
+}
 
 const COOKIE_NAME = "auth_user"
 const SESSION_MAX_AGE = 60 * 60 * 8 // 8 часов
@@ -161,6 +175,14 @@ export async function login(
       updated_at: userRecord.updated_at?.toISOString() || new Date().toISOString(),
     }
 
+    // Запись в журнал аудита
+    const ip = await getClientIp()
+    await logAudit({
+      userId: userRecord.user_id,
+      action: "Вход в систему",
+      ipAddress: ip,
+    })
+
     return { success: true, user }
   } catch (error) {
     console.error("[auth] login error:", error)
@@ -172,6 +194,15 @@ export async function login(
  * Выход из системы — удаляет сессионную куки.
  */
 export async function logout() {
+  const user = await getCurrentUser()
+  if (user) {
+    const ip = await getClientIp()
+    await logAudit({
+      userId: user.user_id,
+      action: "Выход из системы",
+      ipAddress: ip,
+    })
+  }
   const cookieStore = await cookies()
   cookieStore.delete(COOKIE_NAME)
 }
@@ -209,17 +240,28 @@ export async function getCurrentUser(): Promise<User | null> {
       return null
     }
 
-    if (!sessionData.user_id) {
+    if (!sessionData.user_id || !sessionData.iat) {
       cookieStore.delete(COOKIE_NAME)
       return null
     }
 
-    // Повторная проверка в БД
-    const userRecord = await prisma.users.findFirst({
-      where: { user_id: sessionData.user_id, is_active: true },
+    // Проверка срока действия сессии на стороне сервера
+    if (Date.now() - sessionData.iat > SESSION_MAX_AGE * 1000) {
+      cookieStore.delete(COOKIE_NAME)
+      return null
+    }
+
+    // Повторная проверка в БД (findUnique использует PK-индекс)
+    const userRecord = await prisma.users.findUnique({
+      where: { user_id: sessionData.user_id },
+      select: {
+        user_id: true, username: true, fullname: true, rank: true,
+        position: true, role: true, email: true, phone: true,
+        unit_id: true, is_active: true, created_at: true, updated_at: true,
+      },
     })
 
-    if (!userRecord) {
+    if (!userRecord || !userRecord.is_active) {
       cookieStore.delete(COOKIE_NAME)
       return null
     }

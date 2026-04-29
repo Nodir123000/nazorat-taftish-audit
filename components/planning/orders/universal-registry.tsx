@@ -233,34 +233,37 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
         return () => { isMounted.current = false }
     }, [])
 
-    // Unified Search Effect
-    useEffect(() => {
-        const search = async (text: string, setter: any, loader: any) => {
-            if (text.length < 1) { 
-                if (isMounted.current) setter([]); 
-                return; 
-            }
-            if (isMounted.current) loader(true)
-            try {
-                const res = await fetch(`/api/personnel?search=${encodeURIComponent(text)}&limit=50`)
-                const data = await res.json()
-                const items = data.items || data.data || []
-                if (isMounted.current) {
-                    setter(items)
-                    cachePersonnel(items)
-                }
-            } catch (err) { console.error("Search failed:", err) }
-            finally { 
-                if (isMounted.current) loader(false) 
-            }
-        }
+    const searchPersonnel = async (
+        text: string,
+        setter: (v: any[]) => void,
+        loader: (v: boolean) => void
+    ) => {
+        if (text.length < 1) { if (isMounted.current) setter([]); return }
+        if (isMounted.current) loader(true)
+        try {
+            const res = await fetch(`/api/personnel?search=${encodeURIComponent(text)}&limit=50`)
+            const data = await res.json()
+            const items = data.items || data.data || []
+            if (isMounted.current) { setter(items); cachePersonnel(items) }
+        } catch (err) { console.error("Search failed:", err) }
+        finally { if (isMounted.current) loader(false) }
+    }
 
-        const t1 = setTimeout(() => search(specSearchText, setSpecSearchResults, setIsSearchingSpec), 300)
-        const t2 = setTimeout(() => search(chairmanSearchText, setChairmanSearchResults, setIsSearchingChairman), 300)
-        const t3 = setTimeout(() => search(memberSearchText, setMemberSearchResults, setIsSearchingMember), 300)
-        
-        return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); }
-    }, [specSearchText, chairmanSearchText, memberSearchText])
+    // Три независимых эффекта — каждый реагирует только на свой текст
+    useEffect(() => {
+        const t = setTimeout(() => searchPersonnel(specSearchText, setSpecSearchResults, setIsSearchingSpec), 300)
+        return () => clearTimeout(t)
+    }, [specSearchText])
+
+    useEffect(() => {
+        const t = setTimeout(() => searchPersonnel(chairmanSearchText, setChairmanSearchResults, setIsSearchingChairman), 300)
+        return () => clearTimeout(t)
+    }, [chairmanSearchText])
+
+    useEffect(() => {
+        const t = setTimeout(() => searchPersonnel(memberSearchText, setMemberSearchResults, setIsSearchingMember), 300)
+        return () => clearTimeout(t)
+    }, [memberSearchText])
 
     // Load initial data for existing members
     useEffect(() => {
@@ -329,7 +332,13 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
 
         if (initialPlans && initialPlans.length > 0) {
             initialPlans.forEach((p: any, index: number) => {
-                const latestOrder = p.orders && p.orders.length > 0 ? p.orders[0] : null;
+                const latestOrder = p.orders && p.orders.length > 0
+                    ? [...p.orders].sort((a: any, b: any) => {
+                        const da = a.order_date ? new Date(a.order_date).getTime() : 0
+                        const db = b.order_date ? new Date(b.order_date).getTime() : 0
+                        return db - da
+                    })[0]
+                    : null;
                 const latestBriefing = p.briefings && p.briefings.length > 0 ? p.briefings[0] : null;
                 const latestPrescription = p.prescriptions && p.prescriptions.length > 0 ? p.prescriptions[0] : null;
 
@@ -347,10 +356,7 @@ export function UniversalOrdersRegistry({ initialPlans = [] }: { initialPlans?: 
                     periodConducted: p.startDate && p.endDate
                         ? `${new Date(p.startDate).toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'uz-UZ')} - ${new Date(p.endDate).toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'uz-UZ')}`
                         : "—",
-                    responsible: JSON.stringify({
-                        name: p.responsible?.fullname || p.responsible?.full_name || "Не назначен",
-                        position: p.responsible?.rank || "—"
-                    }),
+                    responsible: p.responsible?.fullname || p.responsible?.full_name || "Не назначен",
                     status: getStatusLabel(p.status, locale as any),
                     statusVariant: (p.status === "approved" || p.status === "101") ? "default" : 
                                    (p.status === "completed" || p.status === "104") ? "success" :

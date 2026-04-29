@@ -55,6 +55,7 @@ const CLASSIFIER_TYPE_MAP: Record<number, string> = {
     21: "RefAwardPenalty",
     22: "RefAuditObject",
     23: "RefInspectionKind",
+    24: "RefDecisionExecutionStatus",
 };
 
 interface GenericReferenceTableProps {
@@ -93,7 +94,7 @@ export function GenericReferenceTable({
                 }
             } catch (error) {
                 console.error("Error fetching classifier data:", error)
-                toast.error("Ошибка при загрузке данных из БД")
+                toast.error(locale === "ru" ? "Ошибка при загрузке данных" : locale === "uzLatn" ? "Ma'lumotlarni yuklashda xatolik" : "Маълумотларни юклашда хатолик")
             } finally {
                 setIsLoading(false)
             }
@@ -113,22 +114,22 @@ export function GenericReferenceTable({
 
     const getLocalizedValue = (item: any) => {
         if (!item) return ""
-        
-        // Handle name object if present
-        if (item.name && typeof item.name === 'object') {
+        if (item.name && typeof item.name === 'object' && !Array.isArray(item.name)) {
             if (locale === "uzLatn") return item.name.uz || item.name.ru || ""
             if (locale === "uzCyrl") return item.name.uzk || item.name.ru || ""
             return item.name.ru || ""
         }
-        
         if (locale === "uzLatn") return item.name_uz_latn || item.name || ""
         if (locale === "uzCyrl") return item.name_uz_cyrl || item.name || ""
         return item.name || ""
     }
 
-    const filteredValues = valuesList.filter(v =>
-        getLocalizedValue(v).toLowerCase().includes(searchTerm.toLowerCase()) ||
-        v.id.toString().includes(searchTerm)
+    const filteredValues = React.useMemo(() =>
+        valuesList.filter(v =>
+            getLocalizedValue(v).toLowerCase().includes(searchTerm.toLowerCase()) ||
+            v.id.toString().includes(searchTerm)
+        ),
+        [valuesList, searchTerm, locale] // eslint-disable-line react-hooks/exhaustive-deps
     )
 
     const formatCode = (id: number) => {
@@ -192,7 +193,7 @@ export function GenericReferenceTable({
             setIsDialogOpen(false)
         } catch (error) {
             console.error("Save error:", error)
-            toast.error("Ошибка при сохранении")
+            toast.error(locale === "ru" ? "Ошибка при сохранении" : locale === "uzLatn" ? "Saqlashda xatolik" : "Сақлашда хатолик")
         }
     }
 
@@ -213,7 +214,7 @@ export function GenericReferenceTable({
                 toast.success(locale === "ru" ? "Удалено" : "O'chirildi")
             } catch (error) {
                 console.error("Delete error:", error)
-                toast.error("Ошибка при удалении")
+                toast.error(locale === "ru" ? "Ошибка при удалении" : locale === "uzLatn" ? "O'chirishda xatolik" : "Ўчиришда хатолик")
             }
         }
     }

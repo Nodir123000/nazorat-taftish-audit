@@ -1,0 +1,176 @@
+{
+  "timestamp": "2026-04-29T04:20:44.516Z",
+  "filesScanned": 565,
+  "issues": [
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-01",
+      "file": "components/reference/personnel-edit-dialog.tsx",
+      "line": 291,
+      "message": "PINFL accessed in client component",
+      "suggestion": "Mask PINFL in service layer before sending to client"
+    },
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-01",
+      "file": "components/reference/personnel-table.tsx",
+      "line": 126,
+      "message": "PINFL accessed in client component",
+      "suggestion": "Mask PINFL in service layer before sending to client"
+    },
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-01",
+      "file": "components/reference/personnel.tsx",
+      "line": 360,
+      "message": "PINFL accessed in client component",
+      "suggestion": "Mask PINFL in service layer before sending to client"
+    },
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-01",
+      "file": "components/reference/personnel.tsx",
+      "line": 716,
+      "message": "PINFL accessed in client component",
+      "suggestion": "Mask PINFL in service layer before sending to client"
+    },
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-01",
+      "file": "components/reference/personnel.tsx",
+      "line": 734,
+      "message": "PINFL accessed in client component",
+      "suggestion": "Mask PINFL in service layer before sending to client"
+    },
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-01",
+      "file": "components/reference/personnel.tsx",
+      "line": 749,
+      "message": "PINFL accessed in client component",
+      "suggestion": "Mask PINFL in service layer before sending to client"
+    },
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-01",
+      "file": "components/reference/personnel.tsx",
+      "line": 1355,
+      "message": "PINFL accessed in client component",
+      "suggestion": "Mask PINFL in service layer before sending to client"
+    },
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-01",
+      "file": "components/reference/physical-persons.tsx",
+      "line": 159,
+      "message": "PINFL accessed in client component",
+      "suggestion": "Mask PINFL in service layer before sending to client"
+    },
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-01",
+      "file": "components/reference/physical-persons.tsx",
+      "line": 271,
+      "message": "PINFL accessed in client component",
+      "suggestion": "Mask PINFL in service layer before sending to client"
+    },
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-01",
+      "file": "components/reference/physical-persons.tsx",
+      "line": 287,
+      "message": "PINFL accessed in client component",
+      "suggestion": "Mask PINFL in service layer before sending to client"
+    },
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-01",
+      "file": "components/reference/physical-persons.tsx",
+      "line": 313,
+      "message": "PINFL accessed in client component",
+      "suggestion": "Mask PINFL in service layer before sending to client"
+    },
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-01",
+      "file": "components/reference/physical-persons.tsx",
+      "line": 353,
+      "message": "PINFL accessed in client component",
+      "suggestion": "Mask PINFL in service layer before sending to client"
+    },
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-01",
+      "file": "components/reference/physical-persons.tsx",
+      "line": 459,
+      "message": "PINFL accessed in client component",
+      "suggestion": "Mask PINFL in service layer before sending to client"
+    },
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-01",
+      "file": "components/reference/physical-persons.tsx",
+      "line": 629,
+      "message": "PINFL accessed in client component",
+      "suggestion": "Mask PINFL in service layer before sending to client"
+    },
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-01",
+      "file": "components/reference/physical-persons.tsx",
+      "line": 638,
+      "message": "PINFL accessed in client component",
+      "suggestion": "Mask PINFL in service layer before sending to client"
+    },
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-01",
+      "file": "components/reference/physical-persons.tsx",
+      "line": 653,
+      "message": "PINFL accessed in client component",
+      "suggestion": "Mask PINFL in service layer before sending to client"
+    },
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-01",
+      "file": "components/reference/physical-persons.tsx",
+      "line": 654,
+      "message": "PINFL accessed in client component",
+      "suggestion": "Mask PINFL in service layer before sending to client"
+    },
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-07",
+      "file": "lib/db/clear-education.ts",
+      "line": 4,
+      "message": "Direct new PrismaClient() — connection pool risk",
+      "suggestion": "Import shared: import { prisma } from '@/lib/db/prisma'"
+    },
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-07",
+      "file": "lib/db/seed-education-fix.ts",
+      "line": 4,
+      "message": "Direct new PrismaClient() — connection pool risk",
+      "suggestion": "Import shared: import { prisma } from '@/lib/db/prisma'"
+    },
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-07",
+      "file": "lib/db/seed-unified.ts",
+      "line": 5,
+      "message": "Direct new PrismaClient() — connection pool risk",
+      "suggestion": "Import shared: import { prisma } from '@/lib/db/prisma'"
+    },
+    {
+      "severity": "CRITICAL",
+      "rule": "SEC-02",
+      "file": "lib/services/reference-db-service.ts",
+      "line": 1,
+      "message": "Server Action mutates without auth check",
+      "suggestion": "Add getCurrentUser() at top of every server action"
+    }
+  ],
+  "score": 0,
+  "grade": "CRITICAL"
+}

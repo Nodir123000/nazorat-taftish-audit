@@ -390,7 +390,7 @@ export function Personnel({
     } finally {
       setIsLoading(false)
     }
-  }, [pagination, sorting, columnFiltersObj, globalFilter, lockedUnitId, getLocalizedName])
+  }, [pagination, sorting, columnFiltersObj, globalFilter, lockedUnitId, getLocalizedName, showOnlyInspectors])
 
   const isPersonnelPage = pathname?.includes('/personnel/personnel')
 
@@ -712,7 +712,7 @@ export function Personnel({
                           >
                             {form.personId
                               ? (() => {
-                                const p = physicalPersonOptions.find((p: PhysicalPerson) => p.id?.toString() || "" === form.personId);
+                                const p = physicalPersonOptions.find((p: PhysicalPerson) => p.id?.toString() === form.personId);
                                 return p ? `${p.lastName} ${p.firstName} (${maskPINFL(p.pinfl)})` : t("Физическое лицо не выбрано", "Jismoniy shaxs tanlanmadi", "Жисмоний шахс танланмади")
                               })()
                               : t("Поиск по ФИО или ПИНФЛ", "FIO yoki PINFL bo'yicha qidirish", "ФИО ёки ПИНФЛ бўйича қидириш")}
@@ -784,7 +784,7 @@ export function Personnel({
                               className="w-full justify-between h-12 rounded-xl bg-muted/30 border-none font-normal"
                             >
                               {form.rankId
-                                ? getLocalizedName(rankOptions.find((r: any) => r.title === form.rankId || r.code === form.rankId) || form.rankId)
+                                ? getLocalizedName(rankOptions.find((r: any) => r.rankId?.toString() === form.rankId || r.id?.toString() === form.rankId) || form.rankId)
                                 : t("Выберите звание", "Unvonni tanlang", "Унвонни танланг")}
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
@@ -808,7 +808,7 @@ export function Personnel({
                                       <Check
                                         className={cn(
                                           "mr-2 h-4 w-4",
-                                          form.rankId === (rank.title || rank.nameRu) ? "opacity-100" : "opacity-0"
+                                          form.rankId === (rank.rankId?.toString() || rank.id?.toString()) ? "opacity-100" : "opacity-0"
                                         )}
                                       />
                                       {getLocalizedName(rank)}
@@ -819,8 +819,8 @@ export function Personnel({
                             </Command>
                           </PopoverContent>
                         </Popover>
-                        {formErrors?.rank && (
-                          <p className="text-sm text-destructive mt-1 ml-1 font-medium">{formErrors.rank._errors[0]}</p>
+                        {formErrors?.rankId && (
+                          <p className="text-sm text-destructive mt-1 ml-1 font-medium">{formErrors.rankId._errors[0]}</p>
                         )}
                       </div>
                     </div>
@@ -928,8 +928,8 @@ export function Personnel({
                             </Command>
                           </PopoverContent>
                         </Popover>
-                        {formErrors?.vus && (
-                          <p className="text-sm text-destructive mt-1 ml-1 font-medium">{formErrors.vus._errors[0]}</p>
+                        {formErrors?.vusId && (
+                          <p className="text-sm text-destructive mt-1 ml-1 font-medium">{formErrors.vusId._errors[0]}</p>
                         )}
                       </div>
                     </div>
@@ -1001,7 +1001,7 @@ export function Personnel({
                             >
                               {form.positionId
                                 ? (() => {
-                                  const p = positionOptions.find((p: any) => p.name === form.positionId || p.nameRu === form.positionId);
+                                  const p = positionOptions.find((p: any) => p.id?.toString() === form.positionId);
                                   return p ? getLocalizedName(p) : form.positionId
                                 })()
                                 : t("Выберите должность", "Lavozimni tanlang", "Лавозимни танланг")}
@@ -1027,7 +1027,7 @@ export function Personnel({
                                       <Check
                                         className={cn(
                                           "mr-2 h-4 w-4",
-                                          form.positionId === (p.nameRu || p.name) ? "opacity-100" : "opacity-0"
+                                          form.positionId === p.id?.toString() ? "opacity-100" : "opacity-0"
                                         )}
                                       />
                                       {getLocalizedName(p)}
@@ -1038,8 +1038,8 @@ export function Personnel({
                             </Command>
                           </PopoverContent>
                         </Popover>
-                        {formErrors?.position && (
-                          <p className="text-sm text-destructive mt-1 ml-1 font-medium">{formErrors.position._errors[0]}</p>
+                        {formErrors?.positionId && (
+                          <p className="text-sm text-destructive mt-1 ml-1 font-medium">{formErrors.positionId._errors[0]}</p>
                         )}
                       </div>
                     </div>
@@ -1294,7 +1294,7 @@ export function Personnel({
                               <Check
                                 className={cn(
                                   "h-4 w-4 shrink-0",
-                                  form.unitId === u.unitId?.toString() || "" ? "opacity-100" : "opacity-0"
+                                  form.unitId === (u.unitId?.toString() ?? "") ? "opacity-100" : "opacity-0"
                                 )}
                               />
                               <span className="font-bold text-emerald-600 bg-emerald-50 px-1.5 rounded">{u.unitId}</span>

@@ -115,16 +115,27 @@ export default function PersonnelViewClient({ id, employee }: PersonnelViewClien
         if (!employee) return null
         const base = convertToInspector(employee)
         
-        // Populate with real-time stats
+        // Дополняем данными реального времени, сохраняя KPI с сервера
+        const recoveredTotal = violations.reduce((sum: number, v: any) => sum + Number(v.recovered || 0), 0)
+        const damageTotal = violations.reduce((sum: number, v: any) => sum + Number(v.amount || 0), 0)
+        const recoveryRate = damageTotal > 0 ? (recoveredTotal / damageTotal) * 100 : 0
+        const computedKpiScore = Math.round(recoveryRate)
+        const kpiScore = computedKpiScore > 0 ? computedKpiScore : (base.kpiScore || 0)
+        const kpiRating: Inspector["kpiRating"] =
+            kpiScore >= 90 ? "excellent" :
+            kpiScore >= 70 ? "good" :
+            kpiScore >= 50 ? "satisfactory" :
+            damageTotal > 0 ? "unsatisfactory" : (base.kpiRating || "satisfactory")
+
         return {
             ...base,
-            auditsCompleted: audits.filter(a => a.status === "completed").length,
-            auditsInProgress: audits.filter(a => a.status === "in_progress").length,
-            auditsPlanned: audits.filter(a => a.status === "planned").length,
+            auditsCompleted: audits.filter((a: any) => a.status === "completed").length,
+            auditsInProgress: audits.filter((a: any) => a.status === "in_progress").length,
+            auditsPlanned: audits.filter((a: any) => a.status === "planned").length,
             violationsFound: violations.length,
-            totalDamageAmount: violations.reduce((sum: number, v: any) => sum + Number(v.amount || 0), 0),
-            kpiScore: audits.length > 2 ? 88 : 75,
-            kpiRating: audits.length > 2 ? "good" : "satisfactory"
+            totalDamageAmount: damageTotal,
+            kpiScore,
+            kpiRating,
         } as Inspector
     }, [employee, audits, violations])
 

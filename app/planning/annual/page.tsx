@@ -12,7 +12,7 @@ export default async function AnnualPage({
   const params = await searchParams
 
   const year = params.year ? Number(params.year) : undefined
-  const status = params.status as any
+  const status = params.status as import("@/lib/services/planning-service").PlanStatus | undefined
   const search = params.search as string
 
   const plans = await planningService.getAnnualPlans({

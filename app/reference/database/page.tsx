@@ -3,30 +3,6 @@
 import { useState, useEffect, useMemo } from "react"
 import { Icons } from "@/components/icons"
 import dynamic from "next/dynamic"
-
-const Territories = dynamic(() => import("@/components/reference/territories").then(mod => mod.Territories), { ssr: false, loading: () => <div className="p-8 text-center text-muted-foreground">Загрузка...</div> })
-const MilitaryDistricts = dynamic(() => import("@/components/reference/military-districts").then(mod => mod.MilitaryDistricts), { ssr: false })
-const MilitaryUnits = dynamic(() => import("@/components/reference/military-units").then(mod => mod.MilitaryUnits), { ssr: false })
-const Personnel = dynamic(() => import("@/components/reference/personnel").then(mod => mod.Personnel), { ssr: false })
-const PhysicalPersons = dynamic(() => import("@/components/reference/physical-persons").then(mod => mod.PhysicalPersons), { ssr: false })
-const ViolationTypes = dynamic(() => import("@/components/reference/violation-types").then(mod => mod.ViolationTypes), { ssr: false })
-const DocumentTypes = dynamic(() => import("@/components/reference/document-types").then(mod => mod.DocumentTypes), { ssr: false })
-const ControlTypes = dynamic(() => import("@/components/reference/control-types").then(mod => mod.ControlTypes), { ssr: false })
-const ControlDirections = dynamic(() => import("@/components/reference/control-directions").then(mod => mod.ControlDirections), { ssr: false })
-const MilitaryRanksTable = dynamic(() => import("@/components/reference/military-ranks-table").then(mod => mod.MilitaryRanksTable), { ssr: false })
-const UnitNamesTable = dynamic(() => import("@/components/reference/unit-names-table").then(mod => mod.UnitNamesTable), { ssr: false })
-const MilitaryPositionsTable = dynamic(() => import("@/components/reference/military-positions-table").then(mod => mod.MilitaryPositionsTable), { ssr: false })
-const VusTable = dynamic(() => import("@/components/reference/vus-table").then(mod => mod.VusTable), { ssr: false })
-const KruStructure = dynamic(() => import("@/components/reference/kru-structure").then(mod => mod.KruStructure), { ssr: false })
-const ExpenseClassificationView = dynamic(() => import("@/components/reference/expense-classification-view").then(mod => mod.ExpenseClassificationView), { ssr: false })
-const SupplyDepartments = dynamic(() => import("@/components/reference/supply-departments").then(mod => mod.SupplyDepartments), { ssr: false })
-const TranslationManagementView = dynamic(() => import("@/components/reference/translation-management-view").then(mod => mod.TranslationManagementView), { ssr: false })
-const ReferenceVerticalNav = dynamic(() => import("@/components/reference/vertical-nav").then(mod => mod.ReferenceVerticalNav), { ssr: false })
-
-const GenericReferenceTable = dynamic(() => import("../../../components/reference/generic-reference-table").then(mod => mod.GenericReferenceTable), {
-  ssr: false,
-  loading: () => <div className="p-8 text-center text-muted-foreground">Загрузка компонента...</div>
-})
 import { LucideIcon, Star, HelpCircle, ClipboardList, Warehouse, DollarSign, Package, Network, Globe, Languages } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -34,6 +10,28 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useI18n } from "@/lib/i18n/context"
+
+const loadingFallback = () => <div className="p-8 text-center text-muted-foreground animate-pulse">●●●</div>
+
+const Territories = dynamic(() => import("@/components/reference/territories").then(mod => mod.Territories), { ssr: false, loading: loadingFallback })
+const MilitaryDistricts = dynamic(() => import("@/components/reference/military-districts").then(mod => mod.MilitaryDistricts), { ssr: false, loading: loadingFallback })
+const MilitaryUnits = dynamic(() => import("@/components/reference/military-units").then(mod => mod.MilitaryUnits), { ssr: false, loading: loadingFallback })
+const Personnel = dynamic(() => import("@/components/reference/personnel").then(mod => mod.Personnel), { ssr: false, loading: loadingFallback })
+const PhysicalPersons = dynamic(() => import("@/components/reference/physical-persons").then(mod => mod.PhysicalPersons), { ssr: false, loading: loadingFallback })
+const ViolationTypes = dynamic(() => import("@/components/reference/violation-types").then(mod => mod.ViolationTypes), { ssr: false, loading: loadingFallback })
+const DocumentTypes = dynamic(() => import("@/components/reference/document-types").then(mod => mod.DocumentTypes), { ssr: false, loading: loadingFallback })
+const ControlTypes = dynamic(() => import("@/components/reference/control-types").then(mod => mod.ControlTypes), { ssr: false, loading: loadingFallback })
+const ControlDirections = dynamic(() => import("@/components/reference/control-directions").then(mod => mod.ControlDirections), { ssr: false, loading: loadingFallback })
+const MilitaryRanksTable = dynamic(() => import("@/components/reference/military-ranks-table").then(mod => mod.MilitaryRanksTable), { ssr: false, loading: loadingFallback })
+const UnitNamesTable = dynamic(() => import("@/components/reference/unit-names-table").then(mod => mod.UnitNamesTable), { ssr: false, loading: loadingFallback })
+const MilitaryPositionsTable = dynamic(() => import("@/components/reference/military-positions-table").then(mod => mod.MilitaryPositionsTable), { ssr: false, loading: loadingFallback })
+const VusTable = dynamic(() => import("@/components/reference/vus-table").then(mod => mod.VusTable), { ssr: false, loading: loadingFallback })
+const KruStructure = dynamic(() => import("@/components/reference/kru-structure").then(mod => mod.KruStructure), { ssr: false, loading: loadingFallback })
+const ExpenseClassificationView = dynamic(() => import("@/components/reference/expense-classification-view").then(mod => mod.ExpenseClassificationView), { ssr: false, loading: loadingFallback })
+const SupplyDepartments = dynamic(() => import("@/components/reference/supply-departments").then(mod => mod.SupplyDepartments), { ssr: false, loading: loadingFallback })
+const TranslationManagementView = dynamic(() => import("@/components/reference/translation-management-view").then(mod => mod.TranslationManagementView), { ssr: false, loading: loadingFallback })
+const ReferenceVerticalNav = dynamic(() => import("@/components/reference/vertical-nav").then(mod => mod.ReferenceVerticalNav), { ssr: false })
+const GenericReferenceTable = dynamic(() => import("../../../components/reference/generic-reference-table").then(mod => mod.GenericReferenceTable), { ssr: false, loading: loadingFallback })
 
 export default function ReferenceDatabasePage() {
   const { locale, setLocale } = useI18n()
@@ -72,7 +70,7 @@ export default function ReferenceDatabasePage() {
       { id: "territories", title: locale === "ru" ? "Области и районы" : locale === "uzLatn" ? "Viloyatlar va tumanlar" : "Вилоятлар ва туманлар", icon: Icons.Map },
       { id: "districts", title: locale === "ru" ? "Военные округа" : locale === "uzLatn" ? "Harbiy okruglar" : "Ҳарбий округлар", icon: Icons.MapPin },
       { id: "units", title: locale === "ru" ? "Воинские части" : locale === "uzLatn" ? "Harbiy qismlar" : "Ҳарбий қисмлар", icon: Icons.Building },
-      { id: "unit-types", title: locale === "ru" ? "Типы воинских частей" : locale === "uzLatn" ? "Harbiy qism turlari" : "Ҳарбий qism turlari", icon: Icons.Tag },
+      { id: "unit-types", title: locale === "ru" ? "Типы воинских частей" : locale === "uzLatn" ? "Harbiy qism turlari" : "Ҳарбий қисм турлари", icon: Icons.Tag },
       { id: "specialization", title: locale === "ru" ? "Специализации" : locale === "uzLatn" ? "Ixtisosliklar" : "Ихтисосликлар", icon: Icons.Activity },
       { id: "kru-structure", title: locale === "ru" ? "Структура КРУ" : locale === "uzLatn" ? "KRU tuzilmasi" : "КРУ тузилмаси", icon: Icons.Target },
     ],
@@ -132,23 +130,6 @@ export default function ReferenceDatabasePage() {
     setActiveSection(firstSection)
   }
 
-  const getLocalizedValue = (item: any) => {
-    if (!item) return ""
-
-    // Check if the name itself is an object (common for DB-sourced localized JSON)
-    if (item.name && typeof item.name === 'object' && !Array.isArray(item.name)) {
-      const nameObj = item.name;
-      if (locale === "uzLatn") return nameObj.uz || nameObj.ru || "";
-      if (locale === "uzCyrl") return nameObj.uzk || nameObj.ru || "";
-      return nameObj.ru || "";
-    }
-
-    // Fallback for objects with separate language fields
-    if (locale === "uzLatn") return item.name_uz_latn || item.name || ""
-    if (locale === "uzCyrl") return item.name_uz_cyrl || item.name || ""
-    return item.name || ""
-  }
-
   const renderSectionContent = () => {
     if (activeGroup === "translations") {
       return <TranslationManagementView selectedModule={activeSection} />
@@ -189,7 +170,7 @@ export default function ReferenceDatabasePage() {
       case "severity": return <GenericReferenceTable classifierId={3} icon={<Icons.Alert className="h-6 w-6 text-primary" />} />
       case "violation-statuses": return <GenericReferenceTable classifierId={4} icon={<Icons.ShieldAlert className="h-6 w-6 text-primary" />} />
       case "decision-statuses": return <GenericReferenceTable classifierId={5} icon={<Icons.Check className="h-6 w-6 text-primary" />} />
-      case "decision-execution": return <GenericReferenceTable classifierId={5} icon={<Icons.CheckCircle className="h-6 w-6 text-primary" />} />
+      case "decision-execution": return <GenericReferenceTable classifierId={24} icon={<Icons.CheckCircle className="h-6 w-6 text-primary" />} />
       case "supply-departments": return <SupplyDepartments />
       case "all":
       case "dashboard":

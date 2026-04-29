@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client"
 import { prisma } from "../db/prisma"
 import { notificationService } from "./notification-service"
 
@@ -54,14 +55,15 @@ export const planningService = {
   // Annual Plans
   async getAnnualPlans(filters?: PlanFilters) {
     try {
-      const where: any = {}
+      const where: Prisma.rev_plan_yearWhereInput = {}
 
       if (filters?.year) where.year = filters.year
       if (filters?.status) where.status = filters.status
       if (filters?.search) {
         where.OR = [
-          { status: { contains: filters.search, mode: 'insensitive' } },
+          { plan_number: { contains: filters.search, mode: 'insensitive' } },
           { description: { contains: filters.search, mode: 'insensitive' } },
+          { ref_units: { name: { path: ["ru"], string_contains: filters.search } } },
         ]
       }
 
