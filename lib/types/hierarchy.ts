@@ -2,56 +2,52 @@
  * Hierarchy and Collision Detection Types
  */
 
-export type BlockLevel = 1 | 2 | 3; // 1: warning, 2: hard block, 3: exception required
+export enum PriorityLevel {
+  Master = 1,      // КРУ МО РУ - absolute authority
+  Central = 2,     // Central departments (ГУБП ГШ ВС РУ, etc)
+  Regional = 3,    // Military districts (ВВО, ТВО, etc),
+}
 
 export interface AuthorityHierarchy {
-  id: string | number;
+  authority_id: number;
   code: string;
   name: string;
-  level: number; // 1: highest, 3: lowest
-  priority: number;
-  jurisdiction?: string;
+  priority_level: PriorityLevel;
 }
 
-export interface CollisionInfo {
-  planId?: number | string;
-  authority?: string | null;
-  type?: string | null;
-  startDate?: string | Date | null;
-  endDate?: string | Date | null;
-  control_authority_id?: number | string;
-  controlAuthorityId?: number | string;
+export interface CollisionDetail {
+  planId: number;
+  authority: AuthorityHierarchy;
+  inspectionType: string;
+  startDate: Date;
+  endDate: Date;
+  inspectionDirection?: string;
 }
 
-export interface CollisionResult {
-  hasCollision: boolean;
-  plans?: CollisionInfo[];
-  blockLevel?: BlockLevel;
-  canOverride?: boolean;
-  requiredMinisterApproval?: boolean;
-  conflictingPlan?: CollisionInfo;
-}
-
-export interface HardBlockResult extends CollisionResult {
-  blockLevel: 3;
+export interface HardBlockResult {
+  hasCollision: true;
+  blockLevel: "same_authority" | "lower_priority" | "conflict_period";
+  conflictingPlan: CollisionDetail;
   canOverride: boolean;
   requiredMinisterApproval: boolean;
-  conflictingPlan: CollisionInfo;
+  reason: string;
+  details: {
+    userPriority: PriorityLevel;
+    conflictPriority: PriorityLevel;
+    yearOfExistingPlan: number;
+  };
+}
+
+export interface CollisionCheckResult {
+  hasCollision: boolean;
+  block?: HardBlockResult;
+  plans?: CollisionDetail[];
 }
 
 export interface ExceptionRequest {
   is_exceptional: boolean;
   exceptional_reason?: string;
   minister_order_ref?: string;
-  minister_order_date?: string;
-  override_authority_id?: number | string;
-}
-
-export interface PlanWithException {
-  [key: string]: any;
-  is_exceptional?: boolean;
-  exceptional_reason?: string;
-  minister_order_ref?: string;
-  minister_order_date?: string;
-  override_authority_id?: number | string;
+  minister_order_date?: Date;
+  override_authority_id?: number;
 }
