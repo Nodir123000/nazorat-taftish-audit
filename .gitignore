@@ -49,3 +49,6 @@ tmp/
 scratch/
 diagram_test.md
 *.fixed.prisma
+
+# Git worktrees
+.worktrees/
