@@ -14,7 +14,9 @@
     "seed:regions": "tsx scripts/seed-regions.ts",
     "seed:areas-xlsx": "tsx scripts/seed-areas-from-xlsx.ts",
     "seed:full": "tsx scripts/reset-and-seed-territories.ts",
-    "seed:all": "npm run seed:regions && npm run seed:areas-xlsx"
+    "seed:all": "npm run seed:regions && npm run seed:areas-xlsx",
+    "seed:authorities": "tsx prisma/seed-authorities.ts",
+    "verify:authorities": "tsx scripts/verify-authorities.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1032.0",
