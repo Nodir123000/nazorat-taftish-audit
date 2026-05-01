@@ -20,6 +20,7 @@ import dayjs from "dayjs"
 import quarterOfYear from "dayjs/plugin/quarterOfYear"
 import ruRU from "antd/locale/ru_RU"
 import enUS from "antd/locale/en_US"
+import { CollisionAlert } from "@/components/planning/collision-alert/CollisionAlert"
 
 // Регистрация плагина для работы с кварталами
 dayjs.extend(quarterOfYear)
@@ -154,6 +155,12 @@ export function ApprovedPlanDialog({
         approvedDate: "",
         totalAudits: 1,
         subordinateUnitsOnAllowance: [],
+        // Exception fields for minister's order
+        is_exceptional: false,
+        exceptional_reason: "",
+        minister_order_ref: "",
+        minister_order_date: "",
+        override_authority_id: null,
     })
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const [isHistoryPopulated, setIsHistoryPopulated] = useState(false);
@@ -195,6 +202,11 @@ export function ApprovedPlanDialog({
                 approvedDate: initialData.approvedDate || "",
                 totalAudits: initialData.objectsTotal || 1,
                 subordinateUnitsOnAllowance: initialData.subordinateUnitsOnAllowance || [],
+                is_exceptional: initialData.is_exceptional || false,
+                exceptional_reason: initialData.exceptional_reason || "",
+                minister_order_ref: initialData.minister_order_ref || "",
+                minister_order_date: initialData.minister_order_date || "",
+                override_authority_id: initialData.override_authority_id || null,
             })
         } else {
             setFormData({
@@ -216,6 +228,11 @@ export function ApprovedPlanDialog({
                 approvedDate: "",
                 totalAudits: 1,
                 subordinateUnitsOnAllowance: [],
+                is_exceptional: false,
+                exceptional_reason: "",
+                minister_order_ref: "",
+                minister_order_date: "",
+                override_authority_id: null,
             })
         }
         setCollisionInfo(null)
@@ -232,10 +249,21 @@ export function ApprovedPlanDialog({
 
             setIsCheckingCollision(true)
             try {
-                const url = `/api/planning/check-collision?unitId=${formData.unitId}&year=${formData.year}${isEditing && (initialData?.id || initialData?.planId) ? `&excludePlanId=${initialData.id || initialData.planId}` : ""}`
+                const url = `/api/planning/check-collision?unitId=${formData.unitId}&year=${formData.year}${isEditing && (initialData?.id || initialData?.planId) ? `&excludePlanId=${initialData.id || initialData?.planId}` : ""}`
                 const res = await fetch(url)
                 const data = await res.json()
                 setCollisionInfo(data)
+
+                // If there's a collision and we need to override, set the authority ID
+                if (data.hasCollision && data.plans && data.plans.length > 0) {
+                    const firstConflict = data.plans[0]
+                    if (firstConflict.control_authority_id || firstConflict.controlAuthorityId) {
+                        setFormData((prev: any) => ({
+                            ...prev,
+                            override_authority_id: firstConflict.control_authority_id || firstConflict.controlAuthorityId
+                        }))
+                    }
+                }
             } catch (error) {
                 console.error("Collision check failed:", error)
             } finally {
@@ -322,14 +350,34 @@ export function ApprovedPlanDialog({
     const handleSubmit = async (targetStatus?: number) => {
         const finalStatus = targetStatus || formData.status
         const errors = validateForStatus(finalStatus)
-        
+
         if (errors.length > 0) {
             // Можно добавить тост-уведомление здесь
             alert((locale === "ru" ? "Пожалуйста, заполните обязательные поля: " : "Iltimos, majburiy maydonlarni to'ldiring: ") + errors.join(", "))
             return
         }
 
-        await onSave({ ...formData, status: finalStatus })
+        // Validate exception fields if collision requires minister approval
+        if (collisionInfo?.hasCollision && collisionInfo.plans && collisionInfo.plans.length > 0) {
+            // If we're trying to override a collision, we need exception info
+            const needsExceptionInfo = true // Conservative: always require it for hard blocks
+            if (needsExceptionInfo && !formData.minister_order_ref) {
+                alert(locale === "ru"
+                    ? "Для переопределения конфликта требуется приказ министра"
+                    : "Konfliktni qayta belgilash uchun ministr buyrug'i kerak")
+                return
+            }
+        }
+
+        // Set is_exceptional to true if any exception field is filled
+        const hasExceptionData = formData.exceptional_reason || formData.minister_order_ref || formData.minister_order_date
+        const submitData = {
+            ...formData,
+            status: finalStatus,
+            is_exceptional: hasExceptionData || formData.is_exceptional,
+        }
+
+        await onSave(submitData)
     }
 
     const nextStep = () => {
@@ -400,43 +448,11 @@ export function ApprovedPlanDialog({
 
                 <div className="flex-1 overflow-y-auto p-6">
                     <div className="grid gap-6">
-                        {collisionInfo?.hasCollision && (
-                            <div className="mx-6 mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
-                                <Alert variant="destructive" className="bg-red-50 border-red-200 text-red-900 shadow-sm rounded-2xl overflow-hidden p-0">
-                                    <div className="flex">
-                                        <div className="bg-red-500 p-4 flex items-center justify-center">
-                                            <Icons.AlertTriangle className="h-6 w-6 text-white" />
-                                        </div>
-                                        <div className="p-4 flex-1">
-                                            <AlertTitle className="font-black text-sm uppercase tracking-tight flex items-center gap-2">
-                                                {locale === "ru" ? "Внимание: Коллизия планов" : "Diqqat: Rejalar to'qnashuvi"}
-                                                <Badge className="bg-red-500 text-white border-none text-[10px] h-5">
-                                                    {collisionInfo.plans.length}
-                                                </Badge>
-                                            </AlertTitle>
-                                            <AlertDescription className="text-xs mt-1 text-red-700/80 font-medium">
-                                                {locale === "ru" 
-                                                    ? `В ${formData.year} году для этой части уже запланированы проверки:`
-                                                    : `${formData.year}-yilda ushbu qism uchun rejalar mavjud:`}
-                                                <div className="grid grid-cols-1 gap-1 mt-2">
-                                                    {collisionInfo.plans?.map((p: any, i: number) => (
-                                                        <div key={i} className="flex items-center gap-2 bg-white/50 p-1.5 rounded-lg border border-red-100">
-                                                            <Icons.Shield className="w-3 h-3 text-red-400" />
-                                                            <span className="font-bold">{toSafeString(p.authority, locale as any)}</span>
-                                                            <span className="opacity-50">|</span>
-                                                            <span>{toSafeString(p.type, locale as any)}</span>
-                                                            <Badge variant="outline" className="ml-auto text-[9px] font-mono border-red-200">
-                                                                {p.startDate ? dayjs(p.startDate).format('DD.MM.YYYY') : '...'}
-                                                            </Badge>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </AlertDescription>
-                                        </div>
-                                    </div>
-                                </Alert>
-                            </div>
-                        )}
+                        <CollisionAlert
+                            collision={collisionInfo}
+                            locale={locale}
+                            isLoading={isCheckingCollision}
+                        />
 
 
                         <fieldset disabled={isLocked} className="grid gap-6 border-none p-0 m-0 animate-in fade-in slide-in-from-right-4 duration-300">
@@ -834,7 +850,7 @@ export function ApprovedPlanDialog({
                                                                 if (statusId === "101" || statusId === "approved") badgeClass = "bg-green-500/10 text-green-600 border-green-200";
                                                                 else if (statusId === "102" || statusId === "in_progress") badgeClass = "bg-indigo-500/10 text-indigo-600 border-indigo-200";
                                                                 else if (statusId === "106") badgeClass = "bg-amber-500/10 text-amber-600 border-amber-200";
-                                                                
+
                                                                 return (
                                                                     <Badge variant="outline" className={cn("whitespace-nowrap font-medium text-[10px]", badgeClass)}>
                                                                         {getStatusLabel(formData.status, locale as any)}
@@ -869,6 +885,70 @@ export function ApprovedPlanDialog({
                                             </Popover>
                                         </div>
                                     </div>
+
+                                    {/* Minister's Order Exception Fields */}
+                                    {collisionInfo?.hasCollision && (
+                                        <div className={cn(
+                                            "p-4 rounded-lg border space-y-4 animate-in fade-in slide-in-from-top-2 duration-300",
+                                            "bg-blue-50/30 border-blue-200/50"
+                                        )}>
+                                            <div className="flex items-center gap-2">
+                                                <Icons.AlertCircle className="h-4 w-4 text-blue-600" />
+                                                <Label className="font-bold text-sm text-blue-900">
+                                                    {locale === "ru"
+                                                        ? "Приказ министра для переопределения"
+                                                        : "Qayta belgilash uchun ministr buyrug'i"}
+                                                </Label>
+                                            </div>
+                                            <p className="text-xs text-blue-700/70">
+                                                {locale === "ru"
+                                                    ? "Заполните поля для переопределения конфликта планов"
+                                                    : "Rejalar konfliktini qayta belgilash uchun maydonlarni to'ldiring"}
+                                            </p>
+
+                                            <div className="space-y-3">
+                                                <div className="grid gap-2">
+                                                    <Label className="text-xs font-bold">
+                                                        {locale === "ru" ? "Номер приказа" : "Buyruq raqami"}
+                                                    </Label>
+                                                    <Input
+                                                        value={formData.minister_order_ref || ""}
+                                                        onChange={(e) => setFormData({ ...formData, minister_order_ref: e.target.value })}
+                                                        placeholder={locale === "ru" ? "Например: ВО-2024-001" : "Masalan: ВО-2024-001"}
+                                                        className="h-9 text-sm"
+                                                    />
+                                                </div>
+
+                                                <div className="grid gap-2">
+                                                    <Label className="text-xs font-bold">
+                                                        {locale === "ru" ? "Дата приказа" : "Buyruq sanasi"}
+                                                    </Label>
+                                                    <ConfigProvider locale={locale === "ru" ? ruRU : enUS}>
+                                                        <DatePicker
+                                                            className="h-9 text-sm"
+                                                            value={formData.minister_order_date ? dayjs(formData.minister_order_date) : null}
+                                                            onChange={(date) => setFormData({ ...formData, minister_order_date: date ? date.format("YYYY-MM-DD") : "" })}
+                                                            format="DD.MM.YYYY"
+                                                        />
+                                                    </ConfigProvider>
+                                                </div>
+
+                                                <div className="grid gap-2">
+                                                    <Label className="text-xs font-bold">
+                                                        {locale === "ru" ? "Причина переопределения (опционально)" : "Qayta belgilash sababi (ixtiyoriy)"}
+                                                    </Label>
+                                                    <textarea
+                                                        value={formData.exceptional_reason || ""}
+                                                        onChange={(e) => setFormData({ ...formData, exceptional_reason: e.target.value })}
+                                                        placeholder={locale === "ru"
+                                                            ? "Описание причин переопределения..."
+                                                            : "Qayta belgilash sabablari..."}
+                                                        className="h-20 text-sm p-2 rounded border border-input bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
