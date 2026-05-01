@@ -470,9 +470,24 @@ export const planningService = {
     };
   },
 
-  async createAnnualPlan(data: any) {
+  async createAnnualPlan(data: any, userId?: number) {
     console.log("[planning-service] createAnnualPlan input data:", JSON.stringify(data, null, 2));
-    
+
+    // Validate exception if flagged
+    if (data.is_exceptional && userId) {
+      const { collisionService } = await import("./collision-service");
+      const validation = await collisionService.validateException(userId, {
+        is_exceptional: data.is_exceptional,
+        exceptional_reason: data.exceptional_reason,
+        minister_order_ref: data.minister_order_ref,
+        minister_order_date: data.minister_order_date ? new Date(data.minister_order_date) : undefined
+      });
+
+      if (!validation.valid) {
+        throw new Error(validation.error);
+      }
+    }
+
     // 0. Поиск органа (по коду)
     let authId = null;
     if (data.controlAuthority) {
@@ -580,6 +595,11 @@ export const planningService = {
                 objects_os: data.objectsOs ? Number(data.objectsOs) : null,
                 description: data.description,
                 subordinate_units_on_allowance: data.subordinateUnitsOnAllowance || [],
+                is_exceptional: data.is_exceptional || false,
+                exceptional_reason: data.exceptional_reason || null,
+                minister_order_ref: data.minister_order_ref || null,
+                minister_order_date: data.minister_order_date ? new Date(data.minister_order_date) : null,
+                override_authority_id: data.override_authority_id || null
             },
         });
 
@@ -1057,7 +1077,14 @@ export const planningService = {
     }
   },
 
-  async checkPlanCollision(unitId: number, year: number, excludePlanId?: number) {
+  async checkPlanCollision(unitId: number, year: number, excludePlanId?: number, userId?: number) {
+    // If userId provided, use hierarchy-aware check
+    if (userId) {
+      const { collisionService } = await import("./collision-service");
+      return collisionService.checkPlanCollisionWithHierarchy(unitId, year, userId, excludePlanId);
+    }
+
+    // Fallback to simple collision check (for backward compatibility)
     try {
       const existingPlans = await prisma.rev_plan_year.findMany({
         where: {

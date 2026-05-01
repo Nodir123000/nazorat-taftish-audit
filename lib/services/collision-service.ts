@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { PriorityLevel, HardBlockResult, CollisionCheckResult, CollisionDetail } from "@/lib/types/hierarchy";
 import { logAudit } from "@/lib/server-audit";
+import { logCollisionCheck, logHardBlock } from "./audit-logging-service";
 
 interface UserContext {
   user_id: number;
@@ -105,6 +106,22 @@ export const collisionService = {
       if (hardBlocks.length > 0) {
         const conflict = hardBlocks[0];
         const conflictPriority = (conflict.ref_control_authorities?.priority_level || PriorityLevel.Regional) as PriorityLevel;
+
+        // Log hard block event with specialized audit service
+        const userAuthority = await prisma.users.findUnique({
+          where: { user_id: userId },
+          select: { control_authority_id: true }
+        });
+
+        await logHardBlock(
+          userId.toString(),
+          unitId.toString(),
+          year,
+          1, // blockLevel
+          conflict.plan_id.toString(),
+          conflict.ref_control_authorities?.authority_id || 0,
+          conflictPriority
+        );
 
         await logAudit({
           userId,

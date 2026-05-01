@@ -376,6 +376,10 @@ model ref_control_authorities {
   priority_level Int            @default(3)              // 1=Master, 2=Central, 3=Regional
   created_at    DateTime?       @default(now())
   rev_plan_year rev_plan_year[]
+  override_plans rev_plan_year[] @relation("override_authority_id_fk")
+  users         users[]
+
+  @@index([priority_level])
 }
 
 model ref_control_directions {
@@ -745,11 +749,11 @@ model rev_plan_year {
   control_authority_id                      Int?
   inspection_direction_id                   Int?
   inspection_type_id                        Int?
-  is_exceptional                            Boolean?                 @default(false)
-  exceptional_reason                        String?
-  minister_order_ref                        String?                  @db.VarChar(100)
-  minister_order_date                       DateTime?                @db.Date
-  override_authority_id                     Int?                     // Which higher authority allowed override
+  is_exceptional           Boolean?                   @default(false)
+  exceptional_reason       String?
+  minister_order_ref       String?                    @db.VarChar(100)
+  minister_order_date      DateTime?                  @db.Date
+  override_authority_id    Int?                       // Which higher authority allowed override
   briefings                                 briefings[]
   orders                                    orders[]
   plan_change_log                           plan_change_log[]
@@ -757,7 +761,7 @@ model rev_plan_year {
   quarterly_plans                           quarterly_plans[]
   users_rev_plan_year_approved_by_idTousers users?                   @relation("rev_plan_year_approved_by_idTousers", fields: [approved_by_id], references: [user_id])
   ref_control_authorities                   ref_control_authorities? @relation(fields: [control_authority_id], references: [authority_id])
-  override_authority                        ref_control_authorities? @relation("override_authority_id_fk", fields: [override_authority_id], references: [authority_id])
+  override_authority       ref_control_authorities?  @relation("override_authority_id_fk", fields: [override_authority_id], references: [authority_id])
   ref_control_directions                    ref_control_directions?  @relation(fields: [inspection_direction_id], references: [direction_id])
   ref_inspection_types                      ref_inspection_types?    @relation(fields: [inspection_type_id], references: [id])
   users_rev_plan_year_responsible_idTousers users?                   @relation("rev_plan_year_responsible_idTousers", fields: [responsible_id], references: [user_id])
@@ -794,8 +798,8 @@ model users {
   updated_at                                        DateTime?                 @default(now())
   specialization                                    String?                   @db.VarChar(255)
   has_completed_welcome_tour                        Boolean?                  @default(false)
-  control_authority_id                              Int?
-  rls_authority_id                                  Int?                      // For RLS enforcement
+  control_authority_id     Int?
+  rls_authority_id         Int?                      // For RLS enforcement
   audit_log                                         audit_log[]
   audits                                            audits[]
   briefings                                         briefings[]
@@ -810,7 +814,7 @@ model users {
   rev_plan_year_rev_plan_year_responsible_idTousers rev_plan_year[]           @relation("rev_plan_year_responsible_idTousers")
   unplanned_audits                                  unplanned_audits[]
   user_kpi_scores                                   user_kpi_scores[]
-  ref_control_authorities                           ref_control_authorities? @relation(fields: [control_authority_id], references: [authority_id], onDelete: SetNull)
+  ref_control_authorities  ref_control_authorities? @relation(fields: [control_authority_id], references: [authority_id], onDelete: SetNull)
 
   @@index([control_authority_id])
   @@index([rls_authority_id])
