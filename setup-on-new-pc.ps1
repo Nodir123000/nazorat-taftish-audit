@@ -43,7 +43,7 @@ try {
 }
 
 # 5. Импорт дампа
-$sqlFile = "db_transfer_ready_2026_04_27.sql"
+$sqlFile = "db_transfer_ready_2026_05_02.sql"
 if (Test-Path $sqlFile) {
     Write-Host "[2/4] Обновление данных из $sqlFile..." -ForegroundColor Cyan
     Write-Host "(Старые данные в таблицах будут заменены новыми)" -ForegroundColor Gray
